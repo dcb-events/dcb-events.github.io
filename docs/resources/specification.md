@@ -10,7 +10,7 @@ Expects a [StreamQuery](#StreamQuery) and an optional starting [SequenceNumber](
 
 ## Writing
 
-Expects a set of [Events](#Events) and an [AppendCondition](#AppendCondition) and returns the last appended [SequenceNumber](#SequenceNumber).
+Expects a single [Event](#Event) or a set of [Events](#Events) and (optionally) an [AppendCondition](#AppendCondition).
 
 ## API
 
@@ -19,7 +19,7 @@ A potential interface of the `EventStore` (pseudo-code):
 ```
 EventStore {
   read(query: StreamQuery, options?: ReadOptions): EventStream
-  append(events: Events|Event, condition: AppendCondition): void
+  append(events: Events|Event, condition?: AppendCondition): void
 }
 ```
 
@@ -28,13 +28,15 @@ EventStore {
 An optional parameter to `EventStore.read()` that allows for cursor-based pagination of events.
 It has two parameters:
 
-- `backwards` a flag that, if set to `true`, returns the events in descending order (default: `false`)
 - `from` an optional [SequenceNumber](#SequenceNumber) to start streaming events from (depending on the `backwards` flag this is either a _minimum_ or _maximum_ sequence number of the resulting stream)
+- `backwards` a flag that, if set to `true`, returns the events in reverse order (default: `false`)
+- `limit` an optional number that, if set, limits the event stream to a maximum number of events. This can be useful to only retrieve the last event for example.
 
 ```
 ReadOptions {
   from?: SequenceNumber
-  backwards: bool
+  backwards: boolean
+  limit?: integer
 }
 ```
 
@@ -43,10 +45,10 @@ ReadOptions {
 The `StreamQuery` describes constraints that must be matched by [Event](#Event)s in the [EventStore](#EventStore)
 It effectively allows for filtering events by their [type](#EventType) and/or [tags](#Tags)
 
-- It _MAY_ contain a set of [StreamQuery Criteria](#StreamQuery-Criterion) – a `StreamQuery` with an empty criteria set is considered a "wildcard" query, i.e. it matches all events
+- It _MUST_ contain a set of [StreamQuery Criteria](#StreamQuery-Criterion)
 
-> [!NOTE]  
-> All criteria of a StreamQuery are merged into a _logical disjunction_, so events match the query if they match the first **OR** the second criterion...
+!!! info
+    All criteria of a StreamQuery are merged into a _logical disjunction_, so events match the query if they match the first **OR** the second criterion...
 
 ### StreamQuery Criterion
 
@@ -62,8 +64,8 @@ Each criterion of a [StreamQuery](#StreamQuery) allows to target events by their
 The following example query would match events that are either...
 
 - ...of type `EventType1` **OR** `EventType2`
-- ...tagged `foo:bar` **AND** `baz:foos`
-- ...of type `EventType2` **OR** `EventType3` **AND** tagged `foo:bar`**AND** `foo:baz`
+- ...tagged `tag1` **AND** `tag2`
+- ...of type `EventType2` **OR** `EventType3` **AND** tagged `tag1`**AND** `tag3`
 
 ```json
 {
@@ -72,11 +74,11 @@ The following example query would match events that are either...
       "event_types": ["EventType1", "EventType2"]
     },
     {
-      "tags": ["foo:bar", "baz:foos"]
+      "tags": ["tag1", "tag2"]
     },
     {
       "event_types": ["EventType2", "EventType3"],
-      "tags": ["foo:bar", "foo:baz"]
+      "tags": ["tag1", "tag3"]
     }
   ]
 }
@@ -98,13 +100,11 @@ It...
 
 When reading from the [EventStore](#EventStore) an `EventStream` is returned.
 
-It...
-
-- It _MUST_ be iterable
+- It _MUST_ be iterable (e.g. via generator or reactive pattern, depending on the specific implementation)
 - It _MUST_ return an [EventEnvelope](#EventEnvelope) for every iteration
 - It _CAN_ include new events if they occur during iteration
-- Individual [EventEnvelope](#EventEnvelope) instances _MAY_ be converted during iteration for performance optimization
 - Batches of events _MAY_ be loaded from the underlying storage at once for performance optimization
+- It _CAN_ provide additional functionality, e.g. a `subscribe()` function to realize reactive behavior
 
 ### EventEnvelope
 
@@ -123,7 +123,7 @@ It...
   "event": {
     "type": "SomeEventType",
     "data": "{\"some\":\"data\"}",
-    "tags": ["type1:value1", "type2:value2"]
+    "tags": ["tag1", "tag2"]
   },
   "sequence_number": 1234,
   "recorded_at": "2024-12-10 14:02:40"
@@ -152,7 +152,7 @@ It...
 {
   "type": "SomeEventType",
   "data": "{\"some\":\"data\"}",
-  "tags": ["key1:value1", "key1:value2"]
+  "tags": ["tag1", "tag2"]
 }
 ```
 
@@ -181,20 +181,24 @@ A set of [Tag](#Tag) instances.
 
 A `Tag` can add domain specific metadata to an event allowing for custom partitioning
 
-!!! note
+!!! info
     Usually a tag represents a concept of the domain, e.g. the type and id of an entity like `product:p123`
 
 - It _MUST_ satisfy the regular expression `/^[[:alnum:]\-\_\:]{1,150}`
+- It _CAN_ represent a key/value pair such as `product:123` but that is irrelevant to the Event Store
 
 ### AppendCondition
 
 - It _MUST_ contain a [StreamQuery](#StreamQuery)
-- It _MUST_ contain a [ExpectedHighestSequenceNumber](#ExpectedHighestSequenceNumber)
+- It _MUST_ be _either_ a
+  - [SequenceNumber](#SequenceNumber) - representing the highest sequence number that the client was aware of while building the decision model. *Note:* This number can be _higher_ than the sequence number of the last event matching the StreamQuery.
+  - `NONE` - no event must match the specified [StreamQuery](#StreamQuery)
 
-### ExpectedHighestSequenceNumber
+#### 
 
-Can _either_ represent an instance of [SequenceNumber](#SequenceNumber)
-Or one of:
-
-- `NONE` – No event must match the specified [StreamQuery](#StreamQuery)
-- `ANY` – Any event matches (= wildcard [AppendCondition](#AppendCondition))
+```
+AppendCondition {
+  query: StreamQuery
+  highestSequenceNumber: SequenceNumber | NONE
+}
+```
