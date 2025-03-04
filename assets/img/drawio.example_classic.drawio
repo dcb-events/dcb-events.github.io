@@ -1,0 +1,109 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36" version="26.0.16">
+  <diagram name="Seite-1" id="r95zw7-B-S0A9r7h02m8">
+    <mxGraphModel dx="1834" dy="840" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" value="BG" parent="0" />
+        <mxCell id="7EFssaYVpA_n2hoAjp4g-146" value="" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=none;fillColor=none;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" vertex="1">
+          <mxGeometry x="-119" y="16" width="515" height="238" as="geometry" />
+        </mxCell>
+        <mxCell id="TNLdKFddaoTVygyAMJ7R-31" value="P0" parent="0" />
+        <UserObject label="" link="data:action/json,{   &quot;actions&quot;: [     {       &quot;show&quot;: {         &quot;cells&quot;: [           &quot;p1&quot;         ]       }     },     {       &quot;wait&quot;: 10     },     {       &quot;highlight&quot;: {         &quot;cells&quot;: [           &quot;event1&quot;         ]       }     }   ] }" id="TNLdKFddaoTVygyAMJ7R-32">
+          <mxCell style="shape=image;html=1;verticalAlign=top;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;aspect=fixed;image=https://cdn2.iconfinder.com/data/icons/font-awesome/1792/step-forward-128.png;imageBackground=#A9C4EB;imageBorder=default;perimeterSpacing=5;" vertex="1" parent="TNLdKFddaoTVygyAMJ7R-31">
+            <mxGeometry x="229" y="193" width="46" height="46" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <mxCell id="TNLdKFddaoTVygyAMJ7R-33" value="Click the button to start ----&amp;gt;" style="text;strokeColor=#d6b656;fillColor=#fff2cc;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" vertex="1" parent="TNLdKFddaoTVygyAMJ7R-31">
+          <mxGeometry x="-13" y="201" width="222" height="30" as="geometry" />
+        </mxCell>
+        <object label="P1" id="p1">
+          <mxCell parent="0" visible="0" />
+        </object>
+        <mxCell id="TNLdKFddaoTVygyAMJ7R-34" value="stream &quot;course-c1&quot;" style="line;strokeWidth=1;html=1;dashed=1;dashPattern=1 1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;spacingTop=0;spacingRight=2;strokeColor=#808080;fillColor=#999999;" vertex="1" parent="p1">
+          <mxGeometry y="66" width="380" height="10" as="geometry" />
+        </mxCell>
+        <UserObject label="" link="data:action/json,{   &quot;actions&quot;: [     {       &quot;show&quot;: {         &quot;cells&quot;: [           &quot;p2&quot;         ]       }     },     {       &quot;wait&quot;: 10     },     {       &quot;highlight&quot;: {         &quot;cells&quot;: [           &quot;event2&quot;         ]       }     }   ] }" id="TNLdKFddaoTVygyAMJ7R-7">
+          <mxCell style="shape=image;html=1;verticalAlign=top;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;aspect=fixed;image=https://cdn2.iconfinder.com/data/icons/font-awesome/1792/step-forward-128.png;imageBackground=#A9C4EB;imageBorder=default;perimeterSpacing=5;" vertex="1" parent="p1">
+            <mxGeometry x="229" y="193" width="46" height="46" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <mxCell id="TNLdKFddaoTVygyAMJ7R-8" value="First a course &quot;c1&quot; is defined" style="text;strokeColor=#d6b656;fillColor=#fff2cc;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" vertex="1" parent="p1">
+          <mxGeometry x="-13" y="201" width="222" height="30" as="geometry" />
+        </mxCell>
+        <object label="course&lt;div&gt;defined&lt;/div&gt;" id="event1">
+          <mxCell style="whiteSpace=wrap;html=1;aspect=fixed;rounded=1;fillColor=#FFB570;strokeColor=#CF935B;fontFamily=Helvetica;fontSize=8;arcSize=5;imageHeight=24;" vertex="1" parent="p1">
+            <mxGeometry x="10" y="50" width="42" height="42" as="geometry" />
+          </mxCell>
+        </object>
+        <object label="P2" id="p2">
+          <mxCell parent="0" visible="0" />
+        </object>
+        <mxCell id="TNLdKFddaoTVygyAMJ7R-30" value="stream &quot;student-s1&quot;" style="line;strokeWidth=1;html=1;dashed=1;dashPattern=1 1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;spacingTop=0;spacingRight=2;strokeColor=#808080;" vertex="1" parent="p2">
+          <mxGeometry y="141" width="380" height="10" as="geometry" />
+        </mxCell>
+        <object label="student&lt;div&gt;registered&lt;/div&gt;" id="event2">
+          <mxCell style="whiteSpace=wrap;html=1;aspect=fixed;rounded=1;fillColor=#FFB570;strokeColor=#CF935B;fontColor=#000000;fontFamily=Helvetica;fontSize=8;arcSize=5;imageHeight=24;" vertex="1" parent="p2">
+            <mxGeometry x="70" y="125" width="42" height="42" as="geometry" />
+          </mxCell>
+        </object>
+        <UserObject label="" link="data:action/json,{   &quot;actions&quot;: [     {       &quot;show&quot;: {         &quot;cells&quot;: [           &quot;p3&quot;         ]       }     },     {       &quot;wait&quot;: 10     },     {       &quot;highlight&quot;: {         &quot;cells&quot;: [           &quot;event3&quot;         ]       }     }   ] }" id="TNLdKFddaoTVygyAMJ7R-16">
+          <mxCell style="shape=image;html=1;verticalAlign=top;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;aspect=fixed;image=https://cdn2.iconfinder.com/data/icons/font-awesome/1792/step-forward-128.png;imageBackground=#A9C4EB;imageBorder=default;perimeterSpacing=5;" vertex="1" parent="p2">
+            <mxGeometry x="229" y="193" width="46" height="46" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <mxCell id="TNLdKFddaoTVygyAMJ7R-17" value="Then a student &quot;s1&quot; is added to the system" style="text;strokeColor=#d6b656;fillColor=#fff2cc;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" vertex="1" parent="p2">
+          <mxGeometry x="-40" y="201" width="249" height="30" as="geometry" />
+        </mxCell>
+        <object label="P3" id="p3">
+          <mxCell parent="0" visible="0" />
+        </object>
+        <UserObject label="" link="data:action/json,{   &quot;actions&quot;: [     {       &quot;show&quot;: {         &quot;cells&quot;: [           &quot;p4&quot;         ]       }     },     {       &quot;wait&quot;: 10     },     {       &quot;highlight&quot;: {         &quot;cells&quot;: [           &quot;event4&quot;         ]       }     }   ] }" id="TNLdKFddaoTVygyAMJ7R-19">
+          <mxCell style="shape=image;html=1;verticalAlign=top;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;aspect=fixed;image=https://cdn2.iconfinder.com/data/icons/font-awesome/1792/step-forward-128.png;imageBackground=#A9C4EB;imageBorder=default;perimeterSpacing=5;" vertex="1" parent="p3">
+            <mxGeometry x="229" y="193" width="46" height="46" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <mxCell id="TNLdKFddaoTVygyAMJ7R-20" value="Student &quot;s1&quot; subscribes to the course &quot;c1&quot;" style="text;strokeColor=#d6b656;fillColor=#fff2cc;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" vertex="1" parent="p3">
+          <mxGeometry x="-40" y="201" width="249" height="30" as="geometry" />
+        </mxCell>
+        <object label="student&lt;div&gt;subscribed&lt;/div&gt;&lt;div&gt;to course&lt;/div&gt;" id="event3">
+          <mxCell style="whiteSpace=wrap;aspect=fixed;rounded=1;fillColor=#FFB570;strokeColor=#CF935B;fontColor=#000000;fontFamily=Helvetica;fontSize=8;html=1;fontStyle=0;arcSize=5;imageHeight=24;" vertex="1" parent="p3">
+            <mxGeometry x="130" y="125" width="42" height="42" as="geometry" />
+          </mxCell>
+        </object>
+        <object label="P4" id="p4">
+          <mxCell parent="0" visible="0" />
+        </object>
+        <mxCell id="TNLdKFddaoTVygyAMJ7R-22" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;startSize=4;endSize=4;dashed=1;fillColor=#f8cecc;strokeColor=#b85450;targetPerimeterSpacing=13;sourcePerimeterSpacing=2;endArrow=open;endFill=0;" edge="1" parent="p4">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="201" y="96" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="194" y="117" />
+            </Array>
+            <mxPoint x="175" y="125" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <object label="student&lt;div&gt;subscribed&lt;/div&gt;&lt;div&gt;to course&lt;/div&gt;" id="event4">
+          <mxCell style="whiteSpace=wrap;aspect=fixed;rounded=1;fillColor=#FFB570;strokeColor=#CF935B;fontColor=#000000;fontFamily=Helvetica;fontSize=8;html=1;fontStyle=0;arcSize=5;imageHeight=24;" vertex="1" parent="p4">
+            <mxGeometry x="190" y="50" width="42" height="42" as="geometry" />
+          </mxCell>
+        </object>
+        <mxCell id="TNLdKFddaoTVygyAMJ7R-25" value="Critical: This event has to be &quot;re-published&quot; to the course stream" style="text;strokeColor=#d6b656;fillColor=#fff2cc;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" vertex="1" parent="p4">
+          <mxGeometry x="-40" y="201" width="249" height="30" as="geometry" />
+        </mxCell>
+        <UserObject label="" link="data:action/json,{&quot;actions&quot;:[{&quot;show&quot;:{&quot;cells&quot;:[&quot;p4&quot;]}}]}" id="TNLdKFddaoTVygyAMJ7R-26">
+          <mxCell style="shape=image;html=1;verticalAlign=top;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;aspect=fixed;image=https://cdn2.iconfinder.com/data/icons/font-awesome/1792/step-forward-128.png;imageBackground=#A9C4EB;imageBorder=default;perimeterSpacing=5;" vertex="1" parent="p4">
+            <mxGeometry x="229" y="193" width="46" height="46" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="" link="data:action/json,{   &quot;actions&quot;: [     {       &quot;hide&quot;: {         &quot;cells&quot;: [           &quot;p1&quot;,           &quot;p2&quot;,           &quot;p3&quot;,           &quot;p4&quot;         ]       }     }   ] }" id="TNLdKFddaoTVygyAMJ7R-28">
+          <mxCell style="shape=image;html=1;verticalAlign=top;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;aspect=fixed;image=https://cdn0.iconfinder.com/data/icons/phosphor-fill-vol-4/256/rewind-fill-128.png;strokeColor=default;align=center;fontFamily=Helvetica;fontSize=12;fontColor=default;fillColor=default;imageBorder=default;imageBackground=#A9C4EB;perimeterSpacing=0;" vertex="1" parent="p4">
+            <mxGeometry x="229" y="193" width="46" height="46" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <mxCell id="TNLdKFddaoTVygyAMJ7R-24" value="" style="ellipse;whiteSpace=wrap;html=1;rotation=-90;sketch=1;curveFitting=1;jiggle=2;fillColor=none;strokeColor=#b85450;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" vertex="1" parent="p4">
+          <mxGeometry x="109" y="42" width="154.88" height="136.25" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
