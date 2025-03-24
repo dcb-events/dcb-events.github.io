@@ -45,9 +45,11 @@ console.log({numberOfCourses})
 
 ## Query only relevant events
 
-In the above example the reducer iterates over all events even though it only changes the state for `CourseDefined` events. This is not an issue for this simple example. But in reality those events are not stored in memory and there can be many of them. So obviously, they should be filtered _before_ they are read from the Event Store.
+In the above example, the reducer iterates over all events even though it only changes the state for `CourseDefined` events... This is not an issue for this simple example. But in reality, those events are not stored in memory, and there can be many of them. So obviously, they should be filtered _before_ they are read from the Event Store.
 
-The Type of the event is the first important element used to filter the events that affect my projection inside a large Event Store.
+### Filter events by type
+
+The Event Type is the main criteria for filtering events before reading them from an Event Store.
 
 Events of the same type are typically handled using the same code and business rules. For this reason, it feels natural to partition the function that processes the state into a more declarative format, where business rules are defined based on the types of events they handle.
 
@@ -75,7 +77,7 @@ console.log({numberOfCourses})
 ```
 <codapi-snippet engine="browser" sandbox="javascript" depends-on="example1 example2"></codapi-snippet>
 
-## Filter events by tags
+### Filter events by tags
 
 As previously mentioned, in the context of DCB, projections are typically used to reconstruct in memory the minimal model required to validate a business decision the system needs to make—usually in response to a command from a user.
 
