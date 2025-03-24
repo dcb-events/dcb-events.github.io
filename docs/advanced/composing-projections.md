@@ -53,8 +53,7 @@ The Event Type is the main criteria for filtering events before reading them fro
 
 Events of the same type are typically handled using the same code and business rules. For this reason, it feels natural to partition the function that processes the state into a more declarative format, where business rules are defined based on the types of events they handle.
 
-
-By defining the event handlers more declaratively, the handled event types can be determined from the projection definition:
+By defining the event handlers more declaratively, the handled event types can be determined from the projection definition itself:
 
 ```js
 const projection = {
