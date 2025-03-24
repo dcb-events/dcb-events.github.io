@@ -81,11 +81,6 @@ console.log({numberOfCourses})
 As previously mentioned, in the context of DCB, projections are typically used to reconstruct the minimal model required to validate a business decision the system needs to make — usually in response to a command issued by a user.
 
 Given that the system should ensure a performant response to user input, it becomes clear how paramount it is to minimize the time and effort needed to rebuild the [decision model](../glossary.md#decision-model).
-
-It's therefore evident that generating the state model for all entities in the system on the fly is not feasible, as it would require reading and transforming an overwhelming number of events.
-
-Moreover, such an approach would be unnecessary since a business decision usually concerns only a limited number of business entities.
-
 The most effective approach, then, is to limit the reconstruction to the absolute minimum, by rebuilding the state of only the business entities involved in validating the received command.
 
 To do this efficiently, we filter the relevant events using tags associated with those entities.
