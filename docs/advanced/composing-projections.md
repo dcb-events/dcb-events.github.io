@@ -45,7 +45,7 @@ console.log({numberOfCourses})
 
 ## Query only relevant events
 
-In the above example the reducer iterates over all events even though it only changes the state for `CourseDefined` events. This is not an issue for this simple example. But in reality those events are not stored in memory and there can be many of them. So obviously they should be filtered _before_ they are read from the Event Store.
+In the above example the reducer iterates over all events even though it only changes the state for `CourseDefined` events. This is not an issue for this simple example. But in reality those events are not stored in memory and there can be many of them. So obviously, they should be filtered _before_ they are read from the Event Store.
 
 The Type of the event is the first important element used to filter the events that affect my projection inside a large Event Store.
 
