@@ -1,0 +1,40 @@
+{
+    "name": "wwwision/dcb-example-generator",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "Wwwision\\DcbExampleGenerator\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Wwwision\\DcbExampleGenerator\\tests\\": "tests/"
+        }
+    },
+    "require": {
+        "php": "^8.4",
+        "ext-zlib": "*",
+        "webmozart/assert": "^1.11",
+        "wwwision/types": "^1.6",
+        "wwwision/types-jsonschema": "1.2"
+    },
+    "require-dev": {
+        "roave/security-advisories": "dev-latest",
+        "phpstan/phpstan": "^2.1",
+        "friendsofphp/php-cs-fixer": "^3.64",
+        "larapack/dd": "^1.1",
+        "phpunit/phpunit": "^12.0"
+    },
+    "scripts": {
+        "render": "php render.php",
+        "test:phpstan": "phpstan --memory-limit=256M",
+        "test:cs": "PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer check",
+        "test:cs:fix": "PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix",
+        "test:phpunit": "phpunit",
+        "test": [
+            "@test:phpstan",
+            "@test:cs",
+            "@test:phpunit"
+        ]
+    }
+}
