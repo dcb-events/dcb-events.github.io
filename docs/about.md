@@ -20,7 +20,7 @@ We believe DCB can be a significant step forward in the design and management of
 
 <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; text-align: center;">
 
-  <div style="flex: 1 1 250px; max-width: 300px;">
+  <div style="flex: 1 1 200px; max-width: 250px;">
     <img src="assets/img/BastianWaidelich.jpg" alt="Bastian Waidelich" style="width: 100%; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
     <h3 style="margin: 10px 0 5px;">Bastian Waidelich</h3>
     <p>Selbständiger Software Architekt</p>
@@ -30,7 +30,7 @@ We believe DCB can be a significant step forward in the design and management of
     </p>
   </div>
 
-  <div style="flex: 1 1 250px; max-width: 300px;">
+  <div style="flex: 1 1 200px; max-width: 250px;">
     <img src="assets/img/SaraPellegrini.jpg" alt="Sara Pellegrini" style="width: 100%; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
     <h3 style="margin: 10px 0 5px;">Sara Pellegrini</h3>
     <p>Software Engineer, Continuous Learner, Free Thinker.</p>
@@ -40,7 +40,7 @@ We believe DCB can be a significant step forward in the design and management of
     </p>
   </div>
 
-  <div style="flex: 1 1 250px; max-width: 300px;">
+  <div style="flex: 1 1 200px; max-width: 250px;">
     <img src="assets/img/PaulGrimshaw.jpg" alt="Paul Grimshaw" style="width: 100%; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
     <h3 style="margin: 10px 0 5px;">Paul Grimshaw</h3>
     <p>Head of Tech for Generation | Kraken | Renewables</p>
