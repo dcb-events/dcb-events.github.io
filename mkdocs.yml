@@ -32,6 +32,7 @@ theme:
 
 nav:
   - DCB: index.md
+  - Specification: specification.md
   - Examples:
       - examples/index.md
       - Course subscriptions: examples/course-subscriptions.md
@@ -48,9 +49,7 @@ nav:
       - DCB with a traditional Event Store (tbd): advanced/dcb-with-a-traditional-event-store.md
       - DCB without Event Sourcing (tbd): advanced/dcb-without-event-sourcing.md
       - Performance (tbd): advanced/performance.md
-  - Libraries:
-      - libraries/index.md
-      - Specification: libraries/specification.md
+  - Libraries: libraries/index.md
   - Glossary: glossary.md
   - FAQ: faq.md
 

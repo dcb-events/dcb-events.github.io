@@ -26,7 +26,7 @@ There are several potential strategies to solve this without DCB:
 
 ## DCB approach
 
-With DCB the challenge can be solved simply by adding a [Tag](../libraries/specification.md#tag) for each, the affected course *and* student to the `student subscribed to course`:
+With DCB the challenge can be solved simply by adding a [Tag](../specification.md#tag) for each, the affected course *and* student to the `student subscribed to course`:
 
 ![course subscriptions example](img/course-subscriptions-01.png)
 

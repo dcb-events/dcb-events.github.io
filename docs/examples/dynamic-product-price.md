@@ -22,7 +22,7 @@ There are several potential strategies to solve this without DCB:
 
 ## DCB approach
 
-With DCB the challenge can be solved without any specific [Tags](../libraries/specification.md#tag) (except for the `product:<id>` tag):
+With DCB the challenge can be solved without any specific [Tags](../specification.md#tag) (except for the `product:<id>` tag):
 
 ### 01: Single product
 
