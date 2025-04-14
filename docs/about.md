@@ -23,7 +23,7 @@ We believe DCB can be a significant step forward in the design and management of
   <div style="flex: 1 1 250px; max-width: 300px;">
     <img src="assets/img/BastianWaidelich.jpg" alt="Bastian Waidelich" style="width: 100%; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
     <h3 style="margin: 10px 0 5px;">Bastian Waidelich</h3>
-    <p>Software Architect</p>
+    <p>Selbständiger Software Architekt</p>
     <p>
       <a href="https://www.linkedin.com/in/bastian-waidelich-84865221">LinkedIn</a> |
       <a href="https://x.com/bwaidelich">Twitter/X</a>
@@ -43,7 +43,7 @@ We believe DCB can be a significant step forward in the design and management of
   <div style="flex: 1 1 250px; max-width: 300px;">
     <img src="assets/img/PaulGrimshaw.jpg" alt="Paul Grimshaw" style="width: 100%; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
     <h3 style="margin: 10px 0 5px;">Paul Grimshaw</h3>
-    <p>DevOps Engineer</p>
+    <p>Head of Tech for Generation | Kraken | Renewables</p>
     <p>
       <a href="https://www.linkedin.com/in/pkgrimshaw">LinkedIn</a> |
       <a href="https://x.com/">Twitter/X</a>
