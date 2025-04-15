@@ -35,7 +35,7 @@ $testCases = htmlentities(json_encode($normalized['testCases']));
 echo <<<MD
 === "JavaScript"
     ??? info
-        This example uses [composed projections](../advanced/projections.md) to build Decision Models.
+        This example uses [composed projections](../topics/projections.md) to build Decision Models.
         
         The actual implementation is just an in-memory dummy (see [source code](../assets/js/lib.js){:target="_blank"})
     ```js

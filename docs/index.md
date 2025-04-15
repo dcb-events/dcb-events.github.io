@@ -4,7 +4,7 @@ Dynamic Consistency Boundary (DCB) is a technique for enforcing consistency in e
 
 Traditional systems use strict constraints to maintain immediate consistency, while event-driven architectures embrace eventual consistency for scalability and resilience. However, this flexibility raises challenges in defining where and how consistency should be enforced.
 
-Introduced by Sara Pellegrini in her blog post "[Killing the Aggregate](https://sara.event-thinking.io/2023/04/kill-aggregate-chapter-1-I-am-here-to-kill-the-aggregate.html)", DCB provides a pragmatic approach to balancing strong consistency with flexibility. Unlike eventual consistency, which allows temporary inconsistencies across system components, DCB selectively enforces strong consistency where needed, particularly for operations spanning multiple entities. This ensures critical business processes and cross-entity invariants remain reliable while avoiding the constraints of traditional transactional models. DCB helps teams optimize performance, scalability, and operational correctness by defining context-sensitive consistency boundaries.
+Introduced by Sara Pellegrini in her blog post "[Killing the Aggregate](https://sara.event-thinking.io/2023/04/kill-aggregate-chapter-1-I-am-here-to-kill-the-aggregate.html){:target="_blank"}", DCB provides a pragmatic approach to balancing strong consistency with flexibility. Unlike eventual consistency, which allows temporary inconsistencies across system components, DCB selectively enforces strong consistency where needed, particularly for operations spanning multiple entities. This ensures critical business processes and cross-entity invariants remain reliable while avoiding the constraints of traditional transactional models. DCB helps teams optimize performance, scalability, and operational correctness by defining context-sensitive consistency boundaries.
 
 ## How it works
 
@@ -101,6 +101,6 @@ This can be compared to the "expected revision" mechanism of traditional Event S
 
 Visit the [Examples](examples/index.md) section to explore various use cases for DCB.
 
-The [Advanced topics](advanced/index.md) section provides in-depth articles on additional subjects related to DCB.
+The [related topics](topics/index.md) section provides in-depth articles on additional subjects related to DCB.
 
-To begin using DCB, refer to the [libraries](libraries/index.md) section.
+To begin using DCB, refer to the [libraries](resources/libraries.md) section.

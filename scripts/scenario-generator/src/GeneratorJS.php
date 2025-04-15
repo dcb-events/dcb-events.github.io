@@ -49,14 +49,16 @@ final readonly class GeneratorJS
         $result = 'const decisionModels = {' . self::lb();
         foreach ($this->example->projections as $projection) {
             $parameterSchema = $projection->parameterSchema;
-            $result .= '  "' . $projection->name . '": (' . ($parameterSchema instanceof ObjectSchema ? implode(', ', $parameterSchema->properties->names()) : 'value') . ') => ({' . self::lb();
+            $result .= '  "' . $projection->name . '": (' . ($parameterSchema instanceof ObjectSchema ? implode(', ', $parameterSchema->properties?->names() ?? []) : 'value') . ') => ({' . self::lb();
             $result .= '    initialState: ' . json_encode($projection->stateSchema?->default, JSON_THROW_ON_ERROR) . ',' . self::lb();
             $result .= '    handlers: {' . self::lb();
             foreach ($projection->handlers as $eventType => $projectionHandler) {
                 $result .= '      ' . $eventType . ': (state, event) => ' . $projectionHandler->value . ',' . self::lb();
             }
             $result .= '    },' . self::lb();
-            $result .= '    tagFilter: ' . $this->extractTagFiltersFromProjection($projection) . ',' . self::lb();
+            if ($projection->tagFilters !== null) {
+                $result .= '    tagFilter: ' . $this->extractTagFiltersFromProjection($projection) . ',' . self::lb();
+            }
             $result .= '  }),' . self::lb();
         }
         $result .= '}' . self::lb();

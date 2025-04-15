@@ -73,8 +73,10 @@ final readonly class Example
             foreach ($projection->handlers->eventTypes() as $eventType) {
                 Assert::true($this->eventDefinitions->exists($eventType), sprintf('Unknown event type "%s" in projection "%s"', $eventType, $projection->name));
             }
-            Assert::isList($projection->tagFilters, sprintf('tagFilters no list in projection "%s"', $projection->name));
-            Assert::allString($projection->tagFilters, sprintf('invalid tagFilter value of type %%s in projection "%s"', $projection->name));
+            if ($projection->tagFilters !== null) {
+                Assert::isList($projection->tagFilters, sprintf('tagFilters no list in projection "%s"', $projection->name));
+                Assert::allString($projection->tagFilters, sprintf('invalid tagFilter value of type %%s in projection "%s"', $projection->name));
+            }
         }
     }
 

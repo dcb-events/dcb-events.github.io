@@ -80,7 +80,7 @@ final readonly class GeneratorTS
         if (!$schema instanceof ObjectSchema) {
             throw new RuntimeException(sprintf('Only object schemas can be converted to value assignment code, got: %s', $schema::class));
         }
-        return implode(', ', $schema->properties->names());
+        return implode(', ', $schema->properties?->names() ?? []);
     }
 
     private static function schemaToParameters(Schema $schema): string
@@ -89,7 +89,7 @@ final readonly class GeneratorTS
             throw new RuntimeException(sprintf('Only object schemas can be converted to parameter code, got: %s', $schema::class));
         }
         $parts = [];
-        foreach ($schema->properties as $propertyName => $propertySchema) {
+        foreach ($schema->properties ?? [] as $propertyName => $propertySchema) {
             $parts[] = $propertyName . ': ' . self::schemaToTypeDefinition($propertySchema);
         }
         return implode(', ', $parts);
@@ -117,7 +117,7 @@ final readonly class GeneratorTS
     private static function objectSchemaToTypeDefinition(ObjectSchema $schema): string
     {
         $parts = [];
-        foreach ($schema->properties as $propertyName => $propertySchema) {
+        foreach ($schema->properties ?? [] as $propertyName => $propertySchema) {
             $parts[] = $propertyName . ': ' . self::schemaToTypeDefinition($propertySchema);
         }
         return '{ ' . implode('; ', $parts) . ' }';

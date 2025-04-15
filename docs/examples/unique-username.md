@@ -25,7 +25,7 @@ There are a couple of common strategies to achieve global uniqueness in event-dr
 
 ## DCB approach
 
-With DCB all Events that affect the unique contraint (the username in this example) can be tagged with the corresponding value (or a hash of it):
+With DCB all Events that affect the unique constraint (the username in this example) can be tagged with the corresponding value (or a hash of it):
 
 ![unique username example](img/unique-username-01.png)
 
@@ -119,7 +119,7 @@ test([
 
 ### 02: Release usernames
 
-This example extends the previous one to show how a previously claimed username could be released whent the corresponding account is suspended
+This example extends the previous one to show how a previously claimed username could be released when the corresponding account is suspended
 
 ```js hl_lines="7-9 19"
 // event type definitions:
@@ -473,3 +473,7 @@ test([
 ```
 
 <codapi-snippet engine="browser" sandbox="javascript" template="/assets/js/lib.js"></codapi-snippet>
+
+## Conclusion
+
+This example demonstrates how to solve one of the Event Sourcing evergreens: Enforcing unique usernames. But it can be applied to any scenario that requires global uniqueness of some sort.

@@ -8,7 +8,7 @@ In Event Sourcing, however, projections are also used to build the [Decision Mod
 
 This website typically refers to this latter kind of projection since DCB primarily focuses on ensuring the consistency of the Event Store during write operations.
 
-This article explains, how projections can be written such that a DCB-capable Event Store can [query](../libraries/specification.md#query) the corresponding Events and how they can be composed in order to keep them simple and reusable.
+This article explains, how projections can be written such that a DCB-capable Event Store can [query](../specification.md#query) the corresponding Events and how they can be composed in order to keep them simple and reusable.
 
 ## What is a Projection
 
@@ -420,6 +420,6 @@ console.log(
 ## How to use this with DCB
 
 The complexity of above examples might be daunting.
-In an actual project, the composability would be provided by some generic [library](../libraries/index.md). Unlike here, an actual implementation would not filter the Events in memory, but build a [query object](../libraries/specification.md#query) from the given projections that allows to performantly fetch only relevant Events from the Event Store.
+In an actual project, the composability would be provided by some generic [library](../resources/libraries.md). Unlike here, an actual implementation would not filter the Events in memory, but build a [query object](../specification.md#query) from the given projections that allows to performantly fetch only relevant Events from the Event Store.
 
 Most of the [examples](../examples/index.md) use this technique.

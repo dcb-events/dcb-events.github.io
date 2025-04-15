@@ -1,4 +1,5 @@
 site_name: Dynamic Consistency Boundary
+site_description: DCB – A simpler and more flexible approach to consistency in event-driven systems
 site_url: https://dcb.events
 theme:
   name: material
@@ -15,6 +16,8 @@ theme:
     - search.highlight
     - search.suggest
     - content.tooltips
+    - content.code.copy
+    - content.code.annotate
 
   palette:
     - scheme: slate
@@ -31,28 +34,32 @@ theme:
       accent: deep orange
 
 nav:
-  - DCB: index.md
+  - DCB:
+    - index.md
+    - Specification: specification.md
   - Examples:
       - examples/index.md
       - Course subscriptions: examples/course-subscriptions.md
       - Unique username: examples/unique-username.md
+      - Prevent record duplication: examples/prevent-record-duplication.md
+      - Invoice number: examples/invoice-number.md
       - Dynamic product price: examples/dynamic-product-price.md
-      - Opt-In Token (tbd): examples/opt-in-token.md
-      - Invoice number (tbd): examples/invoice-number.md
-      - Prevent record duplication (tbd): examples/prevent-record-duplication.md
-  - Advanced topics:
-      - advanced/index.md
-      - Aggregates: advanced/aggregates.md
-      - Projections: advanced/projections.md
-      - DCB vs Outbox Pattern (tbd): advanced/dcb-vs-outbox-pattern.md
-      - DCB with a traditional Event Store (tbd): advanced/dcb-with-a-traditional-event-store.md
-      - DCB without Event Sourcing (tbd): advanced/dcb-without-event-sourcing.md
-      - Performance (tbd): advanced/performance.md
-  - Libraries:
-      - libraries/index.md
-      - Specification: libraries/specification.md
+      - Event-Sourced Aggregate: examples/event-sourced-aggregate.md
+      - Opt-In Token: examples/opt-in-token.md
+  - Related topics:
+      - topics/index.md
+      - Aggregates: topics/aggregates.md
+      - Projections: topics/projections.md
+      #- DCB vs Outbox Pattern (tbd): topics/dcb-vs-outbox-pattern.md
+      #- DCB with a traditional Event Store (tbd): topics/dcb-with-a-traditional-event-store.md
+      #- DCB without Event Sourcing (tbd): topics/dcb-without-event-sourcing.md
+      #- Performance (tbd): topics/performance.md
+  - Resources:
+      - resources/index.md
+      - Libraries: resources/libraries.md
   - Glossary: glossary.md
   - FAQ: faq.md
+  - About: about.md
 
 markdown_extensions:
   - extensions.replace_dcb_scenarios
@@ -84,6 +91,11 @@ extra:
   social:
     - icon: simple/github
       link: https://github.com/dcb-events/dcb-events.github.io
+
+plugins:
+  - search
+  - glightbox
+
 hooks:
   - hooks/copyright.py
 
@@ -91,8 +103,7 @@ watch:
   - includes
 
 extra_javascript:
-  - https://unpkg.com/@antonz/codapi@0.19.10/dist/snippet.js
+  - assets/js/codapi-snippet.js
   - assets/js/dcb-scenario.bundle.js
 extra_css:
-  - https://unpkg.com/@antonz/codapi@0.19.10/dist/snippet.css
   - assets/css/custom.css

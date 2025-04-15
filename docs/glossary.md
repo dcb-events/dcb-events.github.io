@@ -1,11 +1,11 @@
 !!! info "Disclaimer"
 
     The definitions in this list merely reflect our personal take and are not meant to be authoritive!
-    However, feel free to report any invalid/missing information in the [bugtracker of this website](https://github.com/dcb-events/dcb-events.github.io/issues)
+    However, feel free to report any invalid/missing information in the [bugtracker of this website](https://github.com/dcb-events/dcb-events.github.io/issues){:target="_blank"}
 
 ## Aggregate
 
-Cluster of associated objects that we treat as a unit for the purpose of data changes (see article about [Aggregates](advanced/aggregates.md))
+Cluster of associated objects that we treat as a unit for the purpose of data changes (see article about [Aggregates](topics/aggregates.md)
 
 ## Command
 
@@ -33,7 +33,7 @@ Pattern where changes are stored as a sequence of [Events](#event) rather than o
 
 !!! info
 
-    DCB can be used without Event Sourcing, see [DCB without Event Sourcing](advanced/dcb-without-event-sourcing.md)
+    DCB can be used without Event Sourcing, see "DCB without Event Sourcing" (tbd)
 
 ## Event Store
 
@@ -71,6 +71,10 @@ Representation of data tailored for specific read operations, often denormalized
 
 Part of a system responsible for querying and presenting data, typically optimized for read operations
 
+## Repository
+
+Abstraction over data storage, providing a collection-like interface to access and manipulate domain entities
+
 ## Reservation Pattern
 
 Refers to a design pattern used to temporarily hold or reserve a resource or state until the process is completed
@@ -82,6 +86,10 @@ Ordered series of Events that represent changes over time
 ## Sequence Number
 
 A unique, incremental identifier assigned to Events in the same context, ensuring their correct order within a stream
+
+## Snapshot
+
+Periodic point-in-time representations of an [Aggregate](#aggregate)’s state, used to optimize performance by avoiding the need to replay all past events from the beginning
 
 ## View Model
 

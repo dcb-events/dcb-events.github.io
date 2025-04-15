@@ -18,11 +18,11 @@ See [about](about.md)
 
 ## How does it improve performance?
 
-*tbd:* performance is not the intention of DCB, for large scale & high performance [eventual consistency](glossary.md#eventual-consistency) is even required. Link to [performance](advanced/performance.md)
+*tbd:* performance is not the intention of DCB, for large scale & high performance [eventual consistency](glossary.md#eventual-consistency) is even required. Link to [performance](topics/performance.md)
 
 ## How does it scale?
 
-*tbd:* considerations, link to [performance](advanced/performance.md)
+*tbd:* considerations, link to [performance](topics/performance.md)
 
 ## Does it increase chances of lock collisions?
 
@@ -30,7 +30,7 @@ See [about](about.md)
 
 ## How can it be used with a "traditional" Event Store?
 
-*tbd:* link to [DCB with a traditional Event Store](advanced/dcb-with-a-traditional-event-store.md)
+*tbd:* link to "DCB with a traditional Event Store" article
 
 ## Why do you want to kill aggregates?
 
@@ -38,6 +38,6 @@ See [about](about.md)
 
 ## Nothing comes for free. What are limitations/drawbacks of DCB?
 
-DCB guarantees consistency only inside the scope of the global [Sequence Position](libraries/specification.md#sequence-position). Thus, Events must be ordered to allow the conditional appending.
+DCB guarantees consistency only inside the scope of the global [Sequence Position](specification.md#sequence-position). Thus, Events must be ordered to allow the conditional appending.
 As a result, it's not (easily) possible to delete or partition Events.
-Furthermore, DCB leads to some additional complexity in the Event Store implementation (see [Specification](libraries/specification.md) and [Performance considerations](advanced/performance.md))
+Furthermore, DCB leads to some additional complexity in the Event Store implementation (see [Specification](specification.md) and [Performance considerations](topics/performance.md))

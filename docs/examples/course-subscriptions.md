@@ -1,6 +1,6 @@
 # Course subscription example
 
-The following example showcases the imagined application from Sara Pellegrini's blog post "[Killing the Aggregate](https://sara.event-thinking.io/2023/04/kill-aggregate-chapter-1-I-am-here-to-kill-the-aggregate.html)"
+The following example showcases the imagined application from Sara Pellegrini's blog post "[Killing the Aggregate](https://sara.event-thinking.io/2023/04/kill-aggregate-chapter-1-I-am-here-to-kill-the-aggregate.html){:target="_blank"}"
 
 ## Challenge
 
@@ -26,7 +26,7 @@ There are several potential strategies to solve this without DCB:
 
 ## DCB approach
 
-With DCB the challenge can be solved simply by adding a [Tag](../libraries/specification.md#tag) for each, the affected course *and* student to the `student subscribed to course`:
+With DCB the challenge can be solved simply by adding a [Tag](../specification.md#tag) for each, the affected course *and* student to the `student subscribed to course`:
 
 ![course subscriptions example](img/course-subscriptions-01.png)
 
@@ -61,4 +61,8 @@ The last implementation contains the core example that requires constraint check
 
 ### Other implementations
 
-There is a working [JavaScript/TypeScript](https://github.com/sennentech/dcb-event-sourced/tree/main/examples/course-manager-cli) and [PHP](https://github.com/bwaidelich/dcb-example-courses) implementation
+There is a working [JavaScript/TypeScript](https://github.com/sennentech/dcb-event-sourced/tree/main/examples/course-manager-cli){:target="_blank"} and [PHP](https://github.com/bwaidelich/dcb-example-courses){:target="_blank"} implementation
+
+## Conclusion
+
+The course subscription example demonstrates a typical requirement to enforce consistency that affects multiple entities that are not part of the same Aggregate. This document demonstrates how easy it is to achieve that with DCB

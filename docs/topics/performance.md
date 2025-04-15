@@ -6,9 +6,9 @@ Performance can mean different things
 
 ## Resource utilization
 
-- **CPU/RAM Usage:** Although [Queries](../libraries/specification.md#query) add complexity to the data store mechanism, a well-implemented Event Store should not significantly impact CPU or memory usage
+- **CPU/RAM Usage:** Although [Queries](../specification.md#query) add complexity to the data store mechanism, a well-implemented Event Store should not significantly impact CPU or memory usage
 - **Storage Space:** Primarily depends on the domain-specific payload, while the Event metadata (e.g., `Sequence Position`, `Event Type`, `Tags`, etc.) should only occupy a few bytes per Event
-- **Network Usage:** Will be slightly higher compared to traditional Event Stores because the [Query](../libraries/specification.md#query) has to be transferred for *read* and conditional *write* operations. We consider this overhead to be negligible in practice in most cases
+- **Network Usage:** Will be slightly higher compared to traditional Event Stores because the [Query](../specification.md#query) has to be transferred for *read* and conditional *write* operations. We consider this overhead to be negligible in practice in most cases
 
 ## Scalability
 
