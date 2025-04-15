@@ -18,37 +18,35 @@ We believe DCB can be a significant step forward in the design and management of
 
 ## Who We Are
 
-<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; text-align: center;">
 
-  <div style="flex: 1 1 200px; max-width: 250px;">
-    <img src="assets/img/BastianWaidelich.jpg" alt="Bastian Waidelich" style="width: 100%; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-    <h3 style="margin: 10px 0 5px;">Bastian Waidelich</h3>
-    <p>Selbständiger Software Architekt</p>
-    <p>
-      <a href="https://www.linkedin.com/in/bastian-waidelich-84865221">LinkedIn</a> |
-      <a href="https://x.com/bwaidelich">Twitter/X</a>
-    </p>
-  </div>
+<div class="three-col-grid" markdown>
 
-  <div style="flex: 1 1 200px; max-width: 250px;">
-    <img src="assets/img/SaraPellegrini.jpg" alt="Sara Pellegrini" style="width: 100%; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-    <h3 style="margin: 10px 0 5px;">Sara Pellegrini</h3>
-    <p>Software Engineer, Continuous Learner, Free Thinker.</p>
-    <p>
-      <a href="https://www.linkedin.com/in/sara-pellegrini-55a37913">LinkedIn</a> |
-      <a href="https://x.com/_sara_p_">Twitter/X</a>
-    </p>
-  </div>
+![Bastian Waidelich](assets/img/BastianWaidelich.jpg){data-title="Bastian Waidelich" style="border-radius:.5em; box-shadow: 0 2px 8px rgba(0,0,0,.3)"}
+/// caption
+**Bastian Waidelich**
 
-  <div style="flex: 1 1 200px; max-width: 250px;">
-    <img src="assets/img/PaulGrimshaw.jpg" alt="Paul Grimshaw" style="width: 100%; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-    <h3 style="margin: 10px 0 5px;">Paul Grimshaw</h3>
-    <p>Head of Tech for Generation | Kraken | Renewables</p>
-    <p>
-      <a href="https://www.linkedin.com/in/pkgrimshaw">LinkedIn</a> |
-      <a href="https://x.com/">Twitter/X</a>
-    </p>
-  </div>
+Self-employed Software Architect, Consultant
+
+[:fontawesome-brands-linkedin:](https://www.linkedin.com/in/bastian-waidelich-84865221){:target="_blank"} | [:fontawesome-brands-twitter:](https://x.com/bwaidelich){:target="_blank"}
+///
+
+![Sara Pellegrini](assets/img/SaraPellegrini.jpg){data-title="Sara Pellegrini" style="border-radius:.5em; box-shadow: 0 2px 8px rgba(0,0,0,.3)"}
+/// caption
+***Sara Pellegrini***
+
+Software Engineer, Continuous Learner, Free Thinker.
+
+[:fontawesome-brands-linkedin:](https://www.linkedin.com/in/sara-pellegrini-55a37913){:target="_blank"} | [:fontawesome-brands-twitter:](https://x.com/_sara_p_){:target="_blank"}
+///
+
+![Paul Grimshaw](assets/img/PaulGrimshaw.jpg){data-title="Paul Grimshaw" style="border-radius:.5em; box-shadow: 0 2px 8px rgba(0,0,0,.3)"}
+/// caption
+***Paul Grimshaw***
+
+Head of Tech for Generation, Kraken, Renewables
+
+[:fontawesome-brands-linkedin:](https://www.linkedin.com/in/pkgrimshaw){:target="_blank"} | [:fontawesome-brands-twitter:](https://x.com/Pkgrimshaw){:target="_blank"}
+///
 
 </div>
 
@@ -56,8 +54,4 @@ We believe DCB can be a significant step forward in the design and management of
 
 ## Contact Us
 
-For collaborations, suggestions, or just to connect, feel free to reach out to us through our social profiles!
-
----
-
-> _This site is maintained with passion and commitment by a community of DCB enthusiasts._
+For collaborations, suggestions, or just to connect, feel free to reach out to us through via [email](mailto:hello%40dcb.events) or our social profiles!

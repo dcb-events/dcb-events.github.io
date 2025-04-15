@@ -11,3 +11,15 @@ codapi-snippet{--toolbar-gap: 1em;--toolbar-margin-bottom: 1em;display:block}cod
     float: right;
     font-size: small;
 }
+
+.three-col-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .three-col-grid {
+        grid-template-columns: 1fr;
+    }
+}
