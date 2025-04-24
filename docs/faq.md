@@ -10,7 +10,7 @@ Definitely not, on the contrary: It aims to reduce technical friction so that on
 
 ## Is it about less strict consistency?
 
-The name "Dynamic Consistency Boundary" might suggest that, but no: While DCB allows to define very specific consistency boundaries, those are always enforced immediately.
+No: while DCB allows to define very specific consistency boundaries, those are always enforced immediately.
 
 ## Does it promote using strong consistency everywhere?
 
@@ -34,7 +34,7 @@ A DCB-compliant Event Store offers features that are not typically found in trad
 
 However, we’re experimenting with an adapter layer that allows traditional Event Stores to support DCB features by incorporating strategies like pessimistic locking to enforce consistency where needed. Stay tuned.
 
-## Why do you want to kill aggregates?
+## Why do you want to kill aggregates? 😉
 
 See article about [Aggregates](topics/aggregates.md).
 
@@ -45,7 +45,7 @@ Yes, that’s possible; the [Event-Sourced Aggregate](examples/event-sourced-agg
 ## Nothing comes for free. What are limitations/drawbacks of DCB?
 
 DCB guarantees consistency only inside the scope of the global [Sequence Position](specification.md#sequence-position). Thus, Events must be ordered to allow the conditional appending.
-As a result, it’s not (easily) possible to delete or partition Events.
+As a result, it’s not (easily) possible to partition Events.
 Furthermore, DCB leads to some additional complexity in the Event Store implementation (see [Specification](specification.md)).
 
 ## What are the next steps?
