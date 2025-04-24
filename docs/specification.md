@@ -1,6 +1,6 @@
 !!! note
 
-    This document defines what we consider the *minimal feature set* an Event Store must provide to be DCB compliant.
+    This document defines the *minimal feature set* an Event Store must provide to be DCB compliant.
 
     While we introduce certain concepts and terminology, **implementations are not required to use the same terms** — as long as they offer equivalent functionality.
 
@@ -21,12 +21,12 @@ A typical interface for reading events (pseudo-code):
 
 ```{.haskell .no-copy}
 EventStore {
-  read(query: Query, options?: ReadOptions): SequencedEvent[]
+  read(query: Query, options?: ReadOptions): SequencedEvents
   // ...
 }
 ```
 
-**Note:** The return type is usually not an array, but rather some form of iterable or reactive stream
+**Note:** SequencedEvents represents some form of iterable or reactive stream
 
 ## Writing Events
 
@@ -80,15 +80,15 @@ The following example query would match Events that are either...
 
 ```{.json .no-copy}
 {
-  "criteria": [
+  "items": [
     {
-      "eventTypes": ["EventType1", "EventType2"]
+      "types": ["EventType1", "EventType2"]
     },
     {
       "tags": ["tag1", "tag2"]
     },
     {
-      "eventTypes": ["EventType2", "EventType3"],
+      "types": ["EventType2", "EventType3"],
       "tags": ["tag1", "tag3"]
     }
   ]
@@ -168,7 +168,8 @@ A _potential_ JSON representation of an Event:
 {
   "type": "SomeEventType",
   "data": "{\"some\":\"data\"}",
-  "tags": ["tag1", "tag2"]
+  "tags": ["tag1", "tag2"],
+   ...
 }
 ```
 
@@ -195,7 +196,7 @@ Usually, a Tag represents a concept of the domain, e.g. the type and id of an en
 
 ### Append Condition
 
-The Append Condition is used to enforce consistency, ensuring that between the time of building the Decision Model and appending the events no new events were stored by another client that match the same criteria.
+The Append Condition is used to enforce consistency, ensuring that between the time of building the Decision Model and appending the events, no new events were stored by another client that match the same query.
 
 - It _MUST_ contain a `failIfEventsMatch` [Query](#query)
   - this is typically the same Query that was used when building the Decision Model
