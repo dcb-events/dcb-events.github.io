@@ -9,7 +9,7 @@ Dynamic Consistency Boundary (DCB) is a technique for enforcing consistency in e
 
 Traditional systems use strict constraints to maintain immediate consistency, while event-driven architectures embrace eventual consistency for scalability and resilience. However, this flexibility raises challenges in defining where and how consistency should be enforced.
 
-Introduced by Sara Pellegrini in her blog post "Killing the Aggregate"[:octicons-link-external-16:](https://sara.event-thinking.io/2023/04/kill-aggregate-chapter-1-I-am-here-to-kill-the-aggregate.html){:target="_blank" .small}, DCB provides a pragmatic approach to balancing strong consistency with flexibility. Unlike eventual consistency, which allows temporary inconsistencies across system components, DCB selectively enforces strong consistency where needed, particularly for operations spanning multiple entities. This ensures critical business processes and cross-entity invariants remain reliable while avoiding the constraints of traditional transactional models. DCB helps teams optimize performance, scalability, and operational correctness by defining context-sensitive consistency boundaries.
+Introduced by Sara Pellegrini in her blog post "Killing the Aggregate"[:octicons-link-external-16:](https://sara.event-thinking.io/2023/04/kill-aggregate-chapter-1-I-am-here-to-kill-the-aggregate.html){:target="_blank" .small}, DCB provides a pragmatic approach to balancing strong consistency with flexibility. DCB allows for the selective enforcement of strong consistency where needed, particularly for operations that span multiple entities. This ensures critical business processes and cross-entity invariants remain reliable while avoiding the constraints of traditional transactional models. DCB helps teams optimize performance, scalability, and operational correctness by defining context-sensitive consistency boundaries.
 
 ## How it works
 
@@ -89,17 +89,14 @@ As a result, only the Events matching the specified query will be returned:
 - one for each subscription to the course
 - one for each subscription of the student
 
-!!! info
-
-    Usually those queries wouldn't be "hard coded". Instead, they can be derived from an in-memory projection (aka "decision model") as demonstrated by some of the [Examples](examples/index.md)
 
 #### Writing Events
 
 Similar to a traditional Event Store, DCB can enforce consistency when persisting Events using <dfn title="Concurrency control mechanism that prevents conflicts by allowing multiple transactions to read and update data but checking for changes before committing. If another transaction has modified the data in the meantime, the update is rejected">Optimistic Locking</dfn>.
 
-However, unlike the traditional approach, DCB does not rely on streams or revisions. Instead, it passes the *same query* used to read Events for building the in-memory decision model along with the position of the last Event consumed by the client. The DCB Event Store then ensures that no new Events matching the same query were added in the meantime.
+However, unlike the traditional approach, DCB does not rely on streams/revisions. Instead, it passes the *same query* used to read Events for building the in-memory decision model, along with the position of the last Event stored when the client built the decision model. The DCB Event Store then ensures that no new Events matching the same query were added in the meantime.
 
-This can be compared to the "expected revision" mechanism of traditional Event Stores but does not require the Event Streams to be split-up in order to allow for parallel, unrelated, writes.
+This can be compared to the "expected revision" mechanism of traditional Event Stores but does not require the Event Store to be split up into streams in order to allow for parallel, unrelated, writes.
 
 ## Getting started
 
@@ -107,4 +104,4 @@ Visit the [Examples](examples/index.md) section to explore various use cases for
 
 The [Related topics](topics/index.md) section provides in-depth articles on additional subjects related to DCB.
 
-To begin using DCB, refer to the [Libraries](resources/libraries.md) section.
+To begin using DCB, refer to the [Specification](specification.md) and [Libraries](resources/libraries.md) sections.
