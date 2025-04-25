@@ -97,7 +97,7 @@ As a result, only the Events matching the specified query will be returned:
 
 Similar to a traditional Event Store, DCB can enforce consistency when persisting Events using <dfn title="Concurrency control mechanism that prevents conflicts by allowing multiple transactions to read and update data but checking for changes before committing. If another transaction has modified the data in the meantime, the update is rejected">Optimistic Locking</dfn>.
 
-However, unlike the traditional approach, DCB does not rely on streams/revisions. Instead, it passes the *same query* used to read Events for building the in-memory decision model, along with the position of the last Event stored when the client built the decision model. The DCB Event Store then ensures that no new Events matching the same query were added in the meantime.
+However, unlike the traditional approach, DCB does not rely on streams/revisions. Instead, it passes the *same query* used to read Events for building the in-memory decision model, along with the position of the last Event the client was aware of when building the decision model. The DCB Event Store then ensures that no new Events matching the same query were added in the meantime.
 
 This can be compared to the "expected revision" mechanism of traditional Event Stores but does not require the Event Store to be split up into streams in order to allow for parallel, unrelated, writes.
 
