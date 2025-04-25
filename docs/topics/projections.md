@@ -74,7 +74,7 @@ console.log({numberOfActiveCourses})
 
 In the above example, the reducer iterates over all Events even though it only changes the state for `CourseDefined` and `CourseArchived` events. This is not an issue for this simple example. But in reality, those events are not stored in memory, and there can be many of them. So obviously, they should be filtered _before_ they are read from the Event Store.
 
-As previously mentioned, in the context of DCB, projections are typically used to reconstruct the minimal model required to validate constraints the system needs to enforce — usually in response to a command issued by a user.
+As previously mentioned, in the context of DCB, projections are typically used to reconstruct the minimal model required to validate the constraints the system needs to enforce — usually in response to a command issued by a user.
 
 Given that the system should ensure a performant response to user input, it becomes clear how paramount it is to minimize the time and effort needed to rebuild the Decision Model.
 The most effective approach, then, is to limit the reconstruction to the absolute minimum, by loading only the Events that are relevant to validating the received command.
