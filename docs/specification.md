@@ -26,7 +26,7 @@ EventStore {
 }
 ```
 
-**Note:** SequencedEvents represents some form of iterable or reactive stream
+**Note:** `SequencedEvents` represents some form of iterable or reactive stream of [Sequenced Event](#sequenced-event)s
 
 ## Writing Events
 
@@ -39,7 +39,7 @@ A typical interface for writing events (pseudo-code):
 
 ```{.haskell .no-copy}
 EventStore {
-  -- ...
+  // ...
   append(events: Events|Event, condition?: AppendCondition): void
 }
 ```

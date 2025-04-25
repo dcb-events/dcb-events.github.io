@@ -89,6 +89,9 @@ As a result, only the Events matching the specified query will be returned:
 - one for each subscription to the course
 - one for each subscription of the student
 
+!!! info
+
+    Usually those queries wouldn't be written manually. Instead, they can be automatically deferred from the decision model definition as demonstrated by some of the [Examples](examples/index.md)
 
 #### Writing Events
 
@@ -100,8 +103,7 @@ This can be compared to the "expected revision" mechanism of traditional Event S
 
 ## Getting started
 
-Visit the [Examples](examples/index.md) section to explore various use cases for DCB.
-
-The [Related topics](topics/index.md) section provides in-depth articles on additional subjects related to DCB.
-
-To begin using DCB, refer to the [Specification](specification.md) and [Libraries](resources/libraries.md) sections.
+- Visit the [Examples](examples/index.md) section to explore various use cases for DCB
+- The [Related topics](topics/index.md) section provides in-depth articles on additional subjects related to DCB
+- To begin using DCB, refer to the [Libraries](resources/libraries.md) section
+- If you want to understand the underlying workings or create your own implementation, read the [Specification](specification.md)
