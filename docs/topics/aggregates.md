@@ -119,7 +119,7 @@ With that, subscribing a student affects the invariants of two Aggregates.
 !!! note
     In some cases, such challenges indicate poorly defined Aggregate boundaries. However, in this scenario, restructuring the model — for example, by introducing a `Subscription` Aggregate — would not resolve the issue, since the business invariants related to both `Course` and `Student` must still be enforced independently within their respective Aggregates.
 
-    Likewise, making the Aggregate larger, covering more entities and value objects, might be tempting. But this has the obvious drawback of reducing scalability, cohesion and degree of parallel processing.
+    Likewise, making the Aggregate larger, covering more entities and value objects, is not a real option in this situation. Indeed, it would mean creating a single aggregate that includes all courses and all students, to cover any possible subscription. However, this has the obvious drawback of reducing scalability, cohesion, and the degree of parallel processing.
 
 In a traditional persistence model, one possible workaround would be to lock both affected records in the database to ensure consistency. However, this approach directly violates the pattern and introduces a host of other issues:
 
