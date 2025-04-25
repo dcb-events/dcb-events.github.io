@@ -267,7 +267,7 @@ const courseProjection = (courseId) => ({
       courseCapacity: event.data.newCapacity,
     }),
   },
-  tagFilter: [`course:${courseId}`],
+  tagFilter: [`course:${courseId}`]
 })
 
 console.log(runProjection(courseProjection("c0"), events))
