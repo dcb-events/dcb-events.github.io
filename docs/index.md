@@ -43,7 +43,7 @@ This allows one Event to affect **multiple** entities/concepts in the same bound
 
 As a result, there is only a single Event Stream per bounded context, and the example above can be simplified to:
 
-![Traditional](assets/img/example_dcb.png)
+![DCB approach](assets/img/example_dcb.png)
 
 #### Reading Events
 

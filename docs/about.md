@@ -39,11 +39,11 @@ Software Engineer, Continuous Learner, Free Thinker
 [:fontawesome-brands-linkedin:](https://www.linkedin.com/in/sara-pellegrini-55a37913){:target="_blank"} | [:fontawesome-brands-twitter:](https://x.com/_sara_p_){:target="_blank"}
 ///
 
-![Paul Grimshaw](assets/img/PaulGrimshaw.jpg){data-title="Paul Grimshaw" data-description="Head of Tech for Generation, Kraken, Renewables"}
+![Paul Grimshaw](assets/img/PaulGrimshaw.jpg){data-title="Paul Grimshaw" data-description="Head of Software Engineering for Asset Management at Kraken"}
 /// caption
 ***Paul Grimshaw***
 
-Head of Tech for Generation, Kraken, Renewables
+Head of Software Engineering for Asset Management at Kraken
 
 [:fontawesome-brands-github:](https://github.com/PaulGrimshaw){:target="_blank"} | 
 [:fontawesome-brands-linkedin:](https://www.linkedin.com/in/pkgrimshaw){:target="_blank"} |

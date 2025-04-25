@@ -119,7 +119,7 @@ With that, subscribing a student affects the invariants of two Aggregates.
 !!! note
     In some cases, such challenges indicate poorly defined Aggregate boundaries. However, in this scenario, restructuring the model — for example, by introducing a `Subscription` Aggregate — would not resolve the issue, since the business invariants related to both `Course` and `Student` must still be enforced independently within their respective Aggregates.
 
-    Likewise, making the Aggregate larger, covering more entities and value objects, might be tempting. But this has the obvious drawback of reducing scalability, cohesion and degree of parallel processing.
+    Likewise, making the Aggregate larger, covering more entities and value objects, is not a real option in this situation. Indeed, it would mean creating a single aggregate that includes all courses and all students, to cover any possible subscription. However, this has the obvious drawback of reducing scalability, cohesion, and the degree of parallel processing.
 
 In a traditional persistence model, one possible workaround would be to lock both affected records in the database to ensure consistency. However, this approach directly violates the pattern and introduces a host of other issues:
 
@@ -152,7 +152,7 @@ Each Event is assigned to a single Stream and contains the position in that Stre
 
 The Event Store appends new Events only if the last Event *in the same Event Stream* is equal to the specified position and fails otherwise. This way it can guarantee transaction safety for one Event Stream at a time.
 
-This makes the Event Stream a a good match for [Aggregates](../topics/aggregates.md), as demonstrated in the previous illustration: Course-Events are persisted to Streams of the corresponding Aggregate instance "`course-<courseIdentifier>`"
+This makes the Event Stream a good match for [Aggregates](../topics/aggregates.md), as demonstrated in the previous illustration: Course-Events are persisted to Streams of the corresponding Aggregate instance "`course-<courseIdentifier>`"
 
 ### Consequences
 
@@ -166,7 +166,7 @@ Dynamic Consistency Boundaries offer an alternative approach by allowing consist
 
 As a result, only the Events that are necessary to evaluate those invariants are loaded and considered, improving flexibility and potentially reducing overhead.
 
-In essence, DCB makes it possible to construct an Aggregate dynamically, just for the duration of an operation, to guard the relevant invariants.
+In essence, DCB makes it possible to construct a Decision Model dynamically, just for the duration of an operation, to guard the relevant invariants.
 
 ### Killing it, really?
 
