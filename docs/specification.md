@@ -14,8 +14,8 @@ An Event Store that supports DCB provides a way to:
 The Event Store...
 
 - ... _MUST_ provide a way to filter Events based on their [Event Type](#event-type) and/or [Tag](#tags) (see [Query](#query))
-- ... _MUST_ provide a way to read Events from a given starting [Sequence Position](#sequence-position)
-- ... _MAY_ provide further filter options, e.g. for ordering or to limit the number of Events to load at once (see [Read Options](#read-options))
+- ... _SHOULD_ provide a way to read Events from a given starting [Sequence Position](#sequence-position)
+- ... _MAY_ provide further filter options, e.g. for ordering or to limit the number of Events to load at once 
 
 A typical interface for reading events (pseudo-code):
 
@@ -95,23 +95,6 @@ The following example query would match Events that are either...
 }
 ```
 
-### Read Options
-
-An optional parameter to `EventStore.read()` that allows for cursor-based pagination of Events.
-It has two parameters:
-
-- `from`: an optional [Sequence Position](#sequence-position) to start streaming Events from (depending on the `backwards` flag, this is either a _minimum_ or _maximum_ sequence number of the resulting stream)
-- `backwards`: a flag that, if set to `true`, returns the Events in reverse order (default: `false`)
-- `limit`: an optional number that, if set, limits the Event stream to a maximum number of Events. This can be useful for retrieving only the last Event, for example.
-
-```{.haskell .no-copy}
-ReadOptions {
-  from?: SequencePosition
-  backwards: boolean
-  limit?: integer
-}
-```
-
 ### Sequenced Event
 
 Contains or embeds all information of the original `Event` and its [Sequence Position](#sequence-position) that was added during the `append()` call.
@@ -129,7 +112,7 @@ The following example shows a _potential_ JSON representation of a Sequenced Eve
   "event": {
     ...
   },
-  "sequence_position": 1234,
+  "position": 1234,
   ...
 }
 ```
