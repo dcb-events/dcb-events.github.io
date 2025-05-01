@@ -1,3 +1,102 @@
+```js
+// event type definitions:
+
+const eventTypes = {
+  "CourseDefined": {
+    tagResolver: (data) => [`course:${data.courseId}`]
+  },
+  "CourseCapacityChanged": {
+    tagResolver: (data) => [`course:${data.courseId}`]
+  },
+}
+
+// decision models:
+
+const decisionModels = {
+  "courseExists": (courseId) => ({
+    initialState: false,
+    handlers: {
+      CourseDefined: (state, event) => true,
+    },
+    tagFilter: [`course:${courseId}`],
+  }),
+  "courseCapacity": (courseId) => ({
+    initialState: 0,
+    handlers: {
+      CourseDefined: (state, event) => event.data.capacity,
+      CourseCapacityChanged: (state, event) => event.data.newCapacity,
+    },
+    tagFilter: [`course:${courseId}`],
+  }),
+}
+
+// command handlers:
+
+const commandHandlers = {
+  "changeCourseCapacity": (command) => {
+    const { state, appendCondition } = buildDecisionModel({
+      courseExists: decisionModels.courseExists(command.courseId),
+      courseCapacity: decisionModels.courseCapacity(command.courseId),
+    })
+    if (!state.courseExists) {
+      throw new Error(`Course "${command.courseId}" does not exist`)
+    }
+    if (state.courseCapacity === command.newCapacity) {
+      throw new Error(`New capacity ${command.newCapacity} is the same as the current capacity`)
+    }
+    appendEvent(
+      {
+        type: "CourseCapacityChanged",
+        data: {courseId: command.courseId, newCapacity: command.newCapacity},
+      },
+      appendCondition
+    )
+  },
+
+}
+
+// test cases:
+
+test([
+  {
+    description: "Change capacity of a non-existing course",
+    when: {
+      command: {
+        type: "changeCourseCapacity",
+        data: {"courseId":"c0","newCapacity":15},
+      }
+    },
+    then: {
+      expectedError: "Course \"c0\" does not exist",
+    }
+  },   {
+    description: "Change capacity of a course to a new value",
+    given: {
+      events: [
+        {
+          type: "CourseDefined",
+          data: {"courseId":"c1","capacity":12},
+        },
+      ],
+    },
+    when: {
+      command: {
+        type: "changeCourseCapacity",
+        data: {"courseId":"c1","newCapacity":15},
+      }
+    },
+    then: {
+      expectedEvent: {
+        type: "CourseCapacityChanged",
+        data: {"courseId":"c1","newCapacity":15},
+      }
+    }
+  }, 
+])
+```
+
+<codapi-snippet engine="browser" sandbox="javascript" template="/assets/js/lib.js"></codapi-snippet>
+
 A Projection is deriving a specific state by replaying a sequence of relevant Events.
 
 In other words, it's reading and transforming Events into a model built for a specific need.
@@ -121,13 +220,13 @@ Decision Models are usually only concerned about single entities. E.g. in order 
 
 By only looking at the Event Type, this could be done with a projection like this:
 ```js
-const courseExistsProjection = (courseId) => ({
+const courseExistsProjection = {
   initialState: false,
   handlers: {
     CourseDefined: (state, event) => event.data.courseId === courseId ? true : state,
     CourseArchived: (state, event) => event.data.courseId === courseId ? false : state,
   }
-})
+}
 ```
 But this is not a good idea because all `CourseDefined` Events would have to be loaded still.
 
@@ -163,30 +262,46 @@ const events = [
 ...and extend the projection definition
 
 ```js hl_lines="7"
-const courseExistsProjection = (courseId) => ({
+const courseExistsProjection = {
   initialState: false,
   handlers: {
     CourseDefined: (state, event) => true,
     CourseArchived: (state, event) => false,
   },
-  tagFilter: [`course:${courseId}`],
+  tags: [`course:${courseId}`],
 })
 ```
+
+```js
+class CourseExistsProjection {
+  static for(courseId) {
+    return createProjection({
+      initialState: false,
+      handlers: {
+        CourseDefined: (state, event) => true,
+        CourseArchived: (state, event) => false,
+      },
+      tags: [`course:${courseId}`],
+    })
+  }
+}
+
+// To create an instance:
+const courseExistsProjection = CourseExistsProjection.for("c1")
+```
+
 <codapi-snippet id="example4" engine="browser"></codapi-snippet>
 
 With that, Events can be filtered by their Type _and_ specified Tags:
 
-```js hl_lines="5"
-const projection = courseExistsProjection("c1")
-const filteredEvents = events
-  .filter((event) =>
-    event.type in projection.handlers &&
-    projection.tagFilter.every((tag) => event.tags.includes(tag))
-  )
+```js
+const state = events
+  .filter((event) => courseExistsProjection.query.matchesEvent(event))
+  .reduce(courseExistsProjection.apply, courseExistsProjection.initialState)
 
-console.log(filteredEvents)
+console.log(state)
 ```
-<codapi-snippet engine="browser" sandbox="javascript" depends-on="example3 example4"></codapi-snippet>
+<codapi-snippet engine="browser" sandbox="javascript" depends-on="example3 example4" template="/assets/js/lib2.js"></codapi-snippet>
 
 Let's put this new filter into a function and combine it with the reducer for convenience:
 
@@ -194,7 +309,7 @@ Let's put this new filter into a function and combine it with the reducer for co
 const runProjection = (projection, events) => events
   .filter((event) =>
     event.type in projection.handlers &&
-    projection.tagFilter.every((tag) => event.tags.includes(tag))
+    projection.tags.every((tag) => event.tags.includes(tag))
   )
   .reduce((state, event) =>
     projection.handlers[event.type](state, event),
@@ -214,19 +329,32 @@ console.log(runProjection(courseExistsProjection("c1"), events))
 Similarly a projection for the current `capacity` of a course:
 
 ```js
-const courseCapacityProjection = (courseId) => ({
-  initialState: 0,
-  handlers: {
-      CourseDefined: (state, event) => event.data.capacity,
-      CourseCapacityChanged: (state, event) => event.data.newCapacity,
-  },
-  tagFilter: [`course:${courseId}`]
-})
+class CourseCapacityProjection {
+  static for(courseId) {
+    return createProjection({
+      initialState: 0,
+      handlers: {
+        CourseDefined: (state, event) => event.data.capacity,
+        CourseCapacityChanged: (state, event) => event.data.newCapacity,
+      },
+      tags: [`course:${courseId}`],
+    })
+  }
+}
 
-// runProjection(courseCapacityProjection("c1"), events) => 15
-// runProjection(courseCapacityProjection("c2"), events) => 20
+// To create an instance:
+const courseCapacityProjection = CourseCapacityProjection.for("c1")
 ```
 <codapi-snippet id="example6" engine="browser"></codapi-snippet>
+
+```js
+const state = events
+  .filter((event) => courseCapacityProjection.query.matchesEvent(event))
+  .reduce(courseCapacityProjection.apply, courseCapacityProjection.initialState)
+
+console.log(state)
+```
+<codapi-snippet engine="browser" sandbox="javascript" depends-on="example3 example6" template="/assets/js/lib2.js"></codapi-snippet>
 
 ## Composing projections
 
@@ -253,7 +381,7 @@ const courseProjection = (courseId) => ({
       courseCapacity: event.data.newCapacity,
     }),
   },
-  tagFilter: [`course:${courseId}`],
+  tags: [`course:${courseId}`],
 })
 
 console.log(runProjection(courseProjection("c0"), events))
@@ -304,7 +432,7 @@ Instead, we can create a generic _composite_ projection like this:
             const projection = projections[projectionName]
             if (
               event.type in projection.handlers &&
-              projection.tagFilter.every((tag) => event.tags.includes(tag))
+              projection.tags.every((tag) => event.tags.includes(tag))
             ) {
               state[projectionName] = projection.handlers[event.type](
                 state[projectionName] ?? null,
@@ -350,7 +478,7 @@ const compositeProjection = (projections) => {
         const projection = projections[projectionName]
         if (
           event.type in projection.handlers &&
-          projection.tagFilter.every((tag) => event.tags.includes(tag))
+          projection.tags.every((tag) => event.tags.includes(tag))
         ) {
           state[projectionName] = projection.handlers[event.type](
             state[projectionName] ?? null,
@@ -364,7 +492,7 @@ const compositeProjection = (projections) => {
     // [{eventTypes: ['<EventType1>', ...], tags: ['<tag1>', ...]}, ...]
     filters: Object.entries(projections).map(([_, projection]) => ({
       eventTypes: Object.keys(projection.handlers),
-      tags: projection.tagFilter,
+      tags: projection.tags,
     })),
   }
 }

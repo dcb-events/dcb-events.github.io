@@ -16,83 +16,104 @@ This requirement could be solved with an in-memory [Projection](../topics/projec
 ```js
 // event type definitions:
 
-const eventTypes = {
-  InvoiceCreated: {
-    tagResolver: (data) => [`invoice:${data.invoiceNumber}`],
-  },
+class InvoiceCreated {
+  type = "InvoiceCreated"
+  data
+  tags
+  constructor({ invoiceNumber, invoiceData }) {
+    this.data = { invoiceNumber, invoiceData }
+    this.tags = [`invoice:${invoiceNumber}`]
+  }
 }
 
-// decision models:
+// projections for decision models:
 
-const decisionModels = {
-  nextInvoiceNumber: () => ({
-    initialState: 1,
-    handlers: {
-      InvoiceCreated: (state, event) => event.data.invoiceNumber + 1,
-    },
-  }),
+class NextInvoiceNumberProjection {
+  static create() {
+    return createProjection({
+      initialState: 1,
+      handlers: {
+        InvoiceCreated: (state, event) => event.data.invoiceNumber + 1,
+      },
+      onlyLastEvent: true,
+    })
+  }
 }
 
 // command handlers:
 
-const commandHandlers = {
-  createInvoice: (command) => {
-    const { state, appendCondition } = buildDecisionModel({
-      nextInvoiceNumber: decisionModels.nextInvoiceNumber(),
+class Api {
+  eventStore
+  constructor(eventStore) {
+    this.eventStore = eventStore
+  }
+
+  createInvoice(command) {
+    const { state, appendCondition } = buildDecisionModel(this.eventStore, {
+      nextInvoiceNumber: NextInvoiceNumberProjection.create(),
     })
-    appendEvent(
-      {
-        type: "InvoiceCreated",
-        data: { invoiceNumber: state.nextInvoiceNumber },
-      },
+    this.eventStore.append(
+      new InvoiceCreated({
+        invoiceNumber: state.nextInvoiceNumber,
+        invoiceData: command.invoiceData,
+      }),
       appendCondition
     )
-  },
+  }
 }
 
 // test cases:
 
-test([
+const eventStore = new InMemoryDcbEventStore()
+const api = new Api(eventStore)
+
+runTests(api, eventStore, [
   {
     description: "Create first invoice",
     when: {
       command: {
         type: "createInvoice",
+        data: {
+          invoiceData: { foo: "bar" },
+        },
       },
     },
     then: {
-      expectedEvent: {
-        type: "InvoiceCreated",
-        data: { invoiceNumber: 1 },
-      },
+      expectedEvent: new InvoiceCreated({
+        invoiceNumber: 1,
+        invoiceData: { foo: "bar" },
+      }),
     },
   },
   {
     description: "Create second invoice",
     given: {
       events: [
-        {
-          type: "InvoiceCreated",
-          data: { invoiceNumber: 1 },
-        }
+        new InvoiceCreated({
+          invoiceNumber: 1,
+          invoiceData: { foo: "bar" },
+        }),
       ],
     },
     when: {
       command: {
         type: "createInvoice",
+        data: {
+          invoiceData: { bar: "baz" },
+        },
       },
     },
     then: {
-      expectedEvent: {
-        type: "InvoiceCreated",
-        data: { invoiceNumber: 2 },
-      },
+      expectedEvent: new InvoiceCreated({
+        invoiceNumber: 2,
+        invoiceData: { bar: "baz" },
+      }),
     },
   },
 ])
 ```
 
-<codapi-snippet engine="browser" sandbox="javascript" template="/assets/js/lib.js"></codapi-snippet>
+<codapi-snippet engine="browser" sandbox="javascript" template="/assets/js/lib2.js"></codapi-snippet>
 
 ### Better performance
 
@@ -107,43 +128,95 @@ One workaround would be to use a <dfn title="Periodic point-in-time representati
 Some DCB compliant Event Stores support returning only the **last matching Event** for a given `QueryItem`, such that the projection could be rewritten like this:
 
 
-```js hl_lines="7"
-const decisionModels = {
-  nextInvoiceNumber: () => ({
-    initialState: 1,
-    handlers: {
-      InvoiceCreated: (state, event) => event.data.invoiceNumber + 1,
-    },
-    onlyLastEvent: true,
-  }),
+```js hl_lines="8"
+class NextInvoiceNumberProjection {
+  static create() {
+    return createProjection({
+      initialState: 1,
+      handlers: {
+        InvoiceCreated: (state, event) => event.data.invoiceNumber + 1,
+      },
+      onlyLastEvent: true,
+    })
+  }
 }
 ```
 
 Alternatively, for this specific scenario, the last `InvoiceCreated` Event can be loaded "manually":
 
-```js
-const query = [{ eventTypes: ["InvoiceCreated"] }]
-const lastInvoiceCreatedEvent = dcbEventStore.read(query, {
-  backwards: true,
-  limit: 1,
-})[0]
-const nextInvoiceNumber = lastInvoiceCreatedEvent
-  ? lastInvoiceCreatedEvent.data.invoiceNumber + 1
-  : 1
+```js hl_lines="36-54"
+// event type definitions:
 
-dcbEventStore.append(
-  {
-    type: "InvoiceCreated",
-    data: { invoiceNumber: nextInvoiceNumber },
-    tags: [`invoice:${nextInvoiceNumber}`],
-  },
-  { failIfEventsMatch: query, after: lastInvoiceCreatedEvent?.position }
-)
+class InvoiceCreated {
+  type = "InvoiceCreated"
+  data
+  tags
+  constructor({ invoiceNumber, invoiceData }) {
+    this.data = { invoiceNumber, invoiceData }
+    this.tags = [`invoice:${invoiceNumber}`]
+  }
+}
 
-console.log(dcbEventStore.read([]).map((e) => e.data))
+// projections for decision models:
+
+class NextInvoiceNumberProjection {
+  static create() {
+    return createProjection({
+      initialState: 1,
+      handlers: {
+        InvoiceCreated: (state, event) => event.data.invoiceNumber + 1,
+      },
+      onlyLastEvent: true,
+    })
+  }
+}
+
+// command handlers:
+
+class Api {
+  eventStore
+  constructor(eventStore) {
+    this.eventStore = eventStore
+  }
+
+  createInvoice(command) {
+    const nextInvoiceNumberProjection = NextInvoiceNumberProjection.create()
+    const lastInvoiceCreatedEvent = this.eventStore
+      .read(nextInvoiceNumberProjection.query, {
+        backwards: true,
+        limit: 1,
+      })
+      .first()
+
+    const nextInvoiceNumber = lastInvoiceCreatedEvent
+      ? nextInvoiceNumberProjection.apply(
+          nextInvoiceNumberProjection.initialState,
+          lastInvoiceCreatedEvent
+        )
+      : nextInvoiceNumberProjection.initialState
+
+    const appendCondition = {
+      failIfEventsMatch: nextInvoiceNumberProjection.query,
+      after: lastInvoiceCreatedEvent?.position,
+    }
+
+    this.eventStore.append(
+      new InvoiceCreated({
+        invoiceNumber: nextInvoiceNumber,
+        invoiceData: command.invoiceData,
+      }),
+      appendCondition
+    )
+  }
+}
+
+const eventStore = new InMemoryDcbEventStore()
+const api = new Api(eventStore)
+api.createInvoice({invoiceData: {foo: "bar"}})
+console.log(eventStore.read(Query.all()).first())
 ```
 
-<codapi-snippet engine="browser" sandbox="javascript" template="/assets/js/InMemoryDcbEventStoreTemplate.js"></codapi-snippet>
+<codapi-snippet engine="browser" sandbox="javascript" template="/assets/js/lib2.js"></codapi-snippet>
 
 ## Conclusion
 

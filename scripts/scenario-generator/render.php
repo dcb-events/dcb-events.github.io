@@ -41,7 +41,7 @@ echo <<<MD
     ```js
     $js
     ```
-    <codapi-snippet engine="browser" sandbox="javascript" template="/assets/js/lib.js"></codapi-snippet>
+    <codapi-snippet engine="browser" sandbox="javascript" template="/assets/js/lib2.js"></codapi-snippet>
 
 === "TypeScript (WIP)"
     ??? example "Experimental: 3rd party library"
