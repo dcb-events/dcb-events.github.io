@@ -155,8 +155,15 @@ codapi-output a[href="#close"] {
 }
 
 
-.md-typeset pre > code {
+.highlight pre > code {
     max-height: 20rem;
+}
+
+.highlight.partial pre > code > span > span {
+    filter: blur(1px);
+}
+.highlight.partial pre > code > span > span.hll, .highlight.partial pre > code:hover > span > span {
+    filter: none;
 }
 
 .md-typeset blockquote {

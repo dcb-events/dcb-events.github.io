@@ -22,8 +22,7 @@ final readonly class ConstraintChecks implements IteratorAggregate
      */
     private function __construct(
         private array $constraintChecks,
-    ) {
-    }
+    ) {}
 
     /**
      * @param array<ConstraintCheck> $constraintChecks

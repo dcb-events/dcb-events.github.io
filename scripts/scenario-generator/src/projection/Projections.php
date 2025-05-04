@@ -22,9 +22,8 @@ final readonly class Projections implements IteratorAggregate
      * @param array<Projection> $projections
      */
     private function __construct(
-        private array $projections
-    ) {
-    }
+        private array $projections,
+    ) {}
 
     /**
      * @param array<Projection> $projections
@@ -32,6 +31,11 @@ final readonly class Projections implements IteratorAggregate
     public static function fromArray(array $projections): self
     {
         return instantiate(self::class, $projections);
+    }
+
+    public static function none(): self
+    {
+        return self::fromArray([]);
     }
 
     public function getIterator(): Traversable
@@ -54,7 +58,7 @@ final readonly class Projections implements IteratorAggregate
      */
     public function filter(Closure $callback): self
     {
-        return self::fromArray(...array_filter($this->projections, $callback));
+        return self::fromArray(array_filter($this->projections, $callback));
     }
 
     public function exists(string $projectionName): bool
@@ -64,7 +68,7 @@ final readonly class Projections implements IteratorAggregate
 
     public function only(string ...$projectionNames): self
     {
-        return self::fromArray(array_filter($this->projections, static fn (Projection $projection) => in_array($projection->name, $projectionNames)));
+        return self::fromArray(array_filter($this->projections, static fn(Projection $projection) => in_array($projection->name, $projectionNames)));
     }
 
     public function get(string $projectionName): Projection
@@ -77,8 +81,8 @@ final readonly class Projections implements IteratorAggregate
     public function with(Projection $projection): self
     {
         return self::fromArray(array_merge(
-            array_filter($this->projections, static fn (Projection $existingProjection) => $existingProjection->name !== $projection->name),
-            [$projection]
+            array_filter($this->projections, static fn(Projection $existingProjection) => $existingProjection->name !== $projection->name),
+            [$projection],
         ));
     }
 
@@ -88,6 +92,22 @@ final readonly class Projections implements IteratorAggregate
 
     private function findByName(string $projectionName): Projection|null
     {
-        return array_find($this->projections, static fn (Projection $projection) => $projection->name === $projectionName);
+        return array_find($this->projections, static fn(Projection $projection) => $projection->name === $projectionName);
+    }
+
+    /**
+     * @return array<string>
+     */
+    public function names(): array
+    {
+        return $this->map(static fn(Projection $projection) => $projection->name);
+    }
+
+    public function merge(self $other): self
+    {
+        return self::fromArray(array_merge(
+            array_filter($this->projections, static fn(Projection $projection) => !in_array($projection->name, $other->names())),
+            $other->projections,
+        ));
     }
 }

@@ -5,66 +5,65 @@ declare(strict_types=1);
 namespace Wwwision\DcbExampleGenerator;
 
 use Webmozart\Assert\Assert;
-use Wwwision\DcbExampleGenerator\commandDefinition\CommandDefinition;
 use Wwwision\DcbExampleGenerator\commandDefinition\CommandDefinitions;
-use Wwwision\DcbExampleGenerator\commandHandlerDefinition\CommandHandlerDefinition;
 use Wwwision\DcbExampleGenerator\commandHandlerDefinition\CommandHandlerDefinitions;
 use Wwwision\DcbExampleGenerator\eventDefinition\EventDefinitions;
-use Wwwision\DcbExampleGenerator\projection\Projection;
 use Wwwision\DcbExampleGenerator\projection\Projections;
-use Wwwision\DcbExampleGenerator\shared\PropertyDefinitions;
 use Wwwision\DcbExampleGenerator\shared\TemplateString;
 use Wwwision\DcbExampleGenerator\testCase\TestCases;
 use Wwwision\TypesJSONSchema\Types\Schema;
 
 final readonly class Example
 {
+    public Meta $meta;
+    public EventDefinitions $eventDefinitions;
+    public CommandDefinitions $commandDefinitions;
+    public Projections $projections;
+    public CommandHandlerDefinitions $commandHandlerDefinitions;
+    public TestCases $testCases;
 
     public function __construct(
-        public EventDefinitions $eventDefinitions,
-        public CommandDefinitions $commandDefinitions,
-        public Projections $projections,
-        public CommandHandlerDefinitions $commandHandlerDefinitions,
-        public TestCases $testCases,
+        Meta|null $meta = null,
+        EventDefinitions|null $eventDefinitions = null,
+        CommandDefinitions|null $commandDefinitions = null,
+        Projections|null $projections = null,
+        CommandHandlerDefinitions|null $commandHandlerDefinitions = null,
+        TestCases|null $testCases = null,
     ) {
+        $this->meta = $meta ?? new Meta(version: '1.0');
+        $this->eventDefinitions = $eventDefinitions ?? EventDefinitions::none();
+        $this->commandDefinitions = $commandDefinitions ?? CommandDefinitions::none();
+        $this->projections = $projections ?? Projections::none();
+        $this->commandHandlerDefinitions = $commandHandlerDefinitions ?? CommandHandlerDefinitions::none();
+        $this->testCases = $testCases ?? TestCases::none();
+    }
+
+    public function merge(self $other): MergeResult
+    {
+        $mergedExample = new self(
+            meta: $this->meta->merge($other->meta),
+            eventDefinitions: $this->eventDefinitions->merge($other->eventDefinitions),
+            commandDefinitions: $this->commandDefinitions->merge($other->commandDefinitions),
+            projections: $this->projections->merge($other->projections),
+            commandHandlerDefinitions: $this->commandHandlerDefinitions->merge($other->commandHandlerDefinitions),
+            testCases: $this->testCases->merge($other->testCases),
+        );
+
+        return new MergeResult(
+            mergedExample: $mergedExample,
+            newEventDefinitionNames: $other->eventDefinitions->names(),
+            newCommandDefinitionNames: $other->commandDefinitions->names(),
+            newProjectionNames: $other->projections->names(),
+            newCommandHandlerDefinitionCommandNames: $other->commandHandlerDefinitions->commandNames(),
+            newTestCaseDescriptions: $other->testCases->descriptions(),
+        );
+    }
+
+    public function validate(): void
+    {
         $this->validateProjections();
         $this->validateCommandHandlers();
         $this->validateTestCases();
-    }
-
-    public function forTestCases(TestCases $testCases): self
-    {
-        $usedCommandNames = [];
-        $usedEventTypes = [];
-        $usedProjections = [];
-        foreach ($testCases as $testCase) {
-            if (!array_key_exists($testCase->whenCommand->type, $usedCommandNames)) {
-                $commandHandlerDefinition = $this->commandHandlerDefinitions->getForCommand($testCase->whenCommand->type);
-                foreach ($commandHandlerDefinition->decisionModels as $decisionModel) {
-                    $usedProjections[$decisionModel->name] = true;
-                    foreach ($this->projections->get($decisionModel->name)->handlers->eventTypes() as $eventType) {
-                        $usedEventTypes[$eventType] = true;
-                    }
-                }
-                $usedEventTypes[$commandHandlerDefinition->successEvent->type] = true;
-            }
-            $usedCommandNames[$testCase->whenCommand->type] = true;
-            if ($testCase->givenEvents !== null) {
-                foreach ($testCase->givenEvents as $givenEvent) {
-                    $usedEventTypes[$givenEvent->type] = true;
-                }
-            }
-            if ($testCase->thenExpectedEvent !== null) {
-                $usedEventTypes[$testCase->thenExpectedEvent->type] = true;
-            }
-        }
-        return new self(
-            $this->eventDefinitions->only(...array_keys($usedEventTypes)),
-            $this->commandDefinitions->only(...array_keys($usedCommandNames)),
-            $this->projections->only(...array_keys($usedProjections)),
-            $this->commandHandlerDefinitions->onlyForCommands(...array_keys($usedCommandNames)),
-            $testCases,
-        );
     }
 
     private function validateProjections(): void
@@ -98,6 +97,7 @@ final readonly class Example
         foreach ($this->testCases as $testCase) {
             if ($testCase->givenEvents !== null) {
                 foreach ($testCase->givenEvents as $eventIndex => $event) {
+                    Assert::numeric($eventIndex);
                     Assert::true($this->eventDefinitions->exists($event->type), sprintf('Unknown event "%s" in given.events #%d of test case "%s"', $event->type, $eventIndex, $testCase->description));
                     $eventDefinition = $this->eventDefinitions->get($event->type);
                     self::validatePayload($eventDefinition->schema, $event->data, sprintf(' in given.events #%d (type "%s") of test case "%s"', $eventIndex, $event->type, $testCase->description));
@@ -114,57 +114,22 @@ final readonly class Example
      */
     private static function validatePayload(Schema $schema, array $properties, string $errorSuffix = ''): void
     {
-
-        // TODO implement
-        return;
-        // Check for missing required command properties
-        foreach ($propertyDefinitions as $propertyDefinition) {
-            if ($propertyDefinition->required) {
-                Assert::keyExists($properties, $propertyDefinition->name, sprintf('Missing required property "%s"', $propertyDefinition->name) . $errorSuffix);
-            }
-        }
-        // Check for additional command parameters and type
-        foreach ($properties as $propertyName => $propertyValue) {
-            Assert::true($propertyDefinitions->exists($propertyName), sprintf('Unknown property "%s"', $propertyName) . $errorSuffix);
-            $propertyDefinition = $propertyDefinitions->get($propertyName);
-            // skip templated strings because we can't determine the type of those
-            if (is_string($propertyValue) && TemplateString::parse($propertyValue)->getTokens() !== []) {
-                continue;
-            }
-            Assert::same(gettype($propertyValue), $propertyDefinition->type, sprintf('Expected a value identical to %%2$s. Got: %%s for key "%s"', $propertyName) . $errorSuffix);
-        }
-    }
-
-    public function withProjection(Projection $projection): self
-    {
-        return new self(
-            $this->eventDefinitions,
-            $this->commandDefinitions,
-            $this->projections->with($projection),
-            $this->commandHandlerDefinitions,
-            $this->testCases,
-        );
-    }
-
-    public function withCommandDefinition(CommandDefinition $commandDefinition): self
-    {
-        return new self(
-            $this->eventDefinitions,
-            $this->commandDefinitions->with($commandDefinition),
-            $this->projections,
-            $this->commandHandlerDefinitions,
-            $this->testCases,
-        );
-    }
-
-    public function withCommandHandlerDefinition(CommandHandlerDefinition $commandHandlerDefinition): self
-    {
-        return new self(
-            $this->eventDefinitions,
-            $this->commandDefinitions,
-            $this->projections,
-            $this->commandHandlerDefinitions->with($commandHandlerDefinition),
-            $this->testCases,
-        );
+        // TODO re-implement
+        //        // Check for missing required command properties
+        //        foreach ($propertyDefinitions as $propertyDefinition) {
+        //            if ($propertyDefinition->required) {
+        //                Assert::keyExists($properties, $propertyDefinition->name, sprintf('Missing required property "%s"', $propertyDefinition->name) . $errorSuffix);
+        //            }
+        //        }
+        //        // Check for additional command parameters and type
+        //        foreach ($properties as $propertyName => $propertyValue) {
+        //            Assert::true($propertyDefinitions->exists($propertyName), sprintf('Unknown property "%s"', $propertyName) . $errorSuffix);
+        //            $propertyDefinition = $propertyDefinitions->get($propertyName);
+        //            // skip templated strings because we can't determine the type of those
+        //            if (is_string($propertyValue) && TemplateString::parse($propertyValue)->getTokens() !== []) {
+        //                continue;
+        //            }
+        //            Assert::same(gettype($propertyValue), $propertyDefinition->type, sprintf('Expected a value identical to %%2$s. Got: %%s for key "%s"', $propertyName) . $errorSuffix);
+        //        }
     }
 }

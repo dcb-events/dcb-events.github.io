@@ -18,14 +18,12 @@ use function Wwwision\Types\instantiate;
 #[ListBased(itemClassName: CommandDefinition::class)]
 final readonly class CommandDefinitions implements IteratorAggregate
 {
-
     /**
      * @param array<CommandDefinition> $commandDefinitions
      */
     private function __construct(
-        private array $commandDefinitions
-    ) {
-    }
+        private array $commandDefinitions,
+    ) {}
 
     /**
      * @param array<CommandDefinition> $commandDefinitions
@@ -33,6 +31,11 @@ final readonly class CommandDefinitions implements IteratorAggregate
     public static function fromArray(array $commandDefinitions): self
     {
         return instantiate(self::class, $commandDefinitions);
+    }
+
+    public static function none(): self
+    {
+        return self::fromArray([]);
     }
 
     public function getIterator(): Traversable
@@ -64,19 +67,35 @@ final readonly class CommandDefinitions implements IteratorAggregate
 
     public function only(string ...$commandNames): self
     {
-        return self::fromArray(array_filter($this->commandDefinitions, static fn (CommandDefinition $commandDefinition) => in_array($commandDefinition->name, $commandNames)));
+        return self::fromArray(array_filter($this->commandDefinitions, static fn(CommandDefinition $commandDefinition) => in_array($commandDefinition->name, $commandNames)));
     }
 
     public function with(CommandDefinition $commandDefinition): self
     {
         return self::fromArray(array_merge(
-            array_filter($this->commandDefinitions, static fn (CommandDefinition $existingCommandDefinition) => $existingCommandDefinition->name !== $commandDefinition->name),
-            [$commandDefinition]
+            array_filter($this->commandDefinitions, static fn(CommandDefinition $existingCommandDefinition) => $existingCommandDefinition->name !== $commandDefinition->name),
+            [$commandDefinition],
         ));
     }
 
     private function findByCommandName(string $commandName): CommandDefinition|null
     {
-        return array_find($this->commandDefinitions, static fn (CommandDefinition $commandDefinition) => $commandDefinition->name === $commandName);
+        return array_find($this->commandDefinitions, static fn(CommandDefinition $commandDefinition) => $commandDefinition->name === $commandName);
+    }
+
+    /**
+     * @return array<string>
+     */
+    public function names(): array
+    {
+        return $this->map(static fn(CommandDefinition $commandDefinition) => $commandDefinition->name);
+    }
+
+    public function merge(self $other): self
+    {
+        return self::fromArray(array_merge(
+            array_filter($this->commandDefinitions, static fn(CommandDefinition $commandDefinition) => !in_array($commandDefinition->name, $other->names())),
+            $other->commandDefinitions,
+        ));
     }
 }

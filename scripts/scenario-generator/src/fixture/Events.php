@@ -21,8 +21,7 @@ final readonly class Events implements IteratorAggregate
      */
     private function __construct(
         private array $events,
-    ) {
-    }
+    ) {}
 
     /**
      * @param array<Event> $events

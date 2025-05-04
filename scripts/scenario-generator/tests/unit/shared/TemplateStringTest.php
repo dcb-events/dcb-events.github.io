@@ -12,7 +12,6 @@ use Wwwision\DcbExampleGenerator\shared\TemplateString;
 #[CoversClass(TemplateString::class)]
 final class TemplateStringTest extends TestCase
 {
-
     public static function dataProvider_toJsTemplateString(): iterable
     {
         yield ['template' => 'no replacement', 'expected' => '"no replacement"'];

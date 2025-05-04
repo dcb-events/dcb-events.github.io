@@ -9,7 +9,8 @@ use Webmozart\Assert\Assert;
 final readonly class Event
 {
     /**
-     * @param array<string, mixed> $data
+     * @param array<string, string> $data
+     * @param array<string, string> $metadata
      */
     public function __construct(
         public string $type,

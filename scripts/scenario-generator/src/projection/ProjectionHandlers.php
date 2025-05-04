@@ -12,7 +12,7 @@ use Wwwision\Types\Attributes\ListBased;
 use function Wwwision\Types\instantiate;
 
 /**
- * @implements IteratorAggregate<ProjectionHandler>
+ * @implements IteratorAggregate<string, ProjectionHandler>
  */
 #[ListBased(itemClassName: ProjectionHandler::class)]
 final readonly class ProjectionHandlers implements IteratorAggregate
@@ -22,8 +22,7 @@ final readonly class ProjectionHandlers implements IteratorAggregate
      */
     private function __construct(
         public array $handlers,
-    ) {
-    }
+    ) {}
 
     /**
      * @param array<string, ProjectionHandler|string> $handlers

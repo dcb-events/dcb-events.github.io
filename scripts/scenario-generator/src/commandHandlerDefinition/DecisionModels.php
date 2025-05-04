@@ -17,14 +17,12 @@ use function Wwwision\Types\instantiate;
 #[ListBased(itemClassName: DecisionModel::class)]
 final readonly class DecisionModels implements IteratorAggregate
 {
-
     /**
      * @param array<DecisionModel> $decisionModels
      */
     private function __construct(
-        private array $decisionModels
-    ) {
-    }
+        private array $decisionModels,
+    ) {}
 
     /**
      * @param array<DecisionModel> $decisionModels

@@ -1,3 +1,6 @@
+---
+icon: material/cards-playing-club-multiple-outline
+---
 In distributed systems, especially in web APIs handling financial or state-changing operations, ensuring idempotency is essential. Clients may retry requests due to network issues or timeouts, and without proper safeguards, this can result in duplicate processing.
 
 ## Challenge
@@ -32,7 +35,144 @@ With DCB, a random `idempotency token` can be safely generated on the client sid
 With that, a Decision Model can be created that is responsible for validating the uniqueness of the token within the context of that operation — ensuring that the same token cannot be used more than once. This allows the server to enforce idempotency without exposing domain identifiers to the client or requiring additional infrastructure for token tracking:
 
 <script type="application/dcb+json">
-{"eventDefinitions":[{"name":"OrderPlaced","schema":{"type":"object","properties":{"orderId":{"type":"string"},"idempotencyToken":{"type":"string"}}},"tagResolvers":["order:{data.orderId}","idempotency:{data.idempotencyToken}"]}],"commandDefinitions":[{"name":"placeOrder","schema":{"type":"object","properties":{"orderId":{"type":"string"},"idempotencyToken":{"type":"string"}}}}],"projections":[{"name":"idempotencyTokenWasUsed","parameterSchema":{"type":"object","properties":{"idempotencyToken":{"type":"string"}}},"stateSchema":{"type":"boolean","default":false},"handlers":{"OrderPlaced":"true"},"tagFilters":["idempotency:{idempotencyToken}"]}],"commandHandlerDefinitions":[{"commandName":"placeOrder","decisionModels":[{"name":"idempotencyTokenWasUsed","parameters":["command.idempotencyToken"]}],"constraintChecks":[{"condition":"state.idempotencyTokenWasUsed","errorMessage":"Re-submission"}],"successEvent":{"type":"OrderPlaced","data":{"orderId":"{command.orderId}","idempotencyToken":"{command.idempotencyToken}"}}}],"testCases":[{"description":"Place order with previously used idempotency token","givenEvents":[{"type":"OrderPlaced","data":{"orderId":"o12345","idempotencyToken":"11111"}}],"whenCommand":{"type":"placeOrder","data":{"orderId":"o54321","idempotencyToken":"11111"}},"thenExpectedError":"Re-submission"},{"description":"Place order with new idempotency token","givenEvents":[{"type":"OrderPlaced","data":{"orderId":"o12345","idempotencyToken":"11111"}}],"whenCommand":{"type":"placeOrder","data":{"orderId":"o54321","idempotencyToken":"22222"}},"thenExpectedEvent":{"type":"OrderPlaced","data":{"orderId":"o54321","idempotencyToken":"22222"}}}]}
+{
+    "meta": {
+        "version": "1.0"
+    },
+    "eventDefinitions": [
+        {
+            "name": "OrderPlaced",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "orderId": {
+                        "type": "string"
+                    },
+                    "idempotencyToken": {
+                        "type": "string"
+                    }
+                }
+            },
+            "tagResolvers": [
+                "order:{data.orderId}",
+                "idempotency:{data.idempotencyToken}"
+            ]
+        }
+    ],
+    "commandDefinitions": [
+        {
+            "name": "placeOrder",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "orderId": {
+                        "type": "string"
+                    },
+                    "idempotencyToken": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    ],
+    "projections": [
+        {
+            "name": "idempotencyTokenWasUsed",
+            "parameterSchema": {
+                "type": "object",
+                "properties": {
+                    "idempotencyToken": {
+                        "type": "string"
+                    }
+                }
+            },
+            "stateSchema": {
+                "type": "boolean",
+                "default": false
+            },
+            "handlers": {
+                "OrderPlaced": "true"
+            },
+            "tagFilters": [
+                "idempotency:{idempotencyToken}"
+            ]
+        }
+    ],
+    "commandHandlerDefinitions": [
+        {
+            "commandName": "placeOrder",
+            "decisionModels": [
+                {
+                    "name": "idempotencyTokenWasUsed",
+                    "parameters": [
+                        "command.idempotencyToken"
+                    ]
+                }
+            ],
+            "constraintChecks": [
+                {
+                    "condition": "state.idempotencyTokenWasUsed",
+                    "errorMessage": "Re-submission"
+                }
+            ],
+            "successEvent": {
+                "type": "OrderPlaced",
+                "data": {
+                    "orderId": "{command.orderId}",
+                    "idempotencyToken": "{command.idempotencyToken}"
+                }
+            }
+        }
+    ],
+    "testCases": [
+        {
+            "description": "Place order with previously used idempotency token",
+            "givenEvents": [
+                {
+                    "type": "OrderPlaced",
+                    "data": {
+                        "orderId": "o12345",
+                        "idempotencyToken": "11111"
+                    }
+                }
+            ],
+            "whenCommand": {
+                "type": "placeOrder",
+                "data": {
+                    "orderId": "o54321",
+                    "idempotencyToken": "11111"
+                }
+            },
+            "thenExpectedError": "Re-submission"
+        },
+        {
+            "description": "Place order with new idempotency token",
+            "givenEvents": [
+                {
+                    "type": "OrderPlaced",
+                    "data": {
+                        "orderId": "o12345",
+                        "idempotencyToken": "11111"
+                    }
+                }
+            ],
+            "whenCommand": {
+                "type": "placeOrder",
+                "data": {
+                    "orderId": "o54321",
+                    "idempotencyToken": "22222"
+                }
+            },
+            "thenExpectedEvent": {
+                "type": "OrderPlaced",
+                "data": {
+                    "orderId": "o54321",
+                    "idempotencyToken": "22222"
+                }
+            }
+        }
+    ]
+}
 </script>
 
 Of course, the example can be extended to also ensure uniqueness of the  `orderId` and/or to allow a token to be reused once the order was placed.

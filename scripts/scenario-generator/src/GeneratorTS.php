@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace Wwwision\DcbExampleGenerator;
 
 use RuntimeException;
+use Webmozart\Assert\Assert;
 use Wwwision\DcbExampleGenerator\eventDefinition\EventDefinition;
-use Wwwision\DcbExampleGenerator\fixture\Event;
 use Wwwision\DcbExampleGenerator\projection\Projection;
 use Wwwision\DcbExampleGenerator\shared\TemplateString;
-
-use Wwwision\Types\Schema\OneOfSchema;
 use Wwwision\TypesJSONSchema\Types\AllOfSchema;
 use Wwwision\TypesJSONSchema\Types\AnyOfSchema;
 use Wwwision\TypesJSONSchema\Types\ArraySchema;
@@ -20,122 +18,150 @@ use Wwwision\TypesJSONSchema\Types\NotSchema;
 use Wwwision\TypesJSONSchema\Types\NullSchema;
 use Wwwision\TypesJSONSchema\Types\NumberSchema;
 use Wwwision\TypesJSONSchema\Types\ObjectSchema;
-
+use Wwwision\TypesJSONSchema\Types\OneOfSchema;
 use Wwwision\TypesJSONSchema\Types\ReferenceSchema;
 use Wwwision\TypesJSONSchema\Types\Schema;
 use Wwwision\TypesJSONSchema\Types\StringSchema;
 
-use function Wwwision\Types\instantiate;
-
-final readonly class GeneratorTS
+final class GeneratorTS
 {
+    private Output $output;
+
     public function __construct(
-        private Example $example,
+        private readonly Example $example,
+        private MergeResult|null $mergeResult,
     ) {}
 
-    public function generate(): string
+    public function generate(): Output
     {
-        return
-            '// event type definitions:' . self::lb() . self::lb() .
-            $this->eventTypeDefinitions() . self::lb() .
-            '// projections for decision models:' . self::lb() . self::lb() .
-            $this->projections() . self::lb() .
-            '// command handlers:' . self::lb() . self::lb() .
-            $this->api()
-        ;
+        $this->output = new Output();
+        $this->eventTypeDefinitions();
+        $this->projections();
+        $this->api();
+        return $this->output;
     }
 
-    private function eventTypeDefinitions(): string
+    private function eventTypeDefinitions(): void
     {
-        $result = '';
+        $this->output->addLine('// event type definitions:');
+        $this->output->addLine();
         foreach ($this->example->eventDefinitions as $eventTypeDefinition) {
-            $result .= 'class ' . $eventTypeDefinition->name . ' implements Event {' . self::lb();
-            $result .= '  type = "' . $eventTypeDefinition->name . '" as const' . self::lb();
-            $result .= '  tags: string[]' . self::lb();
+            if ($this->mergeResult?->isNewEventDefinition($eventTypeDefinition)) {
+                $this->output->startHighlighting();
+            }
+            $propertySchemas = self::objectSchemaProperties($eventTypeDefinition->schema);
+            $this->output->addLine('function ' . $eventTypeDefinition->name . '({');
+            foreach ($propertySchemas as $propertyName => $propertySchema) {
+                $this->output->addLine('  ' . $propertyName . ',');
+            }
+            $this->output->addLine('} : {');
+            foreach (self::objectSchemaProperties($eventTypeDefinition->schema) as $propertyName => $propertySchema) {
+                $this->output->addLine('  ' . $propertyName . ': ' . self::schemaToTypeDefinition($propertySchema) . ',');
+            }
+            $this->output->addLine('}) {');
+            $this->output->addLine('  return {');
+            $this->output->addLine('    type: "' . $eventTypeDefinition->name . '" as const,');
+            $this->output->addLine('    data: { ' . implode(', ', array_keys($propertySchemas)) . ' },');
             $tags = [];
             foreach ($eventTypeDefinition->tagResolvers as $tagResolver) {
-                $tags[] = TemplateString::parse($tagResolver)->toJsTemplateString();
+                $tags[] = TemplateString::parse(str_replace('data.', '', $tagResolver))->toJsTemplateString();
             }
-            $result .= '  constructor(public readonly data: ' . self::schemaToTypeDefinition($eventTypeDefinition->schema) . ') {' . self::lb();
-            $result .= '    this.tags = [' . implode(', ', $tags) . ']' . self::lb();
-            $result .= '  }' . self::lb();
-            $result .= '}' . self::lb() . self::lb();
+            $this->output->addLine('    tags: [' . implode(', ', $tags) . '],');
+            $this->output->addLine('  }');
+            $this->output->addLine('}');
+            $this->output->endHighlighting();
+            $this->output->addLine();
         }
-        $result .= 'type EventTypes = ' . implode(' | ', $this->example->eventDefinitions->map(fn (EventDefinition $eventDefinition) => $eventDefinition->name)) . self::lb() . self::lb();
-        return $result;
+        $numberOfEventTypes = count($this->example->eventDefinitions);
+        if ($numberOfEventTypes === 1) {
+            $this->output->addLine('type EventTypes = ReturnType<' . implode(' | ', $this->example->eventDefinitions->map(fn(EventDefinition $eventDefinition) => 'typeof ' . $eventDefinition->name)) . '>');
+            $this->output->addLine();
+        } elseif ($numberOfEventTypes > 1) {
+            $this->output->addLine('type EventTypes = ReturnType<');
+            foreach ($this->example->eventDefinitions as $eventDefinition) {
+                $this->output->addLine('  | typeof ' . $eventDefinition->name . ',');
+            }
+            $this->output->addLine('>');
+            $this->output->addLine();
+        }
     }
 
-    private function projections(): string
+    private function projections(): void
     {
-        $result = '';
+        $this->output->addLine('// projections for decision models:');
+        $this->output->addLine();
         foreach ($this->example->projections as $projection) {
-            $result .= 'class ' . ucfirst($projection->name) . 'Projection' . ' {' . self::lb();
-            $result .= '  static for(' . self::schemaToParameters($projection->parameterSchema) . ') {' . self::lb();
-            $result .= '    return createProjection<EventTypes, ' . self::schemaToTypeDefinition($projection->stateSchema) . '>({' . self::lb();
-            $result .= '      initialState: ' . json_encode($projection->stateSchema?->default, JSON_THROW_ON_ERROR) . ',' . self::lb();
-            $result .= '      handlers: {' . self::lb();
+            if ($this->mergeResult?->isNewProjection($projection)) {
+                $this->output->startHighlighting();
+            }
+            $parametersCode = $projection->parameterSchema !== null ? self::schemaToParameters($projection->parameterSchema) : '';
+            $this->output->addLine('function ' . ucfirst($projection->name) . 'Projection(' . $parametersCode . ') {');
+            $this->output->addLine('  return createProjection<EventTypes, ' . self::schemaToTypeDefinition($projection->stateSchema) . '>({');
+            $this->output->addLine('    initialState: ' . json_encode($projection->stateSchema->default ?? null, JSON_THROW_ON_ERROR) . ',');
+            $this->output->addLine('    handlers: {');
             foreach ($projection->handlers as $eventType => $projectionHandler) {
-                $result .= '        ' . $eventType . ': (state, event) => ' . $projectionHandler->value . ',' . self::lb();
+                Assert::string($eventType);
+                $this->output->addLine('      ' . $eventType . ': (state, event) => ' . $projectionHandler->value . ',');
             }
-            $result .= '      },' . self::lb();
+            $this->output->addLine('    },');
             if ($projection->tagFilters !== null) {
-                $result .= '      tags: ' . $this->extractTagFiltersFromProjection($projection) . ',' . self::lb();
+                $this->output->addLine('    tagFilter: ' . $this->extractTagFiltersFromProjection($projection) . ',');
             }
-            $result .= '    })' . self::lb();
-            $result .= '  }' . self::lb();
-            $result .= '}' . self::lb() . self::lb();
+            $this->output->addLine('  })');
+            $this->output->addLine('}');
+            $this->output->endHighlighting();
+            $this->output->addLine();
         }
-        return $result;
     }
 
 
 
-    private function api(): string
+    private function api(): void
     {
-        $result = 'class Api {' . self::lb();
-        $result .= '  constructor(private eventStore: EventStore) {}' . self::lb() . self::lb();
+        $this->output->addLine('// command handlers:');
+        $this->output->addLine();
+        $this->output->addLine('class Api {');
+        $this->output->addLine('  constructor(private eventStore: EventStore) {}');
 
         foreach ($this->example->commandHandlerDefinitions as $commandHandlerDefinition) {
+            $this->output->addLine();
             $commandDefinition = $this->example->commandDefinitions->get($commandHandlerDefinition->commandName);
-            $result .= '  ' . $commandHandlerDefinition->commandName . '(command: ' . self::schemaToTypeDefinition($commandDefinition->schema) . ') {' . self::lb();
-            $result .= '    const { state, appendCondition } = buildDecisionModel(this.eventStore, {' . self::lb();
+            $this->output->addLine('  ' . $commandHandlerDefinition->commandName . '(command: ' . self::schemaToTypeDefinition($commandDefinition->schema) . ') {');
+            $this->output->addLine('    const { state, appendCondition } = buildDecisionModel(this.eventStore, {');
             foreach ($commandHandlerDefinition->decisionModels as $decisionModel) {
-                $result .= '      ' . $decisionModel->name . ': ' . ucfirst($decisionModel->name) . 'Projection.for(' . implode(', ', $decisionModel->parameters) . '),' . self::lb();
+                $this->output->addLine('      ' . $decisionModel->name . ': ' . ucfirst($decisionModel->name) . 'Projection(' . implode(', ', $decisionModel->parameters) . '),');
             }
-            $result .= '    })' . self::lb();
+            $this->output->addLine('    })');
             foreach ($commandHandlerDefinition->constraintChecks as $constraintCheck) {
-                $result .= '    if (' . $constraintCheck->condition . ') {' . self::lb();
-                $result .= '      throw new Error(' . TemplateString::parse($constraintCheck->errorMessage)->toJsTemplateString() . ')' . self::lb();
-                $result .= '    }' . self::lb();
+                $this->output->addLine('    if (' . $constraintCheck->condition . ') {');
+                $this->output->addLine('      throw new Error(' . TemplateString::parse($constraintCheck->errorMessage)->toJsTemplateString() . ')');
+                $this->output->addLine('    }');
             }
-            $result .= '    this.eventStore.append(' . self::lb();
-            $result .= '      new ' . $commandHandlerDefinition->successEvent->type . '({' . self::lb();
-            $parts = [];
+            $this->output->addLine('    this.eventStore.append(');
+            $this->output->addLine('      ' . $commandHandlerDefinition->successEvent->type . '({');
             foreach ($commandHandlerDefinition->successEvent->data as $key => $value) {
-                $parts[] = '        ' . $key . ': ' . TemplateString::parse($value)->toJsTemplateString();
+                Assert::string($key);
+                Assert::string($value);
+                $this->output->addLine('        ' . $key . ': ' . TemplateString::parse($value)->toJsTemplateString() . ',');
             }
-            $result .= implode(',' . self::lb(), $parts) . self::lb();
-            $result .= '      }),' . self::lb();
-            $result .= '      appendCondition' . self::lb();
-            $result .= '    )' . self::lb();
-            $result .= '  }' . self::lb() . self::lb();
+            $this->output->addLine('      }),');
+            $this->output->addLine('      appendCondition');
+            $this->output->addLine('    )');
+            $this->output->addLine('  }');
         }
-        $result .= '}' . self::lb();
-        return $result;
+        $this->output->addLine('}');
     }
 
     private function extractTagFiltersFromProjection(Projection $projection): string
     {
         $tagFilters = [];
+        if ($projection->tagFilters === null) {
+            return '[]';
+        }
         foreach ($projection->tagFilters as $tagFilter) {
             $tagFilters[] = TemplateString::parse($tagFilter)->toJsTemplateString();
         }
         return '[' . implode(', ', $tagFilters) . ']';
-    }
-
-    private static function lb(): string
-    {
-        return chr(10);
     }
 
     private static function schemaToParameters(Schema $schema): string
@@ -145,27 +171,38 @@ final readonly class GeneratorTS
         }
         $parts = [];
         foreach ($schema->properties ?? [] as $propertyName => $propertySchema) {
+            Assert::string($propertyName);
             $parts[] = $propertyName . ': ' . self::schemaToTypeDefinition($propertySchema);
         }
         return implode(', ', $parts);
     }
 
+    /**
+     * @return array<string, Schema>
+     */
+    private static function objectSchemaProperties(Schema $schema): array
+    {
+        if (!$schema instanceof ObjectSchema) {
+            throw new RuntimeException(sprintf('Only object schemas are supported, got: %s', $schema::class));
+        }
+        if ($schema->properties === null) {
+            return [];
+        }
+        return iterator_to_array($schema->properties);
+    }
+
     private static function schemaToTypeDefinition(Schema $schema): string
     {
         return match ($schema::class) {
-            AllOfSchema::class => 'TODO',
-            AnyOfSchema::class => 'TODO',
-            ArraySchema::class => 'TODO',
+            AllOfSchema::class, ReferenceSchema::class, OneOfSchema::class, ArraySchema::class, AnyOfSchema::class => 'TODO',
             BooleanSchema::class => 'boolean',
             IntegerSchema::class, NumberSchema::class => 'number',
             NotSchema::class => '!' . self::schemaToTypeDefinition($schema->schema),
             NullSchema::class => 'null',
             ObjectSchema::class => self::objectSchemaToTypeDefinition($schema),
-            OneOfSchema::class => 'TODO',
-            ReferenceSchema::class => 'TODO',
             StringSchema::class => 'string',
 
-            default => throw new RuntimeException(sprintf('Unsupported schema type: %s', $schema::class))
+            default => throw new RuntimeException(sprintf('Unsupported schema type: %s', $schema::class)),
         };
     }
 
@@ -173,6 +210,7 @@ final readonly class GeneratorTS
     {
         $parts = [];
         foreach ($schema->properties ?? [] as $propertyName => $propertySchema) {
+            Assert::string($propertyName);
             $parts[] = $propertyName . ': ' . self::schemaToTypeDefinition($propertySchema);
         }
         return '{ ' . implode('; ', $parts) . ' }';

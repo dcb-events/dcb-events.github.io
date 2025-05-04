@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Wwwision\DcbExampleGenerator\eventDefinition;
 
 use Closure;
+use Countable;
 use IteratorAggregate;
 use Traversable;
 use Webmozart\Assert\Assert;
@@ -16,15 +17,14 @@ use function Wwwision\Types\instantiate;
  * @implements IteratorAggregate<EventDefinition>
  */
 #[ListBased(itemClassName: EventDefinition::class)]
-final readonly class EventDefinitions implements IteratorAggregate
+final readonly class EventDefinitions implements IteratorAggregate, Countable
 {
     /**
      * @param array<EventDefinition> $eventDefinitions
      */
     private function __construct(
         private array $eventDefinitions,
-    ) {
-    }
+    ) {}
 
     /**
      * @param array<EventDefinition> $eventDefinitions
@@ -32,6 +32,11 @@ final readonly class EventDefinitions implements IteratorAggregate
     public static function fromArray(array $eventDefinitions): self
     {
         return instantiate(self::class, $eventDefinitions);
+    }
+
+    public static function none(): self
+    {
+        return self::fromArray([]);
     }
 
     public function getIterator(): Traversable
@@ -63,11 +68,32 @@ final readonly class EventDefinitions implements IteratorAggregate
 
     public function only(string ...$eventTypes): self
     {
-        return self::fromArray(array_filter($this->eventDefinitions, static fn (EventDefinition $eventDefinition) => in_array($eventDefinition->name, $eventTypes)));
+        return self::fromArray(array_filter($this->eventDefinitions, static fn(EventDefinition $eventDefinition) => in_array($eventDefinition->name, $eventTypes)));
     }
 
     private function findByEventType(string $eventType): EventDefinition|null
     {
-        return array_find($this->eventDefinitions, static fn (EventDefinition $eventDefinition) => $eventDefinition->name === $eventType);
+        return array_find($this->eventDefinitions, static fn(EventDefinition $eventDefinition) => $eventDefinition->name === $eventType);
+    }
+
+    public function merge(self $other): self
+    {
+        return self::fromArray(array_merge(
+            array_filter($this->eventDefinitions, static fn(EventDefinition $eventDefinition) => !in_array($eventDefinition->name, $other->names())),
+            $other->eventDefinitions,
+        ));
+    }
+
+    public function count(): int
+    {
+        return count($this->eventDefinitions);
+    }
+
+    /**
+     * @return array<string>
+     */
+    public function names(): array
+    {
+        return $this->map(static fn(EventDefinition $eventDefinition) => $eventDefinition->name);
     }
 }

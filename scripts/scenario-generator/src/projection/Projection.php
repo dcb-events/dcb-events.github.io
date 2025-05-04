@@ -13,20 +13,10 @@ final readonly class Projection
      */
     public function __construct(
         public string $name,
-        public Schema $parameterSchema,
+        public Schema|null $parameterSchema,
         public Schema $stateSchema,
         public ProjectionHandlers $handlers,
         public array|null $tagFilters = null,
         public bool $onlyLastEvent = false,
     ) {}
-
-    public function withStateSchema(Schema $stateSchema): self
-    {
-        return new self($this->name, $this->parameterSchema, $stateSchema, $this->handlers, $this->tagFilters, $this->onlyLastEvent);
-    }
-
-    public function withHandlers(ProjectionHandlers $handlers): self
-    {
-        return new self($this->name, $this->parameterSchema, $this->stateSchema, $handlers, $this->tagFilters, $this->onlyLastEvent);
-    }
 }

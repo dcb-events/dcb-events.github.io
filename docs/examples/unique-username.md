@@ -1,3 +1,7 @@
+---
+icon: fontawesome/solid/user
+---
+
 # Unique username example
 
 Enforcing globally unique values is simple with strong consistency (thanks to tools like unique constraint indexes), but it becomes significantly more challenging with <dfn title="Consistency model that prioritizes availability and partition tolerance over immediate consistency">eventual consistency</dfn>.
@@ -34,374 +38,492 @@ With DCB all Events that affect the unique constraint (the username in this exam
 
 ![unique username example](img/unique-username-01.png)
 
-### 01: Globally unique username
+### Feature 1: Globally unique username
 
 This example is the most simple one just checking whether a given username is claimed
 
-```js
-// event type definitions:
-
-class AccountRegistered {
-  type = "AccountRegistered"
-  data
-  tags
-  constructor({ username }) {
-    this.data = { username }
-    this.tags = [`username:${username}`]
-  }
-}
-
-// projections for decision models:
-
-class IsUsernameClaimedProjection {
-  static for(username) {
-    return createProjection({
-      initialState: false,
-      handlers: {
-        AccountRegistered: (state, event) => true,
+<script type="application/dcb+json">
+{
+  "meta": {
+    "version": "1.0",
+    "id": "unique_username_01"
+  },
+  "eventDefinitions": [
+    {
+      "name": "AccountRegistered",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          }
+        }
       },
-      tags: [`username:${username}`],
-    })
-  }
-}
-
-// command handlers:
-
-class Api {
-  eventStore
-  constructor(eventStore) {
-    this.eventStore = eventStore
-  }
-
-  registerAccount(command) {
-    const { state, appendCondition } = buildDecisionModel(this.eventStore, {
-      isUsernameClaimed: IsUsernameClaimedProjection.for(command.username),
-    })
-    if (state.isUsernameClaimed) {
-      throw new Error(`Username "${command.username}" is claimed`)
+      "tagResolvers": [
+        "username:{data.username}"
+      ]
     }
-    this.eventStore.append(
-      new AccountRegistered({
-        username: command.username,
-      }),
-      appendCondition
-    )
-  }
+  ],
+  "commandDefinitions": [
+    {
+      "name": "registerAccount",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ],
+  "projections": [
+    {
+      "name": "isUsernameClaimed",
+      "parameterSchema": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          }
+        }
+      },
+      "stateSchema": {
+        "type": "boolean",
+        "default": false
+      },
+      "handlers": {
+        "AccountRegistered": "true"
+      },
+      "tagFilters": [
+        "username:{username}"
+      ]
+    }
+  ],
+  "commandHandlerDefinitions": [
+    {
+      "commandName": "registerAccount",
+      "decisionModels": [
+        {
+          "name": "isUsernameClaimed",
+          "parameters": [
+            "command.username"
+          ]
+        }
+      ],
+      "constraintChecks": [
+        {
+          "condition": "state.isUsernameClaimed",
+          "errorMessage": "Username \"{command.username}\" is claimed"
+        }
+      ],
+      "successEvent": {
+        "type": "AccountRegistered",
+        "data": {
+          "username": "{command.username}"
+        }
+      }
+    }
+  ],
+  "testCases": [
+    {
+      "description": "Register account with claimed username",
+      "givenEvents": [
+        {
+          "type": "AccountRegistered",
+          "data": {
+            "username": "u1"
+          }
+        }
+      ],
+      "whenCommand": {
+        "type": "registerAccount",
+        "data": {
+          "username": "u1"
+        }
+      },
+      "thenExpectedError": "Username \"u1\" is claimed"
+    },
+    {
+      "description": "Register account with unused username",
+      "givenEvents": null,
+      "whenCommand": {
+        "type": "registerAccount",
+        "data": {
+          "username": "u1"
+        }
+      },
+      "thenExpectedEvent": {
+        "type": "AccountRegistered",
+        "data": {
+          "username": "u1"
+        }
+      }
+    }
+  ]
 }
+</script>
 
-// test cases:
-
-const eventStore = new InMemoryDcbEventStore()
-const api = new Api(eventStore)
-runTests(api, eventStore, [
-  {
-    description: "Register account with claimed username",
-    given: {
-      events: [new AccountRegistered({ username: "u1" })],
-    },
-    when: {
-      command: {
-        type: "registerAccount",
-        data: { username: "u1" },
-      },
-    },
-    then: {
-      expectedError: 'Username "u1" is claimed',
-    },
-  },
-  {
-    description: "Register account with unused username",
-    when: {
-      command: {
-        type: "registerAccount",
-        data: { username: "u1" },
-      },
-    },
-    then: {
-      expectedEvent: new AccountRegistered({ username: "u1" }),
-    },
-  },
-])
-```
-
-<codapi-snippet engine="browser" sandbox="javascript" template="/assets/js/lib2.js"></codapi-snippet>
-
-### 02: Release usernames
+### Feature 2: Release usernames
 
 This example extends the previous one to show how a previously claimed username could be released when the corresponding account is suspended
 
-```js hl_lines="13-21 31"
-// event type definitions:
-
-class AccountRegistered {
-  type = "AccountRegistered"
-  data
-  tags
-  constructor({ username }) {
-    this.data = { username }
-    this.tags = [`username:${username}`]
-  }
-}
-
-class AccountSuspended {
-  type = "AccountSuspended"
-  data
-  tags
-  constructor({ username }) {
-    this.data = { username }
-    this.tags = [`username:${username}`]
-  }
-}
-
-// projections for decision models:
-
-class IsUsernameClaimedProjection {
-  static for(username) {
-    return createProjection({
-      initialState: false,
-      handlers: {
-        AccountRegistered: (state, event) => true,
-        AccountSuspended: (state, event) => false,
-      },
-      tags: [`username:${username}`],
-    })
-  }
-}
-
-// command handlers:
-
-class Api {
-  eventStore
-  constructor(eventStore) {
-    this.eventStore = eventStore
-  }
-
-  registerAccount(command) {
-    const { state, appendCondition } = buildDecisionModel(this.eventStore, {
-      isUsernameClaimed: IsUsernameClaimedProjection.for(command.username),
-    })
-    if (state.isUsernameClaimed) {
-      throw new Error(`Username "${command.username}" is claimed`)
-    }
-    this.eventStore.append(
-      new AccountRegistered({
-        username: command.username,
-      }),
-      appendCondition
-    )
-  }
-}
-
-// test cases:
-
-const eventStore = new InMemoryDcbEventStore()
-const api = new Api(eventStore)
-runTests(api, eventStore, [
-  // ...
-  {
-    description: "Register account with username of suspended account",
-    given: {
-      events: [
-        new AccountRegistered({ username: "u1" }),
-        new AccountSuspended({ username: "u1" }),
-      ],
-    },
-    when: {
-      command: {
-        type: "registerAccount",
-        data: { username: "u1" },
-      },
-    },
-    then: {
-      expectedEvent: new AccountRegistered({ username: "u1" }),
-    },
+<script type="application/dcb+json">
+{
+  "meta": {
+    "version": "1.0",
+    "id": "unique_username_02",
+    "extends": "unique_username_01"
   },
-])
-```
+  "eventDefinitions": [
+    {
+      "name": "AccountSuspended",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          }
+        }
+      },
+      "tagResolvers": [
+        "username:{data.username}"
+      ]
+    }
+  ],
+  "projections": [
+    {
+      "name": "isUsernameClaimed",
+      "parameterSchema": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          }
+        }
+      },
+      "stateSchema": {
+        "type": "boolean",
+        "default": false
+      },
+      "handlers": {
+        "AccountRegistered": "true",
+        "AccountSuspended": "false"
+      },
+      "tagFilters": [
+        "username:{username}"
+      ]
+    }
+  ],
+  "testCases": [
+    {
+      "description": "Register account with username of suspended account",
+      "givenEvents": [
+        {
+          "type": "AccountRegistered",
+          "data": {
+            "username": "u1"
+          }
+        },
+        {
+          "type": "AccountSuspended",
+          "data": { "username": "u1" }
+        }
+      ],
+      "whenCommand": {
+        "type": "registerAccount",
+        "data": {
+          "username": "u1"
+        }
+      },
+      "thenExpectedEvent": {
+        "type": "AccountRegistered",
+        "data": {
+          "username": "u1"
+        }
+      }
+    }
+  ]
+}
+</script>
 
-<codapi-snippet engine="browser" sandbox="javascript" template="/assets/js/lib2.js"></codapi-snippet>
-
-### 03: Allow changing of usernames
+### Feature 3: Allow changing of usernames
 
 This example extends the previous one to show how the username of an active account could be changed
+
+<script type="application/dcb+json">
+{
+  "meta": {
+    "version": "1.0",
+    "id": "unique_username_03",
+    "extends": "unique_username_02"
+  },
+  "eventDefinitions": [
+    {
+      "name": "UsernameChanged",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "oldUsername": {
+            "type": "string"
+          },
+          "newUsername": {
+            "type": "string"
+          }
+        }
+      },
+      "tagResolvers": [
+        "username:{data.oldUsername}",
+        "username:{data.newUsername}"
+      ]
+    }
+  ],
+  "projections": [
+    {
+      "name": "isUsernameClaimed",
+      "parameterSchema": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          }
+        }
+      },
+      "stateSchema": {
+        "type": "boolean",
+        "default": false
+      },
+      "handlers": {
+        "AccountRegistered": "true",
+        "AccountSuspended": "false",
+        "UsernameChanged": "event.data.newUsername === username"
+      },
+      "tagFilters": [
+        "username:{username}"
+      ]
+    }
+  ],
+  "testCases": [
+    {
+      "description": "Register account with a username that was previously used and then changed",
+      "givenEvents": [
+        {
+          "type": "AccountRegistered",
+          "data": {
+            "username": "u1"
+          }
+        },
+        {
+          "type": "UsernameChanged",
+          "data": { "oldUsername": "u1", "newUsername": "u1changed" }
+        }
+      ],
+      "whenCommand": {
+        "type": "registerAccount",
+        "data": {
+          "username": "u1"
+        }
+      },
+      "thenExpectedEvent": {
+        "type": "AccountRegistered",
+        "data": {
+          "username": "u1"
+        }
+      }
+    },
+    {
+      "description": "Register account with a username that another username was changed to",
+      "givenEvents": [
+        {
+          "type": "AccountRegistered",
+          "data": {
+            "username": "u1"
+          }
+        },
+        {
+          "type": "UsernameChanged",
+          "data": { "oldUsername": "u1", "newUsername": "u1changed" }
+        }
+      ],
+      "whenCommand": {
+        "type": "registerAccount",
+        "data": {
+          "username": "u1changed"
+        }
+      },
+      "thenExpectedError": "Username \"u1changed\" is claimed"
+    }
+  ]
+}
+</script>
+
+### Feature 4: Username retention
+
+In the previous examples a username that is no longer claimed, can be used _immediately_ again for new accounts.
+This example extends the previous one to show how the a username can be reserved for a configurable amount of time before it is released.
 
 !!! note
 
     The `daysAgo` property of the Event metadata is a simplification. Typically, a timestamp representing the Event's recording time is stored within the Event's payload or metadata. This timestamp can be compared to the current date to determine the Event's age in the decision model.
 
-```js hl_lines="41-43"
-// event type definitions:
-
-class AccountRegistered {
-  type = "AccountRegistered"
-  data
-  tags
-  constructor({ username }) {
-    this.data = { username }
-    this.tags = [`username:${username}`]
-  }
-}
-
-class AccountSuspended {
-  type = "AccountSuspended"
-  data
-  tags
-  constructor({ username }) {
-    this.data = { username }
-    this.tags = [`username:${username}`]
-  }
-}
-
-class UsernameChanged {
-  type = "UsernameChanged"
-  data
-  tags
-  constructor({ oldUsername, newUsername }) {
-    this.data = { oldUsername, newUsername }
-    this.tags = [`username:${oldUsername}`, `username:${newUsername}`]
-  }
-}
-
-// projections for decision models:
-
-class IsUsernameClaimedProjection {
-  static for(username) {
-    return createProjection({
-      initialState: false,
-      handlers: {
-        AccountRegistered: (state, event) => true,
-        AccountSuspended: (state, event) => event.metadata.daysAgo <= 3,
-        UsernameChanged: (state, event) =>
-          event.data.newUsername === username || event.metadata.daysAgo <= 3,
+<script type="application/dcb+json">
+{
+  "meta": {
+    "version": "1.0",
+    "id": "unique_username_04",
+    "extends": "unique_username_03"
+  },
+  "projections": [
+    {
+      "name": "isUsernameClaimed",
+      "parameterSchema": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          }
+        }
       },
-      tags: [`username:${username}`],
-    })
-  }
-}
-
-// command handlers:
-
-class Api {
-  eventStore
-  constructor(eventStore) {
-    this.eventStore = eventStore
-  }
-
-  registerAccount(command) {
-    const { state, appendCondition } = buildDecisionModel(this.eventStore, {
-      isUsernameClaimed: IsUsernameClaimedProjection.for(command.username),
-    })
-    if (state.isUsernameClaimed) {
-      throw new Error(`Username "${command.username}" is claimed`)
+      "stateSchema": {
+        "type": "boolean",
+        "default": false
+      },
+      "handlers": {
+        "AccountRegistered": "true",
+        "AccountSuspended": "event.metadata?.daysAgo <= 3",
+        "UsernameChanged": "event.data.newUsername === username || event.metadata?.daysAgo <= 3"
+      },
+      "tagFilters": [
+        "username:{username}"
+      ]
     }
-    this.eventStore.append(
-      new AccountRegistered({
-        username: command.username,
-      }),
-      appendCondition
-    )
-  }
+  ],
+  "testCases": [
+    {
+      "description": "Register username of suspended account before retention period",
+      "givenEvents": [
+        {
+          "type": "AccountRegistered",
+          "data": {
+            "username": "u1"
+          },
+          "metadata": {
+            "daysAgo": 4
+          }
+        },
+        {
+          "type": "AccountSuspended",
+          "data": { "username": "u1" },
+          "metadata": {
+            "daysAgo": 3
+          }
+        }
+      ],
+      "whenCommand": {
+        "type": "registerAccount",
+        "data": {
+          "username": "u1"
+        }
+      },
+      "thenExpectedError": "Username \"u1\" is claimed"
+    },
+    {
+      "description": "Register changed username before retention period",
+      "givenEvents": [
+        {
+          "type": "AccountRegistered",
+          "data": {
+            "username": "u1"
+          },
+          "metadata": {
+            "daysAgo": 4
+          }
+        },
+        {
+          "type": "UsernameChanged",
+          "data": { "oldUsername": "u1", "newUsername": "u1changed" },
+          "metadata": {
+            "daysAgo": 3
+          }
+        }
+      ],
+      "whenCommand": {
+        "type": "registerAccount",
+        "data": {
+          "username": "u1"
+        }
+      },
+      "thenExpectedError": "Username \"u1\" is claimed"
+    },
+    {
+      "description": "Register username of suspended account after retention period",
+      "givenEvents": [
+        {
+          "type": "AccountRegistered",
+          "data": {
+            "username": "u1"
+          },
+          "metadata": {
+            "daysAgo": 4
+          }
+        },
+        {
+          "type": "AccountSuspended",
+          "data": { "username": "u1" },
+          "metadata": {
+            "daysAgo": 4
+          }
+        }
+      ],
+      "whenCommand": {
+        "type": "registerAccount",
+        "data": {
+          "username": "u1"
+        }
+      },
+      "thenExpectedEvent": {
+        "type": "AccountRegistered",
+        "data": {
+          "username": "u1"
+        }
+      }
+    },
+    {
+      "description": "Register changed username after retention period",
+      "givenEvents": [
+        {
+          "type": "AccountRegistered",
+          "data": {
+            "username": "u1"
+          },
+          "metadata": {
+            "daysAgo": 4
+          }
+        },
+        {
+          "type": "UsernameChanged",
+          "data": { "oldUsername": "u1", "newUsername": "u1changed" },
+          "metadata": {
+            "daysAgo": 4
+          }
+        }
+      ],
+      "whenCommand": {
+        "type": "registerAccount",
+        "data": {
+          "username": "u1"
+        }
+      },
+      "thenExpectedEvent": {
+        "type": "AccountRegistered",
+        "data": {
+          "username": "u1"
+        }
+      }
+    }
+  ]
 }
-
-// test cases:
-
-const eventStore = new InMemoryDcbEventStore()
-const api = new Api(eventStore)
-
-function addMetadata(event, metadata) {
-  return Object.assign(event, {
-    metadata,
-  })
-}
-
-runTests(api, eventStore, [
-  // ...
-  {
-    description: "Register username of suspended account before grace period",
-    given: {
-      events: [
-        addMetadata(new AccountRegistered({ username: "u1" }), { daysAgo: 4 }),
-        addMetadata(new AccountSuspended({ username: "u1" }), { daysAgo: 3 }),
-      ],
-    },
-    when: {
-      command: {
-        type: "registerAccount",
-        data: { username: "u1" },
-      },
-    },
-    then: {
-      expectedError: 'Username "u1" is claimed',
-    },
-  },
-  {
-    description: "Register changed username before grace period",
-    given: {
-      events: [
-        addMetadata(new AccountRegistered({ username: "u1" }), { daysAgo: 4 }),
-        addMetadata(
-          new UsernameChanged({ oldUsername: "u1", newUsername: "u1changed" }),
-          { daysAgo: 3 }
-        ),
-      ],
-    },
-    when: {
-      command: {
-        type: "registerAccount",
-        data: { username: "u1" },
-      },
-    },
-    then: {
-      expectedError: 'Username "u1" is claimed',
-    },
-  },
-  {
-    description: "Register username of suspended account after grace period",
-    given: {
-      events: [
-        addMetadata(new AccountRegistered({ username: "u1" }), { daysAgo: 4 }),
-        addMetadata(new AccountSuspended({ username: "u1" }), { daysAgo: 4 }),
-      ],
-    },
-    when: {
-      command: {
-        type: "registerAccount",
-        data: { username: "u1" },
-      },
-    },
-    then: {
-      expectedEvent: new AccountRegistered({
-        username: "u1",
-      }),
-    },
-  },
-  {
-    description: "Register changed username after grace period",
-    given: {
-      events: [
-        addMetadata(new AccountRegistered({ username: "u1" }), { daysAgo: 4 }),
-        addMetadata(
-          new UsernameChanged({ oldUsername: "u1", newUsername: "u1changed" }),
-          { daysAgo: 4 }
-        ),
-      ],
-    },
-    when: {
-      command: {
-        type: "registerAccount",
-        data: { username: "u1" },
-      },
-    },
-    then: {
-      expectedEvent: new AccountRegistered({
-        username: "u1",
-      }),
-    },
-  },
-])
-```
-
-<codapi-snippet engine="browser" sandbox="javascript" template="/assets/js/lib2.js"></codapi-snippet>
+</script>
 
 ## Conclusion
 

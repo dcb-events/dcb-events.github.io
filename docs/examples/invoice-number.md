@@ -1,3 +1,6 @@
+---
+icon: octicons/number-16
+---
 
 Creating a monotonic sequence without gaps is another common requirement DCB can help with
 
@@ -13,107 +16,132 @@ As this challenge is similar to the [Unique username example](unique-username.md
 
 This requirement could be solved with an in-memory [Projection](../topics/projections.md) that calculates the `nextInvoiceNumber`:
 
-```js
-// event type definitions:
-
-class InvoiceCreated {
-  type = "InvoiceCreated"
-  data
-  tags
-  constructor({ invoiceNumber, invoiceData }) {
-    this.data = { invoiceNumber, invoiceData }
-    this.tags = [`invoice:${invoiceNumber}`]
-  }
-}
-
-// projections for decision models:
-
-class NextInvoiceNumberProjection {
-  static create() {
-    return createProjection({
-      initialState: 1,
-      handlers: {
-        InvoiceCreated: (state, event) => event.data.invoiceNumber + 1,
-      },
-      onlyLastEvent: true,
-    })
-  }
-}
-
-// command handlers:
-
-class Api {
-  eventStore
-  constructor(eventStore) {
-    this.eventStore = eventStore
-  }
-
-  createInvoice(command) {
-    const { state, appendCondition } = buildDecisionModel(this.eventStore, {
-      nextInvoiceNumber: NextInvoiceNumberProjection.create(),
-    })
-    this.eventStore.append(
-      new InvoiceCreated({
-        invoiceNumber: state.nextInvoiceNumber,
-        invoiceData: command.invoiceData,
-      }),
-      appendCondition
-    )
-  }
-}
-
-// test cases:
-
-const eventStore = new InMemoryDcbEventStore()
-const api = new Api(eventStore)
-
-runTests(api, eventStore, [
-  {
-    description: "Create first invoice",
-    when: {
-      command: {
-        type: "createInvoice",
-        data: {
-          invoiceData: { foo: "bar" },
-        },
-      },
-    },
-    then: {
-      expectedEvent: new InvoiceCreated({
-        invoiceNumber: 1,
-        invoiceData: { foo: "bar" },
-      }),
-    },
+<script type="application/dcb+json">
+{
+  "meta": {
+    "version": "1.0",
+    "id": "invoice_number_01"
   },
-  {
-    description: "Create second invoice",
-    given: {
-      events: [
-        new InvoiceCreated({
-          invoiceNumber: 1,
-          invoiceData: { foo: "bar" },
-        }),
+  "eventDefinitions": [
+    {
+      "name": "InvoiceCreated",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "invoiceNumber": {
+            "type": "number"
+          },
+          "invoiceData": {
+            "type": "object"
+          }
+        }
+      },
+      "tagResolvers": [
+        "invoice:{data.invoiceNumber}"
+      ]
+    }
+  ],
+  "commandDefinitions": [
+    {
+      "name": "createInvoice",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "invoiceData": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  ],
+  "projections": [
+    {
+      "name": "nextInvoiceNumber",
+      "parameterSchema": null,
+      "stateSchema": {
+        "type": "number",
+        "default": 1
+      },
+      "handlers": {
+        "InvoiceCreated": "event.data.invoiceNumber + 1"
+      }
+    }
+  ],
+  "commandHandlerDefinitions": [
+    {
+      "commandName": "createInvoice",
+      "decisionModels": [
+        {
+          "name": "nextInvoiceNumber",
+          "parameters": []
+        }
       ],
-    },
-    when: {
-      command: {
-        type: "createInvoice",
-        data: {
-          invoiceData: { bar: "baz" },
-        },
+      "constraintChecks": [],
+      "successEvent": {
+        "type": "InvoiceCreated",
+        "data": {
+          "invoiceNumber": "{state.nextInvoiceNumber}",
+          "invoiceData": "{command.invoiceData}"
+        }
+      }
+    }
+  ],
+  "testCases": [
+    {
+      "description": "Create first invoice",
+      "givenEvents": null,
+      "whenCommand": {
+        "type": "createInvoice",
+        "data": {
+          "invoiceData": {
+            "foo": "bar"
+          }
+        }
       },
+      "thenExpectedEvent": {
+        "type": "InvoiceCreated",
+        "data": {
+          "invoiceNumber": 1,
+          "invoiceData": {
+            "foo": "bar"
+          }
+        }
+      }
     },
-    then: {
-      expectedEvent: new InvoiceCreated({
-        invoiceNumber: 2,
-        invoiceData: { bar: "baz" },
-      }),
-    },
-  },
-])
-```
-
-<codapi-snippet engine="browser" sandbox="javascript" template="/assets/js/lib2.js"></codapi-snippet>
+    {
+      "description": "Create second invoice",
+      "givenEvents": [
+        {
+          "type": "InvoiceCreated",
+          "data": {
+            "invoiceNumber": 1,
+            "invoiceData": {
+              "foo": "bar"
+            }
+          }
+        }
+      ],
+      "whenCommand": {
+        "type": "createInvoice",
+        "data": {
+          "invoiceData": {
+            "bar": "baz"
+          }
+        }
+      },
+      "thenExpectedEvent": {
+        "type": "InvoiceCreated",
+        "data": {
+          "invoiceNumber": 2,
+          "invoiceData": {
+            "bar": "baz"
+          }
+        }
+      }
+    }
+  ]
+}
+</script>
 
 ### Better performance
 
@@ -128,47 +156,40 @@ One workaround would be to use a <dfn title="Periodic point-in-time representati
 Some DCB compliant Event Stores support returning only the **last matching Event** for a given `QueryItem`, such that the projection could be rewritten like this:
 
 
-```js hl_lines="8"
-class NextInvoiceNumberProjection {
-  static create() {
-    return createProjection({
-      initialState: 1,
-      handlers: {
-        InvoiceCreated: (state, event) => event.data.invoiceNumber + 1,
-      },
-      onlyLastEvent: true,
-    })
-  }
+```js hl_lines="7"
+function NextInvoiceNumberProjection(value) {
+  return createProjection({
+    initialState: 1,
+    handlers: {
+      InvoiceCreated: (state, event) => event.data.invoiceNumber + 1,
+    },
+    onlyLastEvent: true,
+  })
 }
 ```
 
 Alternatively, for this specific scenario, the last `InvoiceCreated` Event can be loaded "manually":
 
-```js hl_lines="36-54"
+```{.js .partial hl_lines="31-49"}
 // event type definitions:
 
-class InvoiceCreated {
-  type = "InvoiceCreated"
-  data
-  tags
-  constructor({ invoiceNumber, invoiceData }) {
-    this.data = { invoiceNumber, invoiceData }
-    this.tags = [`invoice:${invoiceNumber}`]
+function InvoiceCreated({ invoiceNumber, invoiceData }) {
+  return {
+    type: "InvoiceCreated",
+    data: { invoiceNumber, invoiceData },
+    tags: [`invoice:${invoiceNumber}`],
   }
 }
 
 // projections for decision models:
 
-class NextInvoiceNumberProjection {
-  static create() {
-    return createProjection({
-      initialState: 1,
-      handlers: {
-        InvoiceCreated: (state, event) => event.data.invoiceNumber + 1,
-      },
-      onlyLastEvent: true,
-    })
-  }
+function NextInvoiceNumberProjection(value) {
+  return createProjection({
+    initialState: 1,
+    handlers: {
+      InvoiceCreated: (state, event) => event.data.invoiceNumber + 1,
+    },
+  })
 }
 
 // command handlers:
@@ -180,23 +201,23 @@ class Api {
   }
 
   createInvoice(command) {
-    const nextInvoiceNumberProjection = NextInvoiceNumberProjection.create()
+    const projection = NextInvoiceNumberProjection()
     const lastInvoiceCreatedEvent = this.eventStore
-      .read(nextInvoiceNumberProjection.query, {
+      .read(projection.query, {
         backwards: true,
         limit: 1,
       })
       .first()
 
     const nextInvoiceNumber = lastInvoiceCreatedEvent
-      ? nextInvoiceNumberProjection.apply(
-          nextInvoiceNumberProjection.initialState,
+      ? projection.apply(
+          projection.initialState,
           lastInvoiceCreatedEvent
         )
-      : nextInvoiceNumberProjection.initialState
+      : projection.initialState
 
     const appendCondition = {
-      failIfEventsMatch: nextInvoiceNumberProjection.query,
+      failIfEventsMatch: projection.query,
       after: lastInvoiceCreatedEvent?.position,
     }
 
@@ -213,10 +234,10 @@ class Api {
 const eventStore = new InMemoryDcbEventStore()
 const api = new Api(eventStore)
 api.createInvoice({invoiceData: {foo: "bar"}})
-console.log(eventStore.read(Query.all()).first())
+console.log(eventStore.read(queryAll()).first())
 ```
 
-<codapi-snippet engine="browser" sandbox="javascript" template="/assets/js/lib2.js"></codapi-snippet>
+<codapi-snippet engine="browser" sandbox="javascript" template="/assets/js/dcb.js"></codapi-snippet>
 
 ## Conclusion
 

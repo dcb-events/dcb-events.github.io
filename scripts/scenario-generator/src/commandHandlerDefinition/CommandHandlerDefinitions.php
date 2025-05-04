@@ -18,14 +18,12 @@ use function Wwwision\Types\instantiate;
 #[ListBased(itemClassName: CommandHandlerDefinition::class)]
 final readonly class CommandHandlerDefinitions implements IteratorAggregate
 {
-
     /**
-     * @var array<CommandHandlerDefinition> $commandHandlerDefinitions
+     * @param array<CommandHandlerDefinition> $commandHandlerDefinitions
      */
     private function __construct(
         private array $commandHandlerDefinitions,
-    ) {
-    }
+    ) {}
 
     /**
      * @param array<CommandHandlerDefinition> $commandHandlerDefinitions
@@ -33,6 +31,11 @@ final readonly class CommandHandlerDefinitions implements IteratorAggregate
     public static function fromArray(array $commandHandlerDefinitions): self
     {
         return instantiate(self::class, $commandHandlerDefinitions);
+    }
+
+    public static function none(): self
+    {
+        return self::fromArray([]);
     }
 
     public function getIterator(): Traversable
@@ -64,20 +67,36 @@ final readonly class CommandHandlerDefinitions implements IteratorAggregate
 
     public function onlyForCommands(string ...$commandNames): self
     {
-        return self::fromArray(array_filter($this->commandHandlerDefinitions, static fn (CommandHandlerDefinition $commandHandlerDefinition) => in_array($commandHandlerDefinition->commandName, $commandNames)));
+        return self::fromArray(array_filter($this->commandHandlerDefinitions, static fn(CommandHandlerDefinition $commandHandlerDefinition) => in_array($commandHandlerDefinition->commandName, $commandNames)));
     }
 
     public function with(CommandHandlerDefinition $commandHandlerDefinition): self
     {
         return self::fromArray(array_merge(
-            array_filter($this->commandHandlerDefinitions, static fn (CommandHandlerDefinition $existingCommandHandlerDefinition) => $existingCommandHandlerDefinition->commandName !== $commandHandlerDefinition->commandName),
-            [$commandHandlerDefinition]
+            array_filter($this->commandHandlerDefinitions, static fn(CommandHandlerDefinition $existingCommandHandlerDefinition) => $existingCommandHandlerDefinition->commandName !== $commandHandlerDefinition->commandName),
+            [$commandHandlerDefinition],
         ));
     }
 
     private function findByCommandName(string $commandName): CommandHandlerDefinition|null
     {
-        return array_find($this->commandHandlerDefinitions, static fn (CommandHandlerDefinition $commandHandlerDefinition) => $commandHandlerDefinition->commandName === $commandName);
+        return array_find($this->commandHandlerDefinitions, static fn(CommandHandlerDefinition $commandHandlerDefinition) => $commandHandlerDefinition->commandName === $commandName);
+    }
+
+    /**
+     * @return array<string>
+     */
+    public function commandNames(): array
+    {
+        return $this->map(static fn(CommandHandlerDefinition $commandHandlerDefinition) => $commandHandlerDefinition->commandName);
+    }
+
+    public function merge(self $other): self
+    {
+        return self::fromArray(array_merge(
+            array_filter($this->commandHandlerDefinitions, static fn(CommandHandlerDefinition $commandHandlerDefinition) => !in_array($commandHandlerDefinition->commandName, $other->commandNames())),
+            $other->commandHandlerDefinitions,
+        ));
     }
 
 }

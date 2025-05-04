@@ -2,6 +2,10 @@
 
 The following sections demonstrate several of the numerous scenarios that can be simplified with DCB:
 
+??? note
+
+    Most of the examples don't interact with the Event Store directly, but use higher level abstractions that allow for focusing on the business logic while demonstrating the potential of DCB. See article about [Projections](../topics/projections.md) for more details
+
 ## Constraints affecting multiple entities
 
 The most popular use case for DCB is to enforce hard constraints that affect multiple domain entities/concepts since it was covered in the "Killing the Aggregate" blog post by Sara Pellegrini [:octicons-link-external-16:](https://sara.event-thinking.io/2023/04/kill-aggregate-chapter-1-I-am-here-to-kill-the-aggregate.html){:target="_blank" .small}.

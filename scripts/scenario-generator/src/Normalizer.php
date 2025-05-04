@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Wwwision\DcbExampleGenerator;
 
-use Hoa\Protocol\Node\Node;
+use Webmozart\Assert\Assert;
 use Wwwision\Types\Normalizer\Normalizer as WrappedNormalizer;
 
 final readonly class Normalizer
@@ -22,7 +22,9 @@ final readonly class Normalizer
      */
     public function normalize(Example $example): array
     {
-        return $this->wrappedNormalizer->normalize($example);
+        $result = $this->wrappedNormalizer->normalize($example);
+        Assert::isArray($result, 'Normalizer must return an array');
+        return $result;
     }
 
     public function toJson(Example $example, bool $pretty = true): string
@@ -33,6 +35,8 @@ final readonly class Normalizer
 
     public function toQueryParam(Example $example): string
     {
-        return urlencode('data:application/dcb+json;base64,' . base64_encode(gzdeflate($this->toJson($example))));
+        $zipped = gzdeflate($this->toJson($example));
+        Assert::string($zipped, 'Failed to compress example');
+        return urlencode('data:application/dcb+json;base64,' . base64_encode($zipped));
     }
 }

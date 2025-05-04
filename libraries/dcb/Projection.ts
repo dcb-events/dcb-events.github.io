@@ -14,7 +14,7 @@ import {
  * The initial state is of type S, which is inferred from the projection's configuration.
  * The apply method takes the current state and an event, and returns a new state.
  */
-export interface Projection<S> {
+type Projection<S> = {
   get initialState(): S
   apply(state: S, event: SequencedEvent): S
   get query(): Query
