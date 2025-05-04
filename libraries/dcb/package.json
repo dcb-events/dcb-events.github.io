@@ -1,0 +1,9 @@
+{
+  "name": "@dcb-events/library",
+  "version": "1.0.0",
+  "description": "Interfaces and helpers for DCB",
+  "type": "module",
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Wwwision\DcbExampleGenerator;
 
 use RuntimeException;
+use Webmozart\Assert\Assert;
 use Wwwision\DcbExampleGenerator\shared\TemplateString;
 use Wwwision\Types\Schema\OneOfSchema;
 use Wwwision\TypesJSONSchema\Types\AllOfSchema;
@@ -128,10 +129,13 @@ final readonly class GeneratorPHP
         $result = '';
         foreach ($this->example->projections as $projection) {
             $result .= 'export const ' . ucfirst($projection->name) . ' = (' . self::schemaToParameters($projection->parameterSchema) . '): EventHandlerWithState<' . self::eventTypes($projection->handlers->eventTypes()) . ', ' . self::schemaToTypeDefinition($projection->stateSchema) . '> => ({' . self::lb();
-            $result .= '  tagFilter: ' . self::tagResolvers($projection->tagFilters) . ',' . self::lb();
-            $result .= '  init: ' . json_encode($projection->stateSchema->default, JSON_THROW_ON_ERROR) . ',' . self::lb();
+            if ($projection->tagFilters !== null) {
+                $result .= '  tagFilter: ' . self::tagResolvers($projection->tagFilters) . ',' . self::lb();
+            }
+            $result .= '  init: ' . json_encode($projection->stateSchema->default ?? null, JSON_THROW_ON_ERROR) . ',' . self::lb();
             $result .= '  when: {' . self::lb();
             foreach ($projection->handlers as $handlerName => $handler) {
+                Assert::string($handlerName);
                 $params = [];
                 // HACK
                 if (str_contains($handler->value, 'event')) {
@@ -198,6 +202,8 @@ final readonly class GeneratorPHP
     {
         $parts = [];
         foreach ($eventData as $key => $value) {
+            Assert::string($key);
+            Assert::string($value);
             $parts[] = $key . ': ' . TemplateString::parse($value)->toJsTemplateString();
         }
         return implode(', ', $parts);
