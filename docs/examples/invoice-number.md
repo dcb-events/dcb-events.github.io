@@ -1,7 +1,3 @@
----
-icon: octicons/number-16
----
-
 Creating a monotonic sequence without gaps is another common requirement DCB can help with
 
 ## Challenge

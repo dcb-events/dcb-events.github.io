@@ -1,6 +1,3 @@
----
-icon: material/cards-playing-club-multiple-outline
----
 In distributed systems, especially in web APIs handling financial or state-changing operations, ensuring idempotency is essential. Clients may retry requests due to network issues or timeouts, and without proper safeguards, this can result in duplicate processing.
 
 ## Challenge

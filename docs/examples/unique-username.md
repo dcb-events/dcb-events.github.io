@@ -1,7 +1,3 @@
----
-icon: fontawesome/solid/user
----
-
 # Unique username example
 
 Enforcing globally unique values is simple with strong consistency (thanks to tools like unique constraint indexes), but it becomes significantly more challenging with <dfn title="Consistency model that prioritizes availability and partition tolerance over immediate consistency">eventual consistency</dfn>.

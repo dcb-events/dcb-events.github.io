@@ -1,6 +1,3 @@
----
-icon: material/hexagon-multiple
----
 With DCB there are more flexible ways to enforce consistency (see article about [Aggregates](../topics/aggregates.md)).
 
 Sometimes, however, an [Event-Sourced Aggregate](../topics/aggregates.md#event-sourced-aggregate) can still be useful. For example to slowly migrate an existing Event-Sourced application or if the flexibility of DCB is not required (see [conclusion](#conclusion) below)

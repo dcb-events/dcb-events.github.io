@@ -1,6 +1,3 @@
----
-icon: material/tag
----
 # Dynamic product price validation
 
 The following example showcases a simple application that allows to purchase products, with a twist
