@@ -62,7 +62,7 @@ However, we’re experimenting with an adapter layer that allows traditional Eve
 
 ## Nothing comes for free. What are limitations/drawbacks of DCB?
 
-DCB guarantees consistency only inside the scope of the global [Sequence Position](specification.md#sequence-position). Thus, Events must be ordered to allow the conditional appending.
+DCB guarantees consistency only inside the scope of the global Sequence Position (TODO: Adjust!). Thus, Events must be ordered to allow the conditional appending.
 As a result, it’s not (easily) possible to partition Events.
 Furthermore, DCB leads to some additional complexity in the Event Store implementation (see [Specification](specification.md)).
 
