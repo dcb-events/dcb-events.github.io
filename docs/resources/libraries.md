@@ -26,7 +26,8 @@ But there are already a couple of libraries and libraries that prove those in pr
 
 #### Rust
 
-- Disintegrate `disintegrate-es/disintegrate`[:octicons-link-external-16:](https://disintegrate-es.github.io/disintegrate/){:target="_blank" .small} (slightly different approach, inspired by the original ideas of DCB)
+- Disintegrate `disintegrate-es/disintegrate`[:octicons-link-external-16:](https://disintegrate-es.github.io/disintegrate/){:
+  target="_blank" .small} (slightly different approach, inspired by the original ideas of DCB)
 
 ## Add your own
 
