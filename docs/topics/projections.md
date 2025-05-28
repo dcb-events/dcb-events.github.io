@@ -1,4 +1,6 @@
-A Projection is deriving state by replaying a sequence of relevant Events. In other words, it's reading and transforming Events into a model built for a specific need.
+In software architecture, how we view and handle data often comes down to two fundamental perspectives: **event-based** and **state-based**. The state-based view focuses on the current snapshot of data. It’s straightforward and efficient for querying, reporting, and displaying data to users. In contrast, the event-based view captures every change over time, providing a complete history of how the state evolved.
+
+Depending on your use case, one view may serve better than the other — or you might need both. That’s where projections come in: they translate an event-based history into a state-based model tailored to specific needs.
 
 The result is commonly used for persistent <dfn title="Representation of data tailored for specific read operations, often denormalized for performance">Read Models</dfn>. In Event Sourcing, however, projections are also used to build the <dfn title="Representation of the system's current state, used to enforce integrity constraints before moving the system to a new state">Decision Model</dfn> needed to enforce consistency constraints. 
 
@@ -83,6 +85,10 @@ const numberOfActiveCourses = events.reduce(projection, initialState)
 console.log({numberOfActiveCourses})
 ```
 <codapi-snippet engine="browser" sandbox="javascript" depends-on="example1"></codapi-snippet>
+
+!!! note
+
+    A projection function has to be pure, i.e. it must be free of side effects in order to produce deterministic results. When replaying a projection for the same events, the resulting `state` has to be the same every time
 
 ## Query only relevant Events
 
@@ -340,8 +346,11 @@ As you can see, the state of the composite projection is an object with a key fo
 
 ## How to use this with DCB
 
-With DCB, composite projections are especially useful, when building a Decision Model to enforce strong consistency.
-The `buildDecisionModel` function allows multiple projections to be composed on-the-fly, allowing to enforce dynamic consistency boundaries that inspired the name DCB:
+In the context of DCB, composite projections are particularly useful for building Decision Models that require strong consistency.
+
+A lightweight translation layer can extract a query that efficiently loads only the events relevant to the composed projections.
+
+The `buildDecisionModel` function from the library mentioned above handles this for example: it lets you compose multiple projections dynamically, allowing to enforce dynamic consistency boundaries that inspired the name DCB:
 
 ```javascript
 const eventStore = new InMemoryDcbEventStore()
@@ -351,11 +360,17 @@ const { state, appendCondition } = buildDecisionModel(eventStore, {
   courseTitle: CourseTitleProjection("c1"),
 })
 
-console.log("initial state:", state)
+console.log("state:", state)
 console.log("append condition:", appendCondition)
 ```
 
 <codapi-snippet engine="browser" sandbox="javascript" depends-on="example3 example4 example5" template="/assets/js/dcb.js"></codapi-snippet>
+
+!!! note
+
+    The `state` will contain the composed state of all projections.
+    
+    The `appendCondition` can be passed to the `append()` method of the DCB capable event store in order to enforce consistency (see [specification](../specification.md) for more details)
 
 ## Conclusion
 
