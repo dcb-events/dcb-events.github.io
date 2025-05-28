@@ -49,16 +49,16 @@ db.update(course)
 db.releaseCourseTableLock()
 ```
 
-While this might seem tempting, it is not without problems because it might lead to deadlocks if two processes wait for each other, or if a lock isn't properly released.
+While this might seem tempting, it is not without problems because it might lead to deadlocks (which can happen as soon there are _multiple_ locks and no consistent acquiring order).
 But, more importantly, It prevents **any other course from being updated while the lock is active**.
 
 Even if only the affected course were locked, it would prevent independent parallel changes (e.g. changing concurrently the course title and the course description).
 
 #### Optimistic Locking
 
-With Optimistic Locking, multiple users can read and modify the same data, but updates are only allowed if the data hasn't changed since it was read.
+With Optimistic Locking, multiple users can freely read and attempt to modify the same data. However, updates are only permitted if the data remains unchanged since it was read. This allows unrestricted reading, while writing faces similar constraints to pessimistic locking — but typically requires shorter database locks.
 
-This is usually achieved with a _version number_
+It is usually achieved with a _version number_
 
 ```haskell linenums="1" hl_lines="6"
 course = db.loadCourse('c1')
