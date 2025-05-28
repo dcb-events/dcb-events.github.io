@@ -3,17 +3,6 @@
 DCB is merely a set of ideas and concepts.
 But there are already a couple of libraries and libraries that prove those in practice:
 
-#### Rust
-
-- Disintegrate `disintegrate-es/disintegrate`[:octicons-link-external-16:](https://github.com/disintegrate-es/disintegrate){:
-  target="_blank" .small} (V2.0.0)
-
-  Disintegrate is a Rust library that provides an alternative approach to building domain objects from an event stream.
-  While supporting traditional aggregates, Disintegrate introduces a novel method that allows for more flexibility and
-  adaptability in modeling business rules. It is Inspired by Sare Pellegring's talk, "Kill the Aggregate," 
-  `Documentation`[:octicons-link-external-16:](https://disintegrate-es.github.io/disintegrate/){:target="_blank"
-  .small} (V2.0.0)
-
 #### Java
 
 - AxonIQ [:octicons-link-external-16:](https://www.axoniq.io){:target="_blank" .small} has announced to support DCB with version 5 of their Axon Framework
@@ -34,6 +23,17 @@ But there are already a couple of libraries and libraries that prove those in pr
 #### Ruby
 
 - `ortegacmanuel/kroniko`[:octicons-link-external-16:](https://github.com/ortegacmanuel/kroniko){:target="_blank" .small} (work in progress)
+
+#### Rust
+
+- Disintegrate `disintegrate-es/disintegrate`[:octicons-link-external-16:](https://github.com/disintegrate-es/disintegrate){:
+  target="_blank" .small} (V2.0.0)
+
+  Disintegrate is a Rust library that provides an alternative approach to building domain objects from an event stream.
+  While supporting traditional aggregates, Disintegrate introduces a novel method that allows for more flexibility and
+  adaptability in modeling business rules. It is Inspired by Sare Pellegring's talk, "Kill the Aggregate," 
+  `Documentation`[:octicons-link-external-16:](https://disintegrate-es.github.io/disintegrate/){:target="_blank"
+  .small} (V2.0.0)
 
 ## Add your own
 
