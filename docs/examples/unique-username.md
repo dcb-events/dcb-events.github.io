@@ -12,7 +12,7 @@ The goal is an application that allows users to subscribe with a username that u
 
 As a bonus, this example is extended by adding the following features:
 
-- Allow usernames to be re-claimed when the account was suspended
+- Allow usernames to be re-claimed when the account was closed (see disclaimer!)
 - Allow users to change their username
 - Only release unused usernames after a configurable delay
 
@@ -166,7 +166,11 @@ This example is the most simple one just checking whether a given username is cl
 
 ### Feature 2: Release usernames
 
-This example extends the previous one to show how a previously claimed username could be released when the corresponding account is suspended
+This example extends the previous one to show how a previously claimed username could be released when the corresponding account is closed
+
+!!! warning "Disclaimer"
+    It's most probably not a good idea to allow new users to take over the username of a closed account!
+    Part 4 introduces a potential remedy, on its own this is merely an oversimplified example.
 
 <script type="application/dcb+json">
 {
@@ -177,7 +181,7 @@ This example extends the previous one to show how a previously claimed username 
   },
   "eventDefinitions": [
     {
-      "name": "AccountSuspended",
+      "name": "AccountClosed",
       "schema": {
         "type": "object",
         "properties": {
@@ -208,7 +212,7 @@ This example extends the previous one to show how a previously claimed username 
       },
       "handlers": {
         "AccountRegistered": "true",
-        "AccountSuspended": "false"
+        "AccountClosed": "false"
       },
       "tagFilters": [
         "username:{username}"
@@ -217,7 +221,7 @@ This example extends the previous one to show how a previously claimed username 
   ],
   "testCases": [
     {
-      "description": "Register account with username of suspended account",
+      "description": "Register account with username of closed account",
       "givenEvents": [
         {
           "type": "AccountRegistered",
@@ -226,7 +230,7 @@ This example extends the previous one to show how a previously claimed username 
           }
         },
         {
-          "type": "AccountSuspended",
+          "type": "AccountClosed",
           "data": { "username": "u1" }
         }
       ],
@@ -295,7 +299,7 @@ This example extends the previous one to show how the username of an active acco
       },
       "handlers": {
         "AccountRegistered": "true",
-        "AccountSuspended": "false",
+        "AccountClosed": "false",
         "UsernameChanged": "event.data.newUsername === username"
       },
       "tagFilters": [
@@ -390,7 +394,7 @@ This example extends the previous one to show how the a username can be reserved
       },
       "handlers": {
         "AccountRegistered": "true",
-        "AccountSuspended": "event.metadata?.daysAgo <= 3",
+        "AccountClosed": "event.metadata?.daysAgo <= 3",
         "UsernameChanged": "event.data.newUsername === username || event.metadata?.daysAgo <= 3"
       },
       "tagFilters": [
@@ -400,7 +404,7 @@ This example extends the previous one to show how the a username can be reserved
   ],
   "testCases": [
     {
-      "description": "Register username of suspended account before retention period",
+      "description": "Register username of closed account before retention period",
       "givenEvents": [
         {
           "type": "AccountRegistered",
@@ -412,7 +416,7 @@ This example extends the previous one to show how the a username can be reserved
           }
         },
         {
-          "type": "AccountSuspended",
+          "type": "AccountClosed",
           "data": { "username": "u1" },
           "metadata": {
             "daysAgo": 3
@@ -456,7 +460,7 @@ This example extends the previous one to show how the a username can be reserved
       "thenExpectedError": "Username \"u1\" is claimed"
     },
     {
-      "description": "Register username of suspended account after retention period",
+      "description": "Register username of closed account after retention period",
       "givenEvents": [
         {
           "type": "AccountRegistered",
@@ -468,7 +472,7 @@ This example extends the previous one to show how the a username can be reserved
           }
         },
         {
-          "type": "AccountSuspended",
+          "type": "AccountClosed",
           "data": { "username": "u1" },
           "metadata": {
             "daysAgo": 4
