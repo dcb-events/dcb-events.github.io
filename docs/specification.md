@@ -2,7 +2,7 @@
 
     This document defines the *minimal feature set* an Event Store must provide to be DCB compliant.
 
-    While we introduce certain concepts and terminology, **implementations are not required to use the same terms** — as long as they offer equivalent functionality.
+    While we introduce certain concepts and terminology, **implementations are not required to use the same terms or function/field names** — as long as they offer equivalent functionality. (so `read()` could be `getEvents()` and `failIfEventsMatch` could be `referenceQuery` if those make more sense in your API)
 
 An Event Store that supports DCB provides a way to:
 
