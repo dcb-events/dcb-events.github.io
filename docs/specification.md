@@ -184,7 +184,7 @@ The Append Condition is used to enforce consistency, ensuring that between the t
 - It _MUST_ contain a `failIfEventsMatch` [Query](#query)
 - It _MAY_ contain an `after` [Sequence Position](#sequence-position)
   - this represents the highest position the client was aware of while building the Decision Model. The Event Store _MUST_ ignore the Events before the specified position while checking the condition for appending events. _Note:_ This number can be _higher_ than the position of the last event matching the Query.
-  - when present, the `failIfEventsMatch` Query is typically the same Query that was used when building the Decision Model, which guarantees that the Decision Model is still the same when we append new events
+  - when `after` is present, the `failIfEventsMatch` Query is typically the same Query that was used when building the Decision Model, which guarantees that the Decision Model is still the same when we append new events
   - if omitted, no Events will be ignored, effectively failing if _any_ Event matches the specified Query
 
 ```{.haskell .no-copy}
