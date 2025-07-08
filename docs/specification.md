@@ -6,7 +6,7 @@
 
 An Event Store that supports DCB provides a way to:
 
-- **read** [Sequenced Event](#sequenced-event)s matching a [Query](#query), optionally starting from a specified [Sequence Position](#sequence-position)
+- **read** [Stored Event](#stored-event)s matching a [Query](#query), optionally starting from a specified [Event Id](#event-id)
 - **append** [Event](#events)(s), optionally specifying an [Append Condition](#append-condition) to enforce consistency
 
 ## Reading Events
@@ -14,19 +14,19 @@ An Event Store that supports DCB provides a way to:
 The Event Store...
 
 - ... _MUST_ provide a way to filter Events based on their [Event Type](#event-type) and/or [Tag](#tags) (see [Query](#query))
-- ... _SHOULD_ provide a way to read Events from a given starting [Sequence Position](#sequence-position)
+- ... _SHOULD_ provide a way to read Events from a given starting [Event Id](#event-id)
 - ... _MAY_ provide further filter options, e.g. for ordering or to limit the number of Events to load at once 
 
 A typical interface for reading events (pseudo-code):
 
 ```{.haskell .no-copy}
 EventStore {
-  read(query: Query, options?: ReadOptions): SequencedEvents
+  read(query: Query, options?: ReadOptions): EventStream
   // ...
 }
 ```
 
-**Note:** `SequencedEvents` represents some form of iterable or reactive stream of [Sequenced Event](#sequenced-event)s
+**Note:** the `EventStream` represents some form of iterable or reactive stream of [Stored Event](#stored-event)s
 
 ## Writing Events
 
@@ -95,38 +95,6 @@ The following example query would match Events that are either...
 }
 ```
 
-### Sequenced Event
-
-Contains or embeds all information of the original `Event` and its [Sequence Position](#sequence-position) that was added during the `append()` call.
-
-- It _MUST_ contain the [Sequence Position](#sequence-position)
-- It _MUST_ contain the [Event](#event)
-- It _MAY_ contain further fields, like metadata defined by the Event Store
-
-#### Example
-
-The following example shows a _potential_ JSON representation of a Sequenced Event:
-
-```{.json .no-copy}
-{
-  "event": {
-    ...
-  },
-  "position": 1234,
-  ...
-}
-```
-
-### Sequence Position
-
-When an [Event](#event) is appended, the Event Store assigns a `Sequence Position` to it.
-
-It...
-
-- _MUST_ be unique in the Event Store
-- _MUST_ be monotonic increasing
-- _MAY_ contain gaps
-
 ### Events
 
 A set of [Event](#event) instances that is passed to the `append()` method of the Event Store
@@ -138,6 +106,7 @@ It...
 
 ### Event
 
+- It _MUST_ contain an [Event Id](#event-id)
 - It _MUST_ contain an [Event Type](#event-type)
 - It _MUST_ contain [Event Data](#event-data)
 - It _MAY_ contain [Tags](#tags)
@@ -149,12 +118,24 @@ A _potential_ JSON representation of an Event:
 
 ```{.json .no-copy}
 {
+  "id": "9b57af26-f1d4-4882-a910-320b29b0fabf",
   "type": "SomeEventType",
   "data": "{\"some\":\"data\"}",
   "tags": ["tag1", "tag2"],
    ...
 }
 ```
+
+### Stored Event
+
+Contains or embeds all information of the original `Event` and potentially additional metadata that was added during the `append()` call.
+
+- It _MUST_ contain the [Event](#event)
+- It _MAY_ contain further fields, like metadata defined by the Event Store
+
+### Event Id
+
+Globally unique identifier of an event, potentially specified by the client
 
 ### Event Type
 
@@ -183,13 +164,13 @@ The Append Condition is used to enforce consistency, ensuring that between the t
 
 - It _MUST_ contain a `failIfEventsMatch` [Query](#query)
   - this is typically the same Query that was used when building the Decision Model
-- It _MAY_ contain an `after` [Sequence Position](#sequence-position)
+- It _MAY_ contain an `after` [Event Id](#event-id)
   - this represents the highest position the client was aware of while building the Decision Model. The Event Store _MUST_ ignore the Events before the specified position while checking the condition for appending events. _Note:_ This number can be _higher_ than the position of the last event matching the Query.
   - if omitted, no Events will be ignored, effectively failing if _any_ Event matches the specified Query
 
 ```{.haskell .no-copy}
 AppendCondition {
   failIfEventsMatch: Query
-  after?: SequencePosition
+  after?: EventId
 }
 ```
