@@ -3,6 +3,10 @@
 DCB is merely a set of ideas and concepts.
 But there are already a couple of libraries and libraries that prove those in practice:
 
+#### Go
+
+- `go-crablet`[:octicons-link-external-16:](https://github.com/rodolfodpk/go-crablet){:target="_blank" .small}
+
 #### Java
 
 - AxonIQ [:octicons-link-external-16:](https://www.axoniq.io){:target="_blank" .small} has announced to support DCB with version 5 of their Axon Framework (work in progress)
@@ -27,7 +31,8 @@ But there are already a couple of libraries and libraries that prove those in pr
 #### Rust
 
 - Disintegrate `disintegrate-es/disintegrate`[:octicons-link-external-16:](https://disintegrate-es.github.io/disintegrate/){:target="_blank" .small} (slightly different approach, inspired by the original ideas of DCB)
+- `dcbdb`[:octicons-link-external-16:](https://github.com/johnbywater/dcbdb){:target="_blank" .small} (work in progress)
 
 ## Add your own
 
-If you are working on a library related to DCB or on a compatible (see [specification](../specification.md)) Event Store, feel free to open a Pull request in the Github Repository[:octicons-link-external-16:](https://github.com/dcb-events/dcb-events.github.io){:target="_blank" .small} of this website to add it to the list above
+If you are working on a library related to DCB or on a compatible (see [specification](../specification.md)) Event Store, feel free to open a Pull request in the Github Repository[:octicons-link-external-16:](https://github.com/dcb-events/dcb-events.github.io/edit/main/docs/resources/libraries.md){:target="_blank" .small} of this website to add it to the list above
