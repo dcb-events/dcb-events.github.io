@@ -52,6 +52,7 @@ nav:
       - topics/index.md
       - Aggregates: topics/aggregates.md
       - Projections: topics/projections.md
+      - Tags: topics/tags.md
       #- DCB vs Outbox Pattern (tbd): topics/dcb-vs-outbox-pattern.md
       #- DCB with a traditional Event Store (tbd): topics/dcb-with-a-traditional-event-store.md
       #- DCB without Event Sourcing (tbd): topics/dcb-without-event-sourcing.md

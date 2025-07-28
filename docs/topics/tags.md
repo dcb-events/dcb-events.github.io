@@ -1,8 +1,14 @@
 # Tags: The Key to Flexible Event Correlation
 
-When we published this website, the reception was largely positive. The concept of Dynamic Consistency Boundaries resonated with developers who had struggled with the rigid limitations of traditional Aggregate patterns. However, one aspect of the proposal sparked considerable debate and misunderstanding: the notion of **tags**.
+The concept of Dynamic Consistency Boundaries resonated with developers who had struggled with the rigid limitations of traditional Aggregate patterns. One area that deserves some additional clarification is the notion of **tags**.
 
-This article aims to shed light on why tags are not just a technical detail, but a fundamental and necessary concept for implementing a DCB-compliant Event Store.
+This article aims to shed light on why tags are not just a technical detail, but a core concept for implementing a DCB-compliant Event Store.
+
+## TL;DR
+
+- Tags are explicit references to domain concepts involved in consistency rules
+- They enable precise, performant event selection without relying on deep payload inspection
+- While tags introduce a conceptual layer, we believe their benefits for scalability and correctness outweigh the added complexity
 
 ## Understanding the Role of Tags
 
@@ -13,13 +19,15 @@ To understand why tags are essential, we need to distinguish between two differe
 
 While an event type tells us *what happened*, tags tell us *to whom* or *to what* it happened. This distinction becomes crucial when we need to enforce business invariants.
 
+In short: A **tag** is a **reference** to a **unique instance** of a **concept** involved in a **domain integrity rule**.
+
 ## The Problem: Precise Event Selection for Invariant Enforcement
 
 Consider an e-commerce system with a critical business rule:
 
 - A product's available inventory cannot go below zero
 
-To enforce this invariant when processing a new inventory reserved event, we need to make decisions based on previously committed events. But which events exactly?
+To enforce this invariant when processing a new `inventory reserved` event, we need to make decisions based on previously committed events. But which events exactly?
 
 To check if we can fulfill a reservation request, we need to examine all previous events that affected the specific product's stock levels: previous reservations, releases, restocks, and adjustments.
 
@@ -42,33 +50,185 @@ Traditional Event Stores typically allow querying events by their **stream** (an
 ## Alternative Approaches and Their Shortcomings
 
 One might wonder: couldn't we solve this with a query language that filters events by their payload properties?
-This is certainly possible and some Event Stores already offer this possibility.
+This is certainly possible and some Event Stores already offer this capability.
 
 But it introduces some challenges:
 
 ### Opaque Event Payloads
 
-The event payload should remain opaque to the Event Store. It could even be stored in binary format for efficiency or encrypted security/privacy reasons. Requiring the Event Store to parse and understand payload structure violates this principle.
+The event payload should remain opaque to the Event Store. It could even be stored in binary format for efficiency or encrypted for security/privacy reasons. Requiring the Event Store to parse and understand payload structure violates this principle.
 
 ### Complexity Overhead
 
 A query language introduces substantial complexity on both the implementation and usage sides. Event Store implementations become more complex, and developers must learn and maintain knowledge of yet another query syntax.
 
+For example: A query to determine whether a username is claimed for the [Unique username example](../examples/unique-username.md) could look like this:
+
+```
+(
+  (
+    event.type IN ("AccountRegistered", "AccountClosed")
+    AND
+    event.data.username == "<username>"
+  )
+  OR (
+    event.type == "UsernameChanged"
+    AND
+    event.data.newUsername == "<username>"
+  )
+)
+```
+
+while the corresponding DCB query would be:
+
+```json
+[{
+  "event_types": ["AccountRegistered", "AccountClosed", "UsernameChanged"],
+  "tags": ["<username-tag>"]
+}]
+```
+
 ### Performance Challenges
 
-Dynamic queries against schema-less events make it extremely difficult to create performant implementations. Without predictable query patterns, the Event Store cannot optimize indexes or data structures effectively.
-
-### Partitioning Impossibility
-
-Dynamic payload-based queries make it nearly impossible to partition events across multiple nodes. While partitioning with multiple tags isn't trivial, it's certainly more achievable than with arbitrary query expressions.
+Dynamic queries against schemaless events make it extremely difficult to create performant implementations. Without predictable query patterns, the Event Store cannot optimize indexes or data structures effectively.
 
 ### Feature Incompleteness
 
 Any query language will inevitably have limitations. Comparing dates, working with sets or maps, handling null values... There will always be edge cases and missing operators that force workarounds or compromise.
 
-### Code Inference vs. Query Complexity
+### Inference vs. Query Complexity
 
-Most importantly, the relevant event types and tags can be automatically inferred from high-level, domain-specific code. This inference becomes much more challenging – if not impossible – with complex, dynamic queries.
+Importantly, tags and event types don't need to be hardcoded into domain-specific logic. Instead, they can be inferred automatically from the types for example by using interfaces or dedicated types for the tagged properties.
+
+??? abstract "Examples: Inferring tags from events"
+
+    ## Using interfaces
+
+    The following C# example demonstrates how interfaces could be used to represent tagged events:
+
+    ```csharp
+    // interface definitions
+    interface IDomainEvent { }
+
+    interface ICourseEvent : IDomainEvent
+    {
+        string CourseId { get; }
+    }
+
+    interface IStudentEvent : IDomainEvent
+    {
+        string StudentId { get; }
+    }
+
+    // function to extract tags from an event instance:
+    static List<string> ExtractTags(IDomainEvent domainEvent)
+    {
+        var tags = new List<string>();
+        if (domainEvent is IStudentEvent studentEvent)
+        {
+            tags.Add($"student:{studentEvent.StudentId}");
+        }
+        if (domainEvent is ICourseEvent courseEvent)
+        {
+            tags.Add($"course:{courseEvent.CourseId}");
+        }
+        return tags;
+    }
+
+    // event definition
+    sealed record StudentSubscribedToCourse(string StudentId, string CourseId) : IStudentEvent, ICourseEvent;
+
+    // usage
+    IDomainEvent domainEvent = new StudentSubscribedToCourse("s1", "c1");
+    Console.WriteLine(String.Join(", ", ExtractTags(domainEvent))); // student:s1, course:c1
+    ```
+
+    ## Using custom types
+
+    The following TypeScript example demonstrates how custom types can be used to represent tags within events:
+
+    ```typescript
+    // type definitions
+    interface Tagged {
+      readonly value: string
+      readonly __tagPrefix: string
+      toJSON(): string
+    }
+
+    interface CourseId extends Tagged {
+      readonly __tagPrefix: "course"
+    }
+
+    interface StudentId extends Tagged {
+      readonly __tagPrefix: "student"
+    }
+
+    function createCourseId(value: string): CourseId {
+      return {
+        value,
+        __tagPrefix: "course" as const,
+        toJSON() {
+          return this.value
+        },
+      }
+    }
+
+    function createStudentId(value: string): StudentId {
+      return {
+        value,
+        __tagPrefix: "student" as const,
+        toJSON() {
+          return this.value
+        },
+      }
+    }
+
+    // function to extract tags from an event instance:
+    function extractTags(eventData: Record<string, unknown>): string[] {
+      return Object.entries(eventData).reduce<string[]>(
+        (tags, [_, property]) =>
+          property && typeof property === "object" && "__tagPrefix" in property
+            ? [
+                ...tags,
+                `${(property as Tagged).__tagPrefix}:${(property as Tagged).value}`,
+              ]
+            : tags,
+        []
+      )
+    }
+
+    // event definition
+    function StudentSubscribedToCourse(studentId: StudentId, courseId: CourseId) {
+      return {
+        type: "StudentSubscribedToCourse" as const,
+        data: { studentId, courseId },
+      }
+    }
+
+    // usage
+    const event = StudentSubscribedToCourse(
+      createStudentId("s1"),
+      createCourseId("c1")
+    )
+    console.log(extractTags(event.data)) // [ 'student:s1', 'course:c1' ]
+    ```
+
+This inference becomes much more challenging – if not impossible – with complex, dynamic queries.
+
+## Guideline for Good Tags
+
+In most cases, it's fairly obvious which tags to add to an event type. If an event affects one or more entities, their identifiers typically make appropriate tags.
+
+In some cases, however, it's less straightforward – especially when constraints relate to more implicit concepts like email addresses, usernames, time slots or hierarchical relationships rather than concrete entities.
+In those situations, identifying the aggregate root (in Domain-Driven Design terms) can help clarify which tags are relevant.
+
+As a general rule, whenever a hard constraint depends on an event being included in a Decision Model, the necessary tags must be present. That said, it can be useful to proactively tag additional values that might become relevant for constraints in the future.
+
+Good tags follow these principles:
+
+- Tags must be derivable from the event payload
+- Prefixes (e.g., `customer:c123`, `order-1234`) help disambiguate values and standardize tag structure
+- Tags should avoid personal data – hash or anonymize sensitive values like usernames and email addresses
 
 ## Benefits of the Tag-Based Approach
 
@@ -83,10 +243,6 @@ Since tags are explicitly declared and have predictable patterns, Event Stores c
 ### Automatic Inference
 
 DCB libraries will be able to automatically infer required tags and event types from domain model definitions, reducing the burden on developers while ensuring correctness.
-
-### Partitioning Possibilities
-
-While challenging, it's possible to partition events across multiple nodes based on tag patterns, enabling horizontal scaling of the Event Store.
 
 ## Acknowledging the Limitations
 
