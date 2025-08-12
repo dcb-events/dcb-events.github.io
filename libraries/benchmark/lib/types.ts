@@ -34,6 +34,7 @@ export type SequencedEvent = Event & {
 export type ReadOptions = {
   from?: number
   limit?: number
+  backwards?: boolean
 }
 
 export type AppendCondition = {
