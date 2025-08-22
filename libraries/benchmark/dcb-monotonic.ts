@@ -23,6 +23,8 @@ const dcbOptions: DcbOptions = {
   eventsPerAppend: { min: 2, max: 5 },
 }
 
+const api = require(__ENV.ADAPTER || './adapters/http_default.js')
+
 /**
  * k6 scenarios
  *
@@ -68,11 +70,6 @@ if (!__ENV.REDIS_DSN) {
   fail("REDIS_DSN environment variable is not set, usage: k6 run <script> -e DCB_ENDPOINT=http://domain.tld -e REDIS_DSN=redis://localhost:6379")
 }
 const redisClient = new redis.Client(__ENV.REDIS_DSN)
-
-if (!__ENV.DCB_ENDPOINT) {
-  fail("DCB_ENDPOINT environment variable is not set, usage: k6 run <script> -e DCB_ENDPOINT=http://domain.tld -e REDIS_DSN=redis://localhost:6379")
-}
-const api = createApi(__ENV.DCB_ENDPOINT)
 
 const fixture = fixtureBuilder(dcbOptions)
 

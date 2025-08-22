@@ -1,6 +1,6 @@
 import { Trend, Counter, Rate } from "k6/metrics"
 import { fail, check, randomSeed } from "k6"
-import { createApi, QueryBuilder } from "./lib/helpers.ts"
+import { QueryBuilder } from "./lib/helpers.ts"
 import exec from "k6/execution"
 import { DcbOptions, Query } from "./lib/types.ts"
 import { fixtureBuilder } from "./lib/fixture.ts"
@@ -22,6 +22,8 @@ const dcbOptions: DcbOptions = {
   tagsPerQueryItem: { min: 0, max: 3 },
   eventsPerAppend: { min: 1, max: 2 },
 }
+
+const api = require(__ENV.ADAPTER || './adapters/http_default.js')
 
 /**
  * k6 scenarios
@@ -54,15 +56,10 @@ const dcbAppendCounter = new Counter("dcb_append_count")
 const dcbAppendErrorRate = new Rate("dcb_append_error_rate")
 const dcbConsistencyCounter = new Counter("dcb_consistency_count")
 
-if (!__ENV.DCB_ENDPOINT) {
-  fail("DCB_ENDPOINT environment variable is not set, usage: k6 run <script> -e DCB_ENDPOINT=http://domain.tld")
-}
-
 if (__ENV.SEED) {
   randomSeed(parseInt(__ENV.SEED, 10))
 }
 
-const api = createApi(__ENV.DCB_ENDPOINT)
 const fixture = fixtureBuilder(dcbOptions)
 
 export function appendEvents() {

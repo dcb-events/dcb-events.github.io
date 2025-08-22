@@ -15,11 +15,12 @@ Verifies whether the append condition of an Event Store is enforced correctly ev
 #### Usage
 
 ```shell
-k6 run dcb-consistency.ts -e DCB_ENDPOINT=<EVENT_STORE_ENDPOINT>
+k6 run dcb-consistency.ts -e BASE_URI=<BASE_URI>
 ```
 
 > [!NOTE]  
-> Replace `<EVENT_STORE_ENDPOINT>` with the URL of the event store (e.g. `https://127.0.0.1:12345` – use `--insecure-skip-tls-verify` to skip TSL verification). GRPC endpoints are supported using the `grpc://` schema
+> Replace `<BASE_URI>` with the URL of the event store (use `--insecure-skip-tls-verify` to skip TSL verification)
+> To use a custom adapter, the `ADAPTER` environment variable can be set, see below
 
 ### Monotony of positions
 
@@ -31,8 +32,17 @@ Verifies whether the position of the read events is always monotonic increasing
 #### Usage
 
 ```shell
-k6 run dcb-monotonic.ts --insecure-skip-tls-verify -e DCB_ENDPOINT=<EVENT_STORE_ENDPOINT> -e REDIS_DSN=<REDIS_ENDPOINT>
+k6 run dcb-monotonic.ts -e -e BASE_URI=<BASE_URI> -e REDIS_DSN=<REDIS_ENDPOINT>
 ```
 
 > [!NOTE]  
-> Replace `<EVENT_STORE_ENDPOINT>` with the URL of the event store (see above), replace `<REDIS_ENDPOINT>` with the redis connection string (e.g. `redis://localhost:6379`)
+> Replace `<BASE_URI>` with the URL of the event store (see above), replace `<REDIS_ENDPOINT>` with the redis connection string (e.g. `redis://localhost:6379`)
+> To use a custom adapter, the `ADAPTER` environment variable can be set, see below
+
+## Custom adapters
+
+By default the [http_default.js](adapters/http_default.js) is used to interact with the event store backend. This can be replaced with a `ADAPTER` environment variable, for example:
+
+```shell
+k6 run dcb-consistency.ts -e ADAPTER="./adapters/http_esdb.js" 
+```
