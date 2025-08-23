@@ -33,6 +33,10 @@ But there are already a couple of libraries and libraries that prove those in pr
 - Disintegrate `disintegrate-es/disintegrate`[:octicons-link-external-16:](https://disintegrate-es.github.io/disintegrate/){:target="_blank" .small} (slightly different approach, inspired by the original ideas of DCB)
 - `dcbdb`[:octicons-link-external-16:](https://github.com/johnbywater/dcbdb){:target="_blank" .small} (work in progress)
 
+#### C#
+
+- `Sekiban.Dcb`[:octicons-link-external-16:](https://github.com/J-Tech-Japan/Sekiban?tab=readme-ov-file#dcb-dynamic-consistency-boundary){:target="_blank" .small} (active dev, PostgreSQL support, NuGet preview: [`1.0.1-preview24`](https://www.nuget.org/packages/Sekiban.Dcb/1.0.1-preview24), using Orleans Actor Model)
+
 ## Add your own
 
 If you are working on a library related to DCB or on a compatible (see [specification](../specification.md)) Event Store, feel free to open a Pull request in the Github Repository[:octicons-link-external-16:](https://github.com/dcb-events/dcb-events.github.io/edit/main/docs/resources/libraries.md){:target="_blank" .small} of this website to add it to the list above
