@@ -35,7 +35,7 @@ But there are already a couple of libraries and libraries that prove those in pr
 
 #### C#
 
-- `Sekiban.Dcb`[:octicons-link-external-16:](https://github.com/J-Tech-Japan/Sekiban?tab=readme-ov-file#dcb-dynamic-consistency-boundary){:target="_blank" .small} (active dev, PostgreSQL support, NuGet preview: [`1.0.1-preview24`](https://www.nuget.org/packages/Sekiban.Dcb/1.0.1-preview24), using Orleans Actor Model)
+- `Sekiban.Dcb`[:octicons-link-external-16:](https://github.com/J-Tech-Japan/Sekiban?tab=readme-ov-file#dcb-dynamic-consistency-boundary){:target="_blank" .small} (active dev, PostgreSQL support, NuGet preview: [`1.0.1-preview24`](https://www.nuget.org/packages/Sekiban.Dcb), using Orleans Actor Model)
 
 ## Add your own
 
