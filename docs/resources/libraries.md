@@ -3,9 +3,9 @@
 DCB is merely a set of ideas and concepts.
 But there are already a couple of libraries and libraries that prove those in practice:
 
-#### C#
+#### C\#
 
-- `Sekiban.Dcb`[:octicons-link-external-16:](https://github.com/J-Tech-Japan/Sekiban?tab=readme-ov-file#dcb-dynamic-consistency-boundary){:target="_blank" .small} (active dev, PostgreSQL support, NuGet preview: [`1.0.1-preview24`](https://www.nuget.org/packages/Sekiban.Dcb), using Orleans Actor Model)
+- `Sekiban.Dcb`[:octicons-link-external-16:](https://github.com/J-Tech-Japan/Sekiban?tab=readme-ov-file#dcb-dynamic-consistency-boundary){:target="_blank" .small} (active dev, PostgreSQL support, [`Sekiban.Dcb Nuget Package`](https://www.nuget.org/packages/Sekiban.Dcb), using Orleans Actor Model)
 
 #### Go
 
