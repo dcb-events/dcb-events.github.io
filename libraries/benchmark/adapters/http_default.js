@@ -4,13 +4,12 @@ const baseUri = __ENV.BASE_URI || "http://localhost:3000";
 
 const api = {
   read(query, options) {
-    const url = new URL(`${baseUri}/read`);
-    url.searchParams.append("query", JSON.stringify(query));
+    let url = `${baseUri}/read?query=${encodeURIComponent(JSON.stringify(query))}`;
     if (options !== undefined) {
-      url.searchParams.append("options", JSON.stringify(options));
+      url += `&options=${encodeURIComponent(JSON.stringify(options))}`;
     }
 
-    const response = http.get(url.toString());
+    const response = http.get(url);
     if (response.status !== 200) {
       throw new Error(
         `Failed to read events: ${response.status} ${response.body}`,
