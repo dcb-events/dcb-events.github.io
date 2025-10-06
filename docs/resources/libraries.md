@@ -23,6 +23,7 @@ But there are already a couple of libraries and libraries that prove those in pr
 
 - `wwwision/dcb-eventstore`[:octicons-link-external-16:](https://github.com/bwaidelich/dcb-eventstore){:target="_blank" .small} (work in progress)
 - `gember/event-sourcing`[:octicons-link-external-16:](https://github.com/GemberPHP/event-sourcing){:target="_blank" .small} (work in progress)
+- `backslashphp/backslash`[:octicons-link-external-16:](https://github.com/backslashphp/backslash){:target="_blank" .small} (fully documented, demo application available)
 
 #### Python
 
