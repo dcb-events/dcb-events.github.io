@@ -39,6 +39,17 @@ k6 run dcb-monotonic.ts -e -e BASE_URI=<BASE_URI> -e REDIS_DSN=<REDIS_ENDPOINT>
 > Replace `<BASE_URI>` with the URL of the event store (see above), replace `<REDIS_ENDPOINT>` with the redis connection string (e.g. `redis://localhost:6379`)
 > To use a custom adapter, the `ADAPTER` environment variable can be set, see below
 
+### Error rate for concurrent writes
+
+Tests how many unrelated parallel append calls fail.
+In the result, the `dcb_append_error_rate` should be 0% or at least very low
+
+#### Usage
+
+```shell
+k6 run dcb-parallel-writes.ts -e BASE_URI=<BASE_URI>
+```
+
 ## Custom adapters
 
 By default the [http_default.js](adapters/http_default.js) is used to interact with the event store backend. This can be replaced with a `ADAPTER` environment variable, for example:
