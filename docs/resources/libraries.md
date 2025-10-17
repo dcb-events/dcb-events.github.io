@@ -17,7 +17,7 @@ But there are already a couple of libraries and libraries that prove those in pr
 
 #### JavaScript/TypeScript
 
-- `@dcb-es/event-store`[:octicons-link-external-16:](https://github.com/sennentech/dcb-event-sourced){:target="_blank" .small} (work in progress)
+- `@dcb-es/event-store`[:octicons-link-external-16:](https://github.com/PaulGrimshaw/dcb-event-sourced){:target="_blank" .small} (work in progress)
 
 #### PHP
 
