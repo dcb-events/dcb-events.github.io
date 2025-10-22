@@ -2,7 +2,7 @@
 
 This part of the website aims to collect additional resources, like custom implementations and links to other articles & videos
 
-## [Libraries](libraries.md)
+## [Libraries and tools](libraries.md)
 
 3rd party libraries that implement DCB Event Stores or related tools
 

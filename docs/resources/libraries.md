@@ -5,15 +5,21 @@ But there are already a couple of libraries and libraries that prove those in pr
 
 ## DCB Compliant Event Stores
 
+in alphabetical order:
+
+### Axon Server [:octicons-link-external-16:](https://www.axoniq.io/server){:target="_blank" .small}
+
+Commercial product with DCB support via gRPC/HTTP API by [AxonIQ](https://www.axoniq.io/){:target="_blank"}
+
 ### EventSourcing Database [:octicons-link-external-16:](https://www.thenativeweb.io/products/eventsourcingdb){:target="_blank" .small}
 
-Commercial product with DCB support via EventQL by [the native web](https://www.thenativeweb.io/){:target="_blank"}
+Commercial product with DCB support via HTTP API by [the native web](https://www.thenativeweb.io/){:target="_blank"}
 
 ### UmaDB [:octicons-link-external-16:](https://github.com/pyeventsourcing/umadb){:target="_blank" .small}
 
-Open Source Event Store specifically written to support DCB by John Bywater
+Open Source Event Store specifically written to support DCB via gRPC API by John Bywater
 
-## SDKs, Clients and Tools
+## SDKs, Frameworks, Clients and Tools
 
 #### C\#
 
@@ -25,7 +31,7 @@ Open Source Event Store specifically written to support DCB by John Bywater
 
 #### Java
 
-- AxonIQ [:octicons-link-external-16:](https://www.axoniq.io){:target="_blank" .small} has announced to support DCB with version 5 of their Axon Framework (work in progress)
+- Axon Framework [:octicons-link-external-16:](https://www.axoniq.io/framework){:target="_blank" .small} Event Sourcing Framework with support for DCB since version 5
 
 #### JavaScript/TypeScript
 
@@ -48,7 +54,6 @@ Open Source Event Store specifically written to support DCB by John Bywater
 #### Rust
 
 - Disintegrate `disintegrate-es/disintegrate`[:octicons-link-external-16:](https://disintegrate-es.github.io/disintegrate/){:target="_blank" .small} (slightly different approach, inspired by the original ideas of DCB)
-- `dcbdb`[:octicons-link-external-16:](https://github.com/johnbywater/dcbdb){:target="_blank" .small} (work in progress)
 
 ## Add your own
 
