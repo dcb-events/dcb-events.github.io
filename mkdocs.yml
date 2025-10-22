@@ -59,7 +59,7 @@ nav:
       #- Performance (tbd): topics/performance.md
   - Resources:
       - resources/index.md
-      - Libraries: resources/libraries.md
+      - Implementations and tools: resources/libraries.md
       - Media: resources/media.md
       - Articles: resources/articles.md
   - FAQ: faq.md
