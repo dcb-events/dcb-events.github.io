@@ -15,6 +15,10 @@ Commercial product with DCB support via gRPC/HTTP API by [AxonIQ](https://www.ax
 
 Commercial product with DCB support via HTTP API by [the native web](https://www.thenativeweb.io/){:target="_blank"}
 
+### Genesis DB [:octicons-link-external-16:](https://www.genesisdb.io){:target="_blank" .small}
+
+Available as a commercial product and a free Community Edition, featuring DCB support via HTTP API by Patric Eckhart
+
 ### UmaDB [:octicons-link-external-16:](https://github.com/pyeventsourcing/umadb){:target="_blank" .small}
 
 Open Source Event Store specifically written to support DCB via gRPC API by John Bywater
