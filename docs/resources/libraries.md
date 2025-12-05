@@ -32,6 +32,8 @@ Open Source Event Store specifically written to support DCB via gRPC API by John
 #### Java
 
 - Axon Framework [:octicons-link-external-16:](https://www.axoniq.io/framework){:target="_blank" .small} Event Sourcing Framework with support for DCB since version 5
+- `@sliceworkz/eventstore`[:octicons-link-external-16:](https://github.com/sliceworkz/eventstore){:target="_blank" .small} DCB-Compliant Eventstore in Java/Postgres (Open Source - LGPL)
+
 
 #### JavaScript/TypeScript
 
