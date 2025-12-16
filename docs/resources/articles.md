@@ -1,3 +1,7 @@
+### Kill Aggregate? An Interview on Dynamic Consistency Boundaries [:octicons-link-external-16:](https://docs.eventsourcingdb.io/blog/2025/12/15/kill-aggregate-an-interview-on-dynamic-consistency-boundaries/){:target="_blank" .small}
+
+_Moderator: **Golo Roden (the native web GmbH)**, Interviewee: **Bastian Waidelich**, Published: **December 2025**_
+
 ### Dynamic Consistency Boundaries [:octicons-link-external-16:](https://javapro.io/2025/10/28/dynamic-consistency-boundaries/){:target="_blank" .small}
 
 _Author: **Milan Savic**, Published: **October 2025**_
