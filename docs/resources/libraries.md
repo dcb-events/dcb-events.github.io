@@ -15,7 +15,7 @@ Commercial product with DCB support via gRPC/HTTP API by [AxonIQ](https://www.ax
 
 Commercial product with DCB support via HTTP API by [the native web](https://www.thenativeweb.io/){:target="_blank"}
 
-### UmaDB [:octicons-link-external-16:](https://github.com/umadb-io/umadb){:target="_blank" .small}
+### UmaDB [:octicons-link-external-16:](https://umadb.io/){:target="_blank" .small}
 
 Open Source Event Store specifically written to support DCB via gRPC API by John Bywater
 
@@ -47,7 +47,7 @@ Open Source Event Store specifically written to support DCB via gRPC API by John
 
 #### Python
 
-- Event Sourcing in Python[:octicons-link-external-16:](https://eventsourcing.readthedocs.io/en/latest/topics/examples/coursebooking-dcb.html){:target="_blank" .small} (work in progress)
+- Event Sourcing in Python[:octicons-link-external-16:](https://eventsourcing.readthedocs.io/en/stable/topics/dcb.html){:target="_blank" .small} (Production/Stable)
 
 #### Ruby
 
