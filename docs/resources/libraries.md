@@ -39,6 +39,10 @@ Open Source Event Store specifically written to support DCB via gRPC API by John
 
 - `@dcb-es/event-store`[:octicons-link-external-16:](https://github.com/PaulGrimshaw/dcb-event-sourced){:target="_blank" .small} (work in progress)
 
+#### Kotlin
+
+- `FactStore` [:octicons-link-external-16:](https://github.com/fact-store/factstore){:target="_blank" .small} (work in progress)
+
 #### PHP
 
 - `wwwision/dcb-eventstore`[:octicons-link-external-16:](https://github.com/bwaidelich/dcb-eventstore){:target="_blank" .small} (work in progress)
