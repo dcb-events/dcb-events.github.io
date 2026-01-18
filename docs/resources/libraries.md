@@ -27,6 +27,7 @@ Open Source Event Store specifically written to support DCB via gRPC API by John
 
 #### Go
 
+- `fairway`[:octicons-link-external-16:](https://github.com/err0r500/fairway){:target="_blank" .small} (DCB-Compliant EventSourcing framework built on top of FoundationDB, demo application available)
 - `go-crablet`[:octicons-link-external-16:](https://github.com/rodolfodpk/go-crablet){:target="_blank" .small}
 
 #### Java
