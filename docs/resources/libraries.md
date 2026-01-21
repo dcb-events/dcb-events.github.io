@@ -25,6 +25,10 @@ Open Source Event Store specifically written to support DCB via gRPC API by John
 
 - `Sekiban.Dcb`[:octicons-link-external-16:](https://github.com/J-Tech-Japan/Sekiban?tab=readme-ov-file#dcb-dynamic-consistency-boundary){:target="_blank" .small} (active dev, PostgreSQL support, [`Sekiban.Dcb Nuget Package`](https://www.nuget.org/packages/Sekiban.Dcb), using Orleans Actor Model)
 
+#### Elixir
+
+- `Fact`[:octicons-link-external-16:](https://github.com/evntd/fact){:target="_blank" .small} (active dev, Elixir library that provides a file system based event store database)
+
 #### Go
 
 - `fairway`[:octicons-link-external-16:](https://github.com/err0r500/fairway){:target="_blank" .small} (DCB-Compliant EventSourcing framework built on top of FoundationDB, demo application available)
