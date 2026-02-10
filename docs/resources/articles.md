@@ -1,3 +1,7 @@
+### Dynamic Consistency Boundary: Why Your SourceCriteria and AppendCriteria Don't Have to Match [:octicons-link-external-16:](https://www.linkedin.com/pulse/dynamic-consistency-boundary-why-your-sourcecriteria-dont-nowak-ubief/){:target="_blank" .small}
+
+_Author: **Mateusz Nowak**, Published: **February 2026**_
+
 ### Kill Aggregate? An Interview on Dynamic Consistency Boundaries [:octicons-link-external-16:](https://docs.eventsourcingdb.io/blog/2025/12/15/kill-aggregate-an-interview-on-dynamic-consistency-boundaries/){:target="_blank" .small}
 
 _Moderator: **Golo Roden (the native web GmbH)**, Interviewee: **Bastian Waidelich**, Published: **December 2025**_
