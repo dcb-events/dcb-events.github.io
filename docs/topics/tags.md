@@ -244,6 +244,55 @@ Since tags are explicitly declared and have predictable patterns, Event Stores c
 
 DCB libraries will be able to automatically infer required tags and event types from domain model definitions, reducing the burden on developers while ensuring correctness.
 
+## Re-Tagging
+
+Changing the tagging schema for new events is always possible. Future events can be written with different or additional tags at any time. However, such changes require care: Queries that span historical data will still return events written under previous tagging rules. Assuming that the new schema applies uniformly to all past events may therefore lead to unexpected results.
+
+This chapter focuses on a different question: should it be possible to change the tags of events that have _already been written_?
+
+### How Relevant Is Re-Tagging in Practice?
+
+The topic is discussed controversially. At first glance, re-tagging existing events may appear to be an important capability – especially in a system that positions itself as more dynamic than traditional approaches. In practice, however, it is surprisingly difficult to identify compelling use cases that truly require modifying historical tags.
+
+Tags in DCB primarily serve one purpose: enforcing strong consistency in concurrent processes. As such, they are most relevant for events that are about to be written. They protect append operations, not historical analysis.
+
+In addition, the query used to build a decision model (aka "SourcingCriteria") does not have to match the query used to enforce append conditions (aka "AppendCriteria"). This separation opens up alternative solutions:
+
+- A projected read model can be used to enforce constraints
+- Such a read model can be partitioned by any suitable criteria
+- Pessimistic locking remains an option where required
+- Eventual consistency may be an acceptable trade-off in many scenarios
+
+If new tags are required purely for reading or reporting purposes, introducing or adapting a dedicated read model is usually the more appropriate approach. Tags are a consistency mechanism and should not be treated as a general-purpose classification feature.
+
+### When Re-Tagging Might Be Appropriate
+
+Despite these considerations, there may be cases where re-tagging existing events is the most pragmatic solution.
+
+It is important to note that an Event Store does not have to support re-tagging in order to comply with the [DCB specification](../specification.md). Implementations may choose to provide such functionality, but they are not required to do so.
+
+If re-tagging is necessary, several approaches are possible:
+
+- Using a built-in re-tagging feature of the Event Store (if available)
+- Modifying stored events directly through the underlying storage mechanism (for example, via a database API)
+- Streaming events into a new Event Store while transforming tags during migration, and switching to that new store afterwards
+
+### Potential Side Effects
+
+Changing tags of existing events may have unintended consequences:
+
+- Event handlers might base their behavior on event tags. Affected projections may therefore need to be replayed
+- Events might have been published to third parties (although exposing tags outside of the bounded context is generally discouraged)
+- Historical reasoning may become misleading if past decisions were made under a different tagging scheme.
+
+### A Pragmatic Perspective
+
+Re-tagging should neither be dismissed categorically nor embraced uncritically.
+
+Adding new tags to existing events will rarely cause problems, especially if those tags have not previously been used for consistency constraints. By contrast, removing or replacing tags is likely to be an uncommon requirement in most systems.
+
+A pragmatic evaluation of the specific use case should guide the decision, rather than a dogmatic stance in either direction.
+
 ## Acknowledging the Limitations
 
 While we've outlined the benefits of tags, it's important to acknowledge that this approach isn't without its drawbacks:
