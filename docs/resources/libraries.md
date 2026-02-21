@@ -43,7 +43,7 @@ Open Source Event Store specifically written to support DCB via gRPC API by John
 #### JavaScript/TypeScript
 
 - `@dcb-es/event-store`[:octicons-link-external-16:](https://github.com/PaulGrimshaw/dcb-event-sourced){:target="_blank" .small} (work in progress)
-- `@sbortz/boundless`[:octicons-link-external-16:](https://boundless-seven.vercel.app){:target="_blank" .small} A DCB-inspired Event Store for TypeScript
+- `@sbortz/boundless`[:octicons-link-external-16:](https://boundlessdb.dev){:target="_blank" .small} A DCB-inspired Event Store for TypeScript
 
 #### Kotlin
 
