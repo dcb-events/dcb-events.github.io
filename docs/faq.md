@@ -61,7 +61,7 @@ That said, it can be done – even if the Event Store does not provide a dedicat
 
 Read more about re-tagging [here](topics/tags.md#re-tagging)
 
-## Is it really common to require events with multile Tags?
+## Is it really common to require events with multiple Tags?
 
 In many applications, most Events can be associated with a single subject and therefore require only one Tag.
 
