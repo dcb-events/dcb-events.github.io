@@ -38,6 +38,45 @@ However, DCB does not dictate how you design your application. You're free to or
 
 Yes, that’s possible; the [Event-Sourced Aggregate](examples/event-sourced-aggregate.md) example demonstrates that.
 
+## Isn't a Tag just an index?
+
+It may appear that way because, like an index, Tags can be used to look up Events.
+
+However, this view is misleading. Tags in DCB are not merely technical lookup aids. They identify the subjects involved in an occurred fact.
+
+The essence of DCB is its consistency guarantee: decisions are made on the basis of a surgically and dynamically selected set of Events.
+This "surgical" selection is defined by two orthogonal parameters:
+- the *Event Type*, which describes what happened, and
+- the *Tags*, which describe the subjects involved in what happened.
+
+Tags are therefore part of the semantic model, not just an optimization mechanism.
+
+Read more about it in our article on [Tags](topics/tags.md).
+
+## Can Tags be changed after the fact?
+
+In short: this is not considered a common requirement and is therefore not part of the [DCB specification](specification.md).
+
+That said, it can be done – even if the Event Store does not provide a dedicated API for it. However, it must be handled with care. Changing Tags, especially removing or replacing them, can alter the set of Events considered for a decision and therefore change its outcome.
+
+Read more about re-tagging [here](topics/tags.md#re-tagging)
+
+## Is it really common to require events with multile Tags?
+
+In many applications, most Events can be associated with a single subject and therefore require only one Tag.
+
+However, there are typically neuralgic Events where processes interleave or hand over responsibility. For example, a `SignUpConfirmed` Event may both conclude a sign-up process and establish a customer record.
+
+Another common scenario is hierarchical structures with overlapping consistency boundaries. In such cases, multiple Rags are necessary to express the involved subjects precisely and to preserve correct decision semantics.
+
+## Isn't "noun-thinking" the actual problem?
+
+There are claims that DCB is unnecessary as long as Events focus on processes rather than entities.
+
+While a strong process focus can indeed help, it does not eliminate aggregate-related consistency issues. Avoiding these issues typically requires orchestration mechanisms, which introduce additional complexity.
+
+DCB addresses consistency concerns directly – independent of whether modeling emphasizes nouns or processes.
+
 ## Is DCB increasing complexity?
 
 On the contrary. While DCB may challenge certain assumptions and require some adaptation, we believe it simplifies the overall mental model by allowing you to decide between strong and eventual consistency on a case-by-case basis.
