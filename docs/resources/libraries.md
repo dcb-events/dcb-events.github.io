@@ -23,6 +23,7 @@ Open Source Event Store specifically written to support DCB via gRPC API by John
 
 #### C\#
 
+- `Opossum`[:octicons-link-external-16:](https://github.com/majormartintibor/Opossum){:target="_blank" .small} (file system based Event Store that implements the DCB specification, [`Opossum Nuget Package`](https://www.nuget.org/packages/Opossum/))
 - `Sekiban.Dcb`[:octicons-link-external-16:](https://github.com/J-Tech-Japan/Sekiban?tab=readme-ov-file#dcb-dynamic-consistency-boundary){:target="_blank" .small} (active dev, PostgreSQL support, [`Sekiban.Dcb Nuget Package`](https://www.nuget.org/packages/Sekiban.Dcb), using Orleans Actor Model)
 
 #### Elixir
