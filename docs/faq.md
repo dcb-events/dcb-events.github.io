@@ -67,7 +67,7 @@ In many applications, most Events can be associated with a single subject and th
 
 However, there are typically neuralgic Events where processes interleave or hand over responsibility. For example, a `SignUpConfirmed` Event may both conclude a sign-up process and establish a customer record.
 
-Another common scenario is hierarchical structures with overlapping consistency boundaries. In such cases, multiple Rags are necessary to express the involved subjects precisely and to preserve correct decision semantics.
+Another common scenario is hierarchical structures with overlapping consistency boundaries. In such cases, multiple Tags are necessary to express the involved subjects precisely and to preserve correct decision semantics.
 
 ## Isn't "noun-thinking" the actual problem?
 
