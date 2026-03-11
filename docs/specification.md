@@ -140,7 +140,8 @@ It...
 
 - It _MUST_ contain an [Event Type](#event-type)
 - It _MUST_ contain [Event Data](#event-data)
-- It _MAY_ contain [Tags](#tags)
+- It _MUST_ contain [Tags](#tags)
+  - in rare cases, the list could be empty, but all associated Tags must always be exposed
 - It _MAY_ contain further fields, like metadata defined by the client
 
 #### Example
