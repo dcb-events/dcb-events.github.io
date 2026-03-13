@@ -164,6 +164,10 @@ This example is the most simple one just checking whether a given username is cl
 }
 </script>
 
+!!! note
+
+    To keep the example simple, we use the `username` directly as value for the Tag. In a real implementation, you probably would want to hash the value. And, more importantly, normalize it such that the usernames `jamesbond` and `JamesBond` are considered equal
+
 ### Feature 2: Release usernames
 
 This example extends the previous one to show how a previously claimed username could be released when the corresponding account is closed
