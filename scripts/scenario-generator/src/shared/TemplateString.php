@@ -61,6 +61,7 @@ final readonly class TemplateString
             }
             throw new \InvalidArgumentException(sprintf('Invalid variable "%s" for token "%s", expected array or object, got %s', $part, $token, get_debug_type($value)), 1741347096);
         }
+        Assert::scalar($value);
         return (string) $value;
     }
 

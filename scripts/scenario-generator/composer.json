@@ -28,8 +28,8 @@
     "scripts": {
         "render": "php render.php",
         "test:phpstan": "phpstan --memory-limit=256M",
-        "test:cs": "PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer check",
-        "test:cs:fix": "PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix",
+        "test:cs": "php-cs-fixer check",
+        "test:cs:fix": "php-cs-fixer fix",
         "test:phpunit": "phpunit",
         "test": [
             "@test:phpstan",

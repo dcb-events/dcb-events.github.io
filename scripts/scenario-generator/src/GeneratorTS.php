@@ -100,7 +100,6 @@ final class GeneratorTS
             $this->output->addLine('    initialState: ' . json_encode($projection->stateSchema->default ?? null, JSON_THROW_ON_ERROR) . ',');
             $this->output->addLine('    handlers: {');
             foreach ($projection->handlers as $eventType => $projectionHandler) {
-                Assert::string($eventType);
                 $this->output->addLine('      ' . $eventType . ': (state, event) => ' . $projectionHandler->value . ',');
             }
             $this->output->addLine('    },');
@@ -113,8 +112,6 @@ final class GeneratorTS
             $this->output->addLine();
         }
     }
-
-
 
     private function api(): void
     {
@@ -140,8 +137,6 @@ final class GeneratorTS
             $this->output->addLine('    this.eventStore.append(');
             $this->output->addLine('      ' . $commandHandlerDefinition->successEvent->type . '({');
             foreach ($commandHandlerDefinition->successEvent->data as $key => $value) {
-                Assert::string($key);
-                Assert::string($value);
                 $this->output->addLine('        ' . $key . ': ' . TemplateString::parse($value)->toJsTemplateString() . ',');
             }
             $this->output->addLine('      }),');
@@ -188,7 +183,12 @@ final class GeneratorTS
         if ($schema->properties === null) {
             return [];
         }
-        return iterator_to_array($schema->properties);
+        $properties = [];
+        foreach ($schema->properties as $propertyName => $propertySchema) {
+            Assert::string($propertyName);
+            $properties[$propertyName] = $propertySchema;
+        }
+        return $properties;
     }
 
     private static function schemaToTypeDefinition(Schema $schema): string
