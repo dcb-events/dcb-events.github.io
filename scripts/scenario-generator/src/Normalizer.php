@@ -16,7 +16,6 @@ final readonly class Normalizer
         $this->wrappedNormalizer = new WrappedNormalizer();
     }
 
-
     /**
      * @return array<mixed>
      */

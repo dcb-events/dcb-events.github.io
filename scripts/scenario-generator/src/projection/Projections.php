@@ -86,10 +86,6 @@ final readonly class Projections implements IteratorAggregate
         ));
     }
 
-
-
-
-
     private function findByName(string $projectionName): Projection|null
     {
         return array_find($this->projections, static fn(Projection $projection) => $projection->name === $projectionName);

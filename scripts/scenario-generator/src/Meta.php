@@ -15,7 +15,7 @@ final readonly class Meta
     public function merge(self $other): self
     {
         return new self(
-            $other->version ?? '1.0',
+            $other->version,
             $other->id ?? null,
         );
     }

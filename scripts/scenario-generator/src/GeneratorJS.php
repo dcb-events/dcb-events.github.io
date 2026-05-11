@@ -92,8 +92,6 @@ final class GeneratorJS
         }
     }
 
-
-
     private function api(): void
     {
         $this->output->addLine('// command handlers:');
@@ -212,6 +210,7 @@ final class GeneratorJS
     {
         $parts = [];
         foreach ($schema->properties ?? [] as $propertyName => $propertySchema) {
+            Assert::string($propertyName);
             $parts[] = $propertyName;
         }
         return '{ ' . implode(', ', $parts) . ' }';
