@@ -5,7 +5,7 @@
 
 ## What is it?
 
-Dynamic Consistency Boundary (DCB) is a technique for enforcing consistency in event-driven systems without relying on rigid transactional boundaries.
+Dynamic Consistency Boundaries (DCB) is a technique for enforcing consistency in event-driven systems without relying on rigid transactional boundaries.
 
 Traditional systems use strict constraints to maintain immediate consistency, while event-driven architectures embrace eventual consistency for scalability and resilience. However, this flexibility raises challenges in defining where and how consistency should be enforced.
 
