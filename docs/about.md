@@ -1,6 +1,6 @@
 # About this website 
 
-This website was created with the aim of spreading awareness about the concept of the **Dynamic Consistency Boundary** (DCB).
+This website was created with the aim of spreading awareness about the concept of **Dynamic Consistency Boundaries** (DCB).
 
 Our goals are threefold:
 

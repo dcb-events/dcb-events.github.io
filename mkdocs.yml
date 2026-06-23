@@ -1,4 +1,4 @@
-site_name: Dynamic Consistency Boundary
+site_name: Dynamic Consistency Boundaries
 site_description: DCB – A simpler and more flexible approach to consistency in event-driven systems
 site_url: https://dcb.events
 theme:
@@ -37,7 +37,7 @@ theme:
 
 nav:
   - DCB:
-    - Dynamic Consistency Boundary: index.md
+    - Home: index.md
     - Specification: specification.md
   - Examples:
       - examples/index.md
