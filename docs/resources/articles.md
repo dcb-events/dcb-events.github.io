@@ -1,3 +1,7 @@
+### I would like to talk to you about Aggregates [:octicons-link-external-16:](https://www.linkedin.com/pulse/i-would-like-talk-you-aggregates-bastian-waidelich-jlsje/){:target="_blank" .small}
+
+_Author: **Bastian Waidelich**, Published: **June 2026**_
+
 ### Dynamic Consistency Boundary: Why Your SourceCriteria and AppendCriteria Don't Have to Match [:octicons-link-external-16:](https://www.linkedin.com/pulse/dynamic-consistency-boundary-why-your-sourcecriteria-dont-nowak-ubief/){:target="_blank" .small}
 
 _Author: **Mateusz Nowak**, Published: **February 2026**_
