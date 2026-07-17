@@ -124,12 +124,12 @@ When an [Event](#event) is appended, the Event Store assigns a `Sequence Positio
 It...
 
 - _MUST_ be unique within in the Event Store
-- _MAY_ be monotonic increasing (see note below)
+- _MUST_ be deterministically resolved to a well-defined order (see note below)
 - _MAY_ contain gaps
 
 !!! note
 
-    The Sequence Position is commonly implemented as a monotonically increasing sequence. However, it may also be represented by a unique marker (an Event ID for example), provided that it can be deterministically resolved to a well-defined order internally.
+    The Sequence Position is commonly implemented as a monotonically increasing sequence. However, it may also be represented by a unique marker (an Event ID for example), provided that it can be resolved to a well-defined order internally.
 
 ### Events
 
