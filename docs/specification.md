@@ -123,7 +123,7 @@ When an [Event](#event) is appended, the Event Store assigns a `Sequence Positio
 
 It...
 
-- _MUST_ be unique within in the Event Store
+- _MUST_ be unique within the Event Store
 - _MAY_ be monotonic increasing (see note below)
 - _MAY_ contain gaps
 
