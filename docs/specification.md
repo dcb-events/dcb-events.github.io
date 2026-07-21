@@ -124,7 +124,7 @@ When an [Event](#event) is appended, the Event Store assigns a `Sequence Positio
 It...
 
 - _MUST_ be unique within the Event Store
-- _MUST_ be deterministically resolved to a well-defined order (see note below)
+- _MUST_ be deterministically resolved to a well-defined static order (see note below)
 - _MAY_ contain gaps
 
 !!! note
