@@ -38,6 +38,7 @@ Open Source Event Store specifically written to support DCB via gRPC API by John
 #### Java
 
 - Axon Framework [:octicons-link-external-16:](https://www.axoniq.io/framework){:target="_blank" .small} Event Sourcing Framework with support for DCB since version 5
+- Occurrent [:octicons-link-external-16:](https://occurrent.org/documentation#dynamic-consistency-boundary){:target="_blank" .small} Event Sourcing library for the JVM based on CloudEvents, composed from small framework-agnostic modules with optional Spring Boot starters, where DCB and stream-based event sourcing share the same Event Store and the domain model does not have to depend on Occurrent
 - `@sliceworkz/eventstore`[:octicons-link-external-16:](https://github.com/sliceworkz/eventstore){:target="_blank" .small} DCB-Compliant Eventstore in Java/Postgres (Open Source - LGPL)
 
 
@@ -49,6 +50,7 @@ Open Source Event Store specifically written to support DCB via gRPC API by John
 #### Kotlin
 
 - `FactStore` [:octicons-link-external-16:](https://github.com/fact-store/factstore){:target="_blank" .small} (work in progress)
+- Occurrent [:octicons-link-external-16:](https://occurrent.org/documentation#dcb-query-dsl){:target="_blank" .small} Kotlin DSLs for DCB deciders and criteria on the library listed under Java, with the [dcb.events example patterns](https://github.com/johanhaleby/occurrent/tree/main/example/domain/dcb-patterns) implemented in Kotlin
 
 #### PHP
 
