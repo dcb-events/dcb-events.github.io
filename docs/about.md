@@ -54,6 +54,14 @@ Head of Software Engineering for Asset Management at Kraken
 
 ---
 
+## Join the Community
+
+Come chat with us and other people interested in DCB on our Discord server – whether you have questions, want to share what you are building, or just like to follow along:
+
+[:fontawesome-brands-discord: Join the DCB Discord server](https://discord.gg/hmfHwuxMft){:target="_blank" .md-button .md-button--primary}
+
+---
+
 ## Contact Us
 
 For collaborations, suggestions, or just to connect, feel free to reach out to us via email [:material-email:](mailto:hello%40dcb.events){.small} or through our social profiles.

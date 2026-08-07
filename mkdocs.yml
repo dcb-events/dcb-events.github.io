@@ -92,6 +92,10 @@ extra:
   social:
     - icon: simple/github
       link: https://github.com/dcb-events/dcb-events.github.io
+      name: DCB on GitHub
+    - icon: simple/discord
+      link: https://discord.gg/hmfHwuxMft
+      name: Join the DCB Discord server
 
 plugins:
   - search
