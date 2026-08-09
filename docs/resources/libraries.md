@@ -30,14 +30,14 @@ Open Source Event Store specifically written to support DCB via gRPC API by John
 
 - `Fact`[:octicons-link-external-16:](https://github.com/evntd/fact){:target="_blank" .small} (active dev, Elixir library that provides a file system based event store database)
 
+#### Gleam
+
+- `factos`[:octicons-link-external-16:](https://tangled.org/renatillas.dev/factos){:target="_blank" .small} (DCB-Compliant monorepo of libraries. Factos being the eventstore agnostic, and factos_pog, factos_cf, and factos_sqlight being the eventstores for postgres, clouflare workers, and sqlite respectively. The monorepo also contains an examples folder with the dcb webpage examples translated to gleam + factos) 
+
 #### Go
 
 - `fairway`[:octicons-link-external-16:](https://github.com/err0r500/fairway){:target="_blank" .small} (DCB-Compliant EventSourcing framework built on top of FoundationDB, demo application available)
 - `go-crablet`[:octicons-link-external-16:](https://github.com/rodolfodpk/go-crablet){:target="_blank" .small}
-
-#### Gleam
-
-- `factos`[:octicons-link-external-16:](https://tangled.org/renatillas.dev/factos){:target="_blank" .small} (DCB-Compliant monorepo of libraries. Factos being the eventstore agnostic, and factos_pog, factos_cf, and factos_sqlight being the eventstores for postgres, clouflare workers, and sqlite respectively. The monorepo also contains an examples folder with the dcb webpage examples translated to gleam + factos) 
 
 #### Java
 
