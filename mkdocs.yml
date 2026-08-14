@@ -7,6 +7,7 @@ theme:
   logo: assets/logo.png
 
   features:
+    - announce.dismiss
     - navigation.footer
     - navigation.tabs
     - navigation.indexes

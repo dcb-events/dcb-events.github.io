@@ -186,3 +186,29 @@ codapi-output a[href="#close"] {
         grid-template-columns: 1fr;
     }
 }
+
+.dcb-announce {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5em;
+    color: inherit;
+    text-decoration: none;
+}
+
+.dcb-announce:hover {
+    text-decoration: underline;
+}
+
+.dcb-announce__icon {
+    display: flex;
+    width: 1.2em;
+    height: 1.2em;
+    flex-shrink: 0;
+}
+
+.dcb-announce__icon svg {
+    width: 100%;
+    height: 100%;
+    fill: currentcolor;
+}
