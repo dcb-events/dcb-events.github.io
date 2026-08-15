@@ -15,6 +15,10 @@ Commercial product with DCB support via gRPC/HTTP API by [AxonIQ](https://www.ax
 
 Commercial product with DCB support via HTTP API by [the native web](https://www.thenativeweb.io/){:target="_blank"}
 
+### Tephra [:octicons-link-external-16:](https://tephra.tqwewe.com/){:target="_blank" .small}
+
+Open Source Event Store written in Rust with DCB support via a custom Protobuf-over-TCP protocol by [Ari Seyhun](https://github.com/tqwewe){:target="_blank"}
+
 ### UmaDB [:octicons-link-external-16:](https://umadb.io/){:target="_blank" .small}
 
 Open Source Event Store specifically written to support DCB via gRPC API by John Bywater
