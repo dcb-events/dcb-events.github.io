@@ -37,7 +37,19 @@ With that, a Decision Model can be created that is responsible for validating th
 <script type="application/dcb+json">
 {
     "meta": {
-        "version": "1.0"
+        "version": "1.0",
+        "implementations": [
+            {
+                "id": "factos",
+                "label": "Gleam",
+                "language": "gleam",
+                "source": "libraries/factos/prevent_record_duplication.gleam",
+                "sourceLines": "14:53,58:73,94:115",
+                "projectName": "factos",
+                "projectUrl": "https://tangled.org/renatillas.dev/factos",
+                "packageUrl": "https://tangled.org/renatillas.dev/factos/tree/main/examples/prevent_record_duplication"
+            }
+        ]
     },
     "eventDefinitions": [
         {

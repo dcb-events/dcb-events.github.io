@@ -46,7 +46,19 @@ This example is the most simple one just checking whether a given username is cl
 {
   "meta": {
     "version": "1.0",
-    "id": "unique_username_01"
+    "id": "unique_username_01",
+    "implementations": [
+      {
+        "id": "factos",
+        "label": "Gleam",
+        "language": "gleam",
+        "source": "libraries/factos/unique_username.gleam",
+        "sourceLines": "20:21,24:27,35:43,45:48,50:55,63:73,91:103,132:146,167:168",
+        "projectName": "factos",
+        "projectUrl": "https://tangled.org/renatillas.dev/factos",
+        "packageUrl": "https://tangled.org/renatillas.dev/factos/tree/main/examples/unique_username"
+      }
+    ]
   },
   "eventDefinitions": [
     {
@@ -181,7 +193,14 @@ This example extends the previous one to show how a previously claimed username 
   "meta": {
     "version": "1.0",
     "id": "unique_username_02",
-    "extends": "unique_username_01"
+    "extends": "unique_username_01",
+    "implementations": [
+      {
+        "id": "factos",
+        "sourceLines": "20:22,24:28,35:43,45:48,50:55,63:73,81:82,91:103,132:153,167:185",
+        "highlightLines": "3 8 39-40 69-75 78-94"
+      }
+    ]
   },
   "eventDefinitions": [
     {
@@ -264,7 +283,14 @@ This example extends the previous one to show how the username of an active acco
   "meta": {
     "version": "1.0",
     "id": "unique_username_03",
-    "extends": "unique_username_02"
+    "extends": "unique_username_02",
+    "implementations": [
+      {
+        "id": "factos",
+        "sourceLines": "20:43,45:48,50:55,63:73,81:103,132:186,254:269,282:307",
+        "highlightLines": "4 10-15 48-55 91-103 123-165"
+      }
+    ]
   },
   "eventDefinitions": [
     {
@@ -379,7 +405,14 @@ This example extends the previous one to show how the a username can be reserved
   "meta": {
     "version": "1.0",
     "id": "unique_username_04",
-    "extends": "unique_username_03"
+    "extends": "unique_username_03",
+    "implementations": [
+      {
+        "id": "factos",
+        "sourceLines": "16:186,233:242,254:269,282:307",
+        "highlightLines": "1-4 29 34 41-47 59-65 89-116 172-181"
+      }
+    ]
   },
   "projections": [
     {

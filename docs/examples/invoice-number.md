@@ -19,7 +19,19 @@ This requirement could be solved with an in-memory [Projection](../topics/projec
 {
   "meta": {
     "version": "1.0",
-    "id": "invoice_number_01"
+    "id": "invoice_number_01",
+    "implementations": [
+      {
+        "id": "factos",
+        "label": "Gleam",
+        "language": "gleam",
+        "source": "libraries/factos/invoice_number.gleam",
+        "sourceLines": "15:53,58:77,103:121",
+        "projectName": "factos",
+        "projectUrl": "https://tangled.org/renatillas.dev/factos",
+        "packageUrl": "https://tangled.org/renatillas.dev/factos/tree/main/examples/invoice_number"
+      }
+    ]
   },
   "eventDefinitions": [
     {
