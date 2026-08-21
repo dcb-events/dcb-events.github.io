@@ -187,6 +187,28 @@ codapi-output a[href="#close"] {
     }
 }
 
+.dcb-announce-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1em;
+}
+
+.dcb-announce__divider {
+    display: inline-block;
+    width: 1px;
+    height: 1em;
+    background: currentcolor;
+    opacity: .4;
+}
+
+@media (max-width: 480px) {
+    .dcb-announce__divider {
+        display: none;
+    }
+}
+
 .dcb-announce {
     display: flex;
     align-items: center;

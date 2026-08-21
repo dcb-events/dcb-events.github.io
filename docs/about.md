@@ -62,6 +62,18 @@ Come chat with us and other people interested in DCB on our Discord server – w
 
 ---
 
+## DCB Campfire
+
+*DCB Campfire* is an open, biweekly meeting for developers interested in Dynamic Consistency Boundaries.
+
+Bring your questions, ideas, experiments, or solutions – whether you're just getting started with DCB or already using it in production. Share what you're working on, discuss challenges, explore new approaches, or simply join the conversation.
+
+No agenda, no slides required – just developers curious about DCB.
+
+[:material-calendar-month: Join the DCB Campfire](https://luma.com/dcb.events){:target="_blank" .md-button .md-button--primary}
+
+---
+
 ## Contact Us
 
 For collaborations, suggestions, or just to connect, feel free to reach out to us via email [:material-email:](mailto:hello%40dcb.events){.small} or through our social profiles.

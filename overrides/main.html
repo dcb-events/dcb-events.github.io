@@ -1,10 +1,19 @@
 {% extends "base.html" %}
 
 {% block announce %}
-  <a href="https://discord.gg/hmfHwuxMft" target="_blank" rel="noopener" class="dcb-announce">
-    <span class="dcb-announce__icon">
-      {% include ".icons/simple/discord.svg" %}
-    </span>
-    Questions, ideas or feedback? Join the DCB Discord server
-  </a>
+  <div class="dcb-announce-bar">
+    <a href="https://discord.gg/hmfHwuxMft" target="_blank" rel="noopener" class="dcb-announce">
+      <span class="dcb-announce__icon">
+        {% include ".icons/simple/discord.svg" %}
+      </span>
+      Join the DCB Discord server
+    </a>
+    <span class="dcb-announce__divider"></span>
+    <a href="https://luma.com/dcb.events" target="_blank" rel="noopener" class="dcb-announce">
+      <span class="dcb-announce__icon">
+        {% include ".icons/material/calendar-month.svg" %}
+      </span>
+      Join the DCB Campfire meetup
+    </a>
+  </div>
 {% endblock %}
