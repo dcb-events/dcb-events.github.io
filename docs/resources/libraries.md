@@ -77,6 +77,7 @@ Open Source Event Store specifically written to support DCB via gRPC API by John
 #### Rust
 
 - Disintegrate `disintegrate-es/disintegrate`[:octicons-link-external-16:](https://disintegrate-es.github.io/disintegrate/){:target="_blank" .small} (slightly different approach, inspired by the original ideas of DCB)
+- `skilj`[:octicons-link-external-16:](https://codeberg.org/gklijs/SklilJ){:target="_blank" .small} (Open Source, Postgres-backed library for event-sourced DDD applications with a GraphQL and REST surface, [crates.io](https://crates.io/crates/skilj))
 
 ## Add your own
 
