@@ -46,7 +46,19 @@ The first implementation just allows to specify new courses and make sure that t
 {
     "meta": {
         "version": "1.0",
-        "id": "course_subscription_01"
+        "id": "course_subscription_01",
+        "implementations": [
+            {
+                "id": "factos",
+                "label": "Gleam",
+                "language": "gleam",
+                "source": "libraries/factos/course_subscription.gleam",
+                "sourceLines": "17:18,21:24,27:30,36:42,53:54,64:69,81:90,142:149,206:209,214:228,256:258,297:318,344:345",
+                "projectName": "factos",
+                "projectUrl": "https://tangled.org/renatillas.dev/factos",
+                "packageUrl": "https://tangled.org/renatillas.dev/factos/tree/main/examples/course_subscriptions"
+            }
+        ]
     },
     "eventDefinitions": [
         {
@@ -184,7 +196,14 @@ The second implementation extends the first by a `changeCourseCapacity` command 
     "meta": {
         "version": "1.0",
         "id": "course_subscription_02",
-        "extends": "course_subscription_01"
+        "extends": "course_subscription_01",
+        "implementations": [
+            {
+                "id": "factos",
+                "sourceLines": "17:19,21:25,27:32,36:47,53:55,64:71,81:90,92:102,105:105,142:149,151:156,206:209,214:241,256:258,297:328,344:345",
+                "highlightLines": "3 8 13-14 22-26 29 36-37 48-59 68-73 93-105 131-140"
+            }
+        ]
     },
     "eventDefinitions": [
         {
@@ -338,7 +357,14 @@ The last implementation contains the core example that requires constraint check
     "meta": {
         "version": "1.0",
         "id": "course_subscription_03",
-        "extends": "course_subscription_02"
+        "extends": "course_subscription_02",
+        "implementations": [
+            {
+                "id": "factos",
+                "sourceLines": "15:90,92:140,142:149,151:156,158:204,206:209,214:258,297:345",
+                "highlightLines": "1-2 6 12 19-21 34-38 42-49 58-66 88-89 91-125 140-186 219-232 268-282"
+            }
+        ]
     },
     "eventDefinitions": [
         {
