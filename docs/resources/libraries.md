@@ -75,7 +75,7 @@ Open Source Event Store specifically written to support DCB via gRPC API by John
 - `ortegacmanuel/kroniko`[:octicons-link-external-16:](https://github.com/ortegacmanuel/kroniko){:target="_blank" .small} (work in progress)
 
 #### Rust
-
+- Happenstance `Wet-Ink-Corporation/happenstance`[:octicons-link-external-16:](https://github.com/Wet-Ink-Corporation/happenstance/){:target="_blank" .small} (An opinionated, storage-agnostic event sourcing library for Rust, built on the Dynamic Consistency Boundary specification: a contract for storage, and a published conformance suite that decides who meets it.)
 - Disintegrate `disintegrate-es/disintegrate`[:octicons-link-external-16:](https://disintegrate-es.github.io/disintegrate/){:target="_blank" .small} (slightly different approach, inspired by the original ideas of DCB)
 - `skilj`[:octicons-link-external-16:](https://codeberg.org/gklijs/SklilJ){:target="_blank" .small} (Open Source, Postgres-backed library for event-sourced DDD applications with a GraphQL and REST surface, [crates.io](https://crates.io/crates/skilj))
 
