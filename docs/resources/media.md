@@ -2,6 +2,14 @@
 
 ## Videos
 
+### Kill Aggregate Volume 2 - Sara Pellegrini [:octicons-link-external-16:](https://www.youtube.com/watch?v=USirhSVcmKQ){:target="_blank" .small}
+
+<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/USirhSVcmKQ" 
+frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; 
+gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+_Presenter: **Sara Pellegrini**, Published: **October 2025**, Conference: **KanDDDinsky**_
+
 ### Dynamic Consistency Boundaries (DCB): Nie wieder Aggregates schneiden! - Golo Roden [:octicons-link-external-16:](https://www.youtube.com/watch?v=1EQ3iYjBZR4){:target="_blank" .small}
 
 <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/1EQ3iYjBZR4" 
