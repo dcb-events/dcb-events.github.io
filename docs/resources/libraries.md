@@ -15,6 +15,10 @@ Commercial product with DCB support via gRPC/HTTP API by [AxonIQ](https://www.ax
 
 Commercial product with DCB support via HTTP API by [the native web](https://www.thenativeweb.io/){:target="_blank"}
 
+### TamarackDB [:octicons-link-external-16:](https://tamarackdb.github.io/){:target="_blank" .small}
+
+Open Source event and projection store written in Go, supporting both DCB and stream-based event sourcing via HTTP API, backed by SQLite. Maintained by [Maxime Gosselin](https://maximegosselin.com/){:target="_blank"}
+
 ### Tephra [:octicons-link-external-16:](https://tephra.tqwewe.com/){:target="_blank" .small}
 
 Open Source Event Store written in Rust with DCB support via a custom Protobuf-over-TCP protocol by [Ari Seyhun](https://github.com/tqwewe){:target="_blank"}
