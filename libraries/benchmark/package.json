@@ -2,7 +2,7 @@
   "name": "dcb-k6-testsuite",
   "version": "1.0.0",
   "description": "k6.io test suite for DCB compliant event stores",
-  "license": "ISC",
+  "license": "MIT",
   "type": "commonjs",
   "devDependencies": {
     "@types/k6": "^1.0.2"
