@@ -209,7 +209,10 @@
     right: 0;
     z-index: 1;
     display: flex;
+    align-items: center;
     gap: .4rem;
+    /* the height of the tab labels, to centre the button next to them */
+    height: 2rem;
 }
 
 .md-typeset .dcb-example__actions .md-button {
