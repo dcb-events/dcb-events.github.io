@@ -13,134 +13,37 @@ As this challenge is similar to the [Unique username example](unique-username.md
 
 ## DCB approach
 
-This requirement could be solved with an in-memory [Projection](../topics/projections.md) that calculates the `nextInvoiceNumber`:
+This requirement could be solved with an in-memory [Projection](../topics/projections.md) `NextInvoiceNumber` that calculates the next number from the `InvoiceCreated` events. Since it has no parameters, the Query only filters by Event Type, and the resulting `AppendCondition` fails if _any_ invoice was created in the meantime:
 
-<script type="application/dcb+json">
-{
-  "meta": {
-    "version": "1.0",
-    "id": "invoice_number_01"
-  },
-  "eventDefinitions": [
-    {
-      "name": "InvoiceCreated",
-      "schema": {
-        "type": "object",
-        "properties": {
-          "invoiceNumber": {
-            "type": "number"
-          },
-          "invoiceData": {
-            "type": "object"
-          }
-        }
-      },
-      "tagResolvers": [
-        "invoice:{data.invoiceNumber}"
-      ]
-    }
-  ],
-  "commandDefinitions": [
-    {
-      "name": "createInvoice",
-      "schema": {
-        "type": "object",
-        "properties": {
-          "invoiceData": {
-            "type": "object"
-          }
-        }
-      }
-    }
-  ],
-  "projections": [
-    {
-      "name": "nextInvoiceNumber",
-      "parameterSchema": null,
-      "stateSchema": {
-        "type": "number",
-        "default": 1
-      },
-      "handlers": {
-        "InvoiceCreated": "event.data.invoiceNumber + 1"
-      }
-    }
-  ],
-  "commandHandlerDefinitions": [
-    {
-      "commandName": "createInvoice",
-      "decisionModels": [
-        {
-          "name": "nextInvoiceNumber",
-          "parameters": []
-        }
-      ],
-      "constraintChecks": [],
-      "successEvent": {
-        "type": "InvoiceCreated",
-        "data": {
-          "invoiceNumber": "{state.nextInvoiceNumber}",
-          "invoiceData": "{command.invoiceData}"
-        }
-      }
-    }
-  ],
-  "testCases": [
-    {
-      "description": "Create first invoice",
-      "givenEvents": null,
-      "whenCommand": {
-        "type": "createInvoice",
-        "data": {
-          "invoiceData": {
-            "foo": "bar"
-          }
-        }
-      },
-      "thenExpectedEvent": {
-        "type": "InvoiceCreated",
-        "data": {
-          "invoiceNumber": 1,
-          "invoiceData": {
-            "foo": "bar"
-          }
-        }
-      }
-    },
-    {
-      "description": "Create second invoice",
-      "givenEvents": [
-        {
-          "type": "InvoiceCreated",
-          "data": {
-            "invoiceNumber": 1,
-            "invoiceData": {
-              "foo": "bar"
-            }
-          }
-        }
-      ],
-      "whenCommand": {
-        "type": "createInvoice",
-        "data": {
-          "invoiceData": {
-            "bar": "baz"
-          }
-        }
-      },
-      "thenExpectedEvent": {
-        "type": "InvoiceCreated",
-        "data": {
-          "invoiceNumber": 2,
-          "invoiceData": {
-            "bar": "baz"
-          }
-        }
-      }
-    }
-  ]
+```dcb id="invoice_number_01"
+model "Invoice number"
+
+tag type InvoiceNumber = integer
+type InvoiceData = object
+
+event InvoiceCreated { invoiceNumber: InvoiceNumber, invoiceData: InvoiceData }
+
+projection NextInvoiceNumber: InvoiceNumber = 1 {
+  on InvoiceCreated => set successor(event.data.invoiceNumber)
 }
-</script>
+
+command CreateInvoice(invoiceData: InvoiceData) {
+  read next = NextInvoiceNumber()
+
+  emit InvoiceCreated { invoiceNumber: next, invoiceData }
+
+  scenario "Create first invoice" {
+    when CreateInvoice { invoiceData: { foo: "bar" } }
+    then InvoiceCreated { invoiceNumber: 1, invoiceData: { foo: "bar" } }
+  }
+
+  scenario "Create second invoice" {
+    given InvoiceCreated { invoiceNumber: 1, invoiceData: { foo: "bar" } }
+    when CreateInvoice { invoiceData: { bar: "baz" } }
+    then InvoiceCreated { invoiceNumber: 2, invoiceData: { bar: "baz" } }
+  }
+}
+```
 
 ### Better performance
 
@@ -169,7 +72,7 @@ function NextInvoiceNumberProjection(value) {
 
 Alternatively, for this specific scenario, the last `InvoiceCreated` Event can be loaded "manually":
 
-```{.js .partial hl_lines="31-49"}
+```js hl_lines="31-49"
 // event type definitions:
 
 function InvoiceCreated({ invoiceNumber, invoiceData }) {
@@ -229,14 +132,7 @@ class Api {
     )
   }
 }
-
-const eventStore = new InMemoryDcbEventStore()
-const api = new Api(eventStore)
-api.createInvoice({invoiceData: {foo: "bar"}})
-console.log(eventStore.read(queryAll()).first())
 ```
-
-<codapi-snippet engine="browser" sandbox="javascript" template="/assets/js/dcb.js"></codapi-snippet>
 
 ## Conclusion
 

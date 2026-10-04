@@ -234,3 +234,98 @@ codapi-output a[href="#close"] {
     height: 100%;
     fill: currentcolor;
 }
+/* DCB examples (extensions/dcb_notation.py). The notation colours are the DCB Playground's,
+   so an example reads the same on the page and in the playground's code view. */
+
+.md-typeset .dcb-example {
+    position: relative;
+    margin: 1em 0;
+}
+
+.md-typeset .dcb-example__actions {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1;
+    display: flex;
+    gap: .4rem;
+}
+
+.md-typeset .dcb-example__actions .md-button {
+    display: inline-flex;
+    align-items: center;
+    gap: .3em;
+    padding: .2em .8em;
+    font-size: .64rem;
+}
+
+.md-typeset .dcb-example__actions svg {
+    width: 1.1em;
+    height: 1.1em;
+    fill: currentColor;
+}
+
+.md-typeset .dcb-example .tabbed-labels {
+    padding-right: 15rem;
+}
+
+@media screen and (max-width: 44.9375em) {
+    .md-typeset .dcb-example__actions {
+        position: static;
+        justify-content: flex-end;
+        margin-bottom: .4rem;
+    }
+
+    .md-typeset .dcb-example .tabbed-labels {
+        padding-right: 0;
+    }
+}
+
+.md-typeset .dcb-notation .dcb-line--changed {
+    display: inline-block;
+    min-width: 100%;
+    margin: 0 -1.1764705882em;
+    padding: 0 1.1764705882em;
+    background-color: var(--md-code-hl-color--light);
+    box-shadow: 2px 0 var(--md-code-hl-color) inset;
+}
+
+.md-typeset .dcb-hl-keyword { color: #0000ff; }
+.md-typeset .dcb-hl-flow { color: #af00db; }
+.md-typeset .dcb-hl-type { color: #267f99; }
+.md-typeset .dcb-hl-string, .md-typeset .dcb-hl-code { color: #a31515; }
+.md-typeset .dcb-hl-number { color: #098658; }
+.md-typeset .dcb-hl-comment { color: #008000; }
+.md-typeset .dcb-hl-annotation { color: #795e26; }
+
+[data-md-color-scheme="slate"] .md-typeset .dcb-hl-keyword { color: #569cd6; }
+[data-md-color-scheme="slate"] .md-typeset .dcb-hl-flow { color: #c586c0; }
+[data-md-color-scheme="slate"] .md-typeset .dcb-hl-type { color: #4ec9b0; }
+[data-md-color-scheme="slate"] .md-typeset .dcb-hl-string,
+[data-md-color-scheme="slate"] .md-typeset .dcb-hl-code { color: #ce9178; }
+[data-md-color-scheme="slate"] .md-typeset .dcb-hl-number { color: #b5cea8; }
+[data-md-color-scheme="slate"] .md-typeset .dcb-hl-comment { color: #6a9955; }
+[data-md-color-scheme="slate"] .md-typeset .dcb-hl-annotation { color: #dcdcaa; }
+
+.md-typeset .dcb-boundary__command {
+    margin-bottom: .4em;
+    font-weight: 700;
+}
+
+.md-typeset .dcb-boundary__command:not(:first-child) {
+    margin-top: 1.6em;
+}
+
+.md-typeset .dcb-boundary__summary {
+    margin-left: .4em;
+    font-weight: 400;
+    color: var(--md-default-fg-color--light);
+}
+
+.md-typeset .dcb-boundary table {
+    margin: .4em 0;
+}
+
+.md-typeset .dcb-boundary__writes {
+    color: var(--md-default-fg-color--light);
+}

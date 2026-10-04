@@ -76,6 +76,7 @@ nav:
 
 markdown_extensions:
   - extensions.replace_dcb_scenarios
+  - extensions.dcb_notation
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
@@ -123,5 +124,6 @@ watch:
 extra_javascript:
   - assets/js/codapi-snippet.js
   - assets/js/dcb-scenario.bundle.js
+  - assets/js/dcb-examples.js
 extra_css:
   - assets/css/custom.css
