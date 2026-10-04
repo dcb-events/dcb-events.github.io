@@ -34,7 +34,7 @@ There are several potential strategies to solve this without DCB:
 
 ## DCB approach
 
-With DCB the challenge can be solved simply by adding a [Tag](../specification.md#tag) for each, the affected course *and* student to the `student subscribed to course`:
+With DCB the challenge can be solved simply by adding a [Tag](../specification.md#tag) for each, the affected course *and* student to the `StudentSubscribedToCourse` Event:
 
 ![course subscriptions example](img/course-subscriptions-01.png)
 
@@ -42,637 +42,159 @@ With DCB the challenge can be solved simply by adding a [Tag](../specification.m
 
 The first implementation just allows to specify new courses and make sure that they have a unique id:
 
-<script type="application/dcb+json">
-{
-    "meta": {
-        "version": "1.0",
-        "id": "course_subscription_01"
-    },
-    "eventDefinitions": [
-        {
-            "name": "CourseDefined",
-            "schema": {
-                "type": "object",
-                "properties": {
-                    "courseId": {
-                        "type": "string"
-                    },
-                    "capacity": {
-                        "type": "number"
-                    }
-                }
-            },
-            "tagResolvers": [
-                "course:{data.courseId}"
-            ]
-        }
-    ],
-    "commandDefinitions": [
-        {
-            "name": "defineCourse",
-            "schema": {
-                "type": "object",
-                "properties": {
-                    "courseId": {
-                        "type": "string"
-                    },
-                    "capacity": {
-                        "type": "number"
-                    }
-                }
-            }
-        }
-    ],
-    "projections": [
-        {
-            "name": "courseExists",
-            "parameterSchema": {
-                "type": "object",
-                "properties": {
-                    "courseId": {
-                        "type": "string"
-                    }
-                }
-            },
-            "stateSchema": {
-                "type": "boolean",
-                "default": false
-            },
-            "handlers": {
-                "CourseDefined": "true"
-            },
-            "tagFilters": [
-                "course:{courseId}"
-            ]
-        }
-    ],
-    "commandHandlerDefinitions": [
-        {
-            "commandName": "defineCourse",
-            "decisionModels": [
-                {
-                    "name": "courseExists",
-                    "parameters": [
-                        "command.courseId"
-                    ]
-                }
-            ],
-            "constraintChecks": [
-                {
-                    "condition": "state.courseExists",
-                    "errorMessage": "Course with id \"{command.courseId}\" already exists"
-                }
-            ],
-            "successEvent": {
-                "type": "CourseDefined",
-                "data": {
-                    "courseId": "{command.courseId}",
-                    "capacity": "{command.capacity}"
-                }
-            }
-        }
-    ],
-    "testCases": [
-        {
-            "description": "Define course with existing id",
-            "givenEvents": [
-                {
-                    "type": "CourseDefined",
-                    "data": {
-                        "courseId": "c1",
-                        "capacity": 10
-                    }
-                }
-            ],
-            "whenCommand": {
-                "type": "defineCourse",
-                "data": {
-                    "courseId": "c1",
-                    "capacity": 15
-                }
-            },
-            "thenExpectedError": "Course with id \"c1\" already exists"
-        },
-        {
-            "description": "Define course with new id",
-            "givenEvents": null,
-            "whenCommand": {
-                "type": "defineCourse",
-                "data": {
-                    "courseId": "c1",
-                    "capacity": 15
-                }
-            },
-            "thenExpectedEvent": {
-                "type": "CourseDefined",
-                "data": {
-                    "courseId": "c1",
-                    "capacity": 15
-                }
-            }
-        }
-    ]
+```dcb id="course_subscription_01"
+model "Course subscriptions"
+
+tag type CourseId = string
+
+event CourseDefined { courseId: CourseId, capacity: integer }
+
+entity Course {
+  lifecycle exists
+  exists = CourseExists
 }
-</script>
+
+projection CourseExists(courseId: CourseId): boolean = false {
+  on CourseDefined => set true
+}
+
+command DefineCourse(courseId: CourseId, capacity: integer) {
+  read course = Course[courseId]
+  require course.exists is false
+  emit CourseDefined { courseId, capacity }
+
+  scenario "Define course with existing id" {
+    given CourseDefined { courseId: "c1", capacity: 10 }
+    when DefineCourse { courseId: "c1", capacity: 15 }
+    then rejected by course.exists is false
+  }
+  scenario "Define course with new id" {
+    when DefineCourse { courseId: "c1", capacity: 15 }
+    then CourseDefined { courseId: "c1", capacity: 15 }
+  }
+}
+```
 
 ### Feature 2: Change course capacity
 
-The second implementation extends the first by a `changeCourseCapacity` command that allows to change the maximum number of seats for a given course:
+The second implementation extends the first by a `ChangeCourseCapacity` command that allows to change the maximum number of seats for a given course:
 
-<script type="application/dcb+json">
-{
-    "meta": {
-        "version": "1.0",
-        "id": "course_subscription_02",
-        "extends": "course_subscription_01"
-    },
-    "eventDefinitions": [
-        {
-            "name": "CourseCapacityChanged",
-            "schema": {
-                "type": "object",
-                "properties": {
-                    "courseId": {
-                        "type": "string"
-                    },
-                    "newCapacity": {
-                        "type": "number"
-                    }
-                }
-            },
-            "tagResolvers": [
-                "course:{data.courseId}"
-            ]
-        }
-    ],
-    "commandDefinitions": [
-        {
-            "name": "changeCourseCapacity",
-            "schema": {
-                "type": "object",
-                "properties": {
-                    "courseId": {
-                        "type": "string"
-                    },
-                    "newCapacity": {
-                        "type": "number"
-                    }
-                }
-            }
-        }
-    ],
-    "projections": [
-        {
-            "name": "courseCapacity",
-            "parameterSchema": {
-                "type": "object",
-                "properties": {
-                    "courseId": {
-                        "type": "string"
-                    }
-                }
-            },
-            "stateSchema": {
-                "type": "number",
-                "default": 0
-            },
-            "handlers": {
-                "CourseDefined": "event.data.capacity",
-                "CourseCapacityChanged": "event.data.newCapacity"
-            },
-            "tagFilters": [
-                "course:{courseId}"
-            ]
-        }
-    ],
-    "commandHandlerDefinitions": [
-        {
-            "commandName": "changeCourseCapacity",
-            "decisionModels": [
-                {
-                    "name": "courseExists",
-                    "parameters": [
-                        "command.courseId"
-                    ]
-                },
-                {
-                    "name": "courseCapacity",
-                    "parameters": [
-                        "command.courseId"
-                    ]
-                }
-            ],
-            "constraintChecks": [
-                {
-                    "condition": "!state.courseExists",
-                    "errorMessage": "Course \"{command.courseId}\" does not exist"
-                },
-                {
-                    "condition": "state.courseCapacity === command.newCapacity",
-                    "errorMessage": "New capacity {command.newCapacity} is the same as the current capacity"
-                }
-            ],
-            "successEvent": {
-                "type": "CourseCapacityChanged",
-                "data": {
-                    "courseId": "{command.courseId}",
-                    "newCapacity": "{command.newCapacity}"
-                }
-            }
-        }
-    ],
-    "testCases": [
-        {
-            "description": "Change capacity of a non-existing course",
-            "givenEvents": null,
-            "whenCommand": {
-                "type": "changeCourseCapacity",
-                "data": {
-                    "courseId": "c0",
-                    "newCapacity": 15
-                }
-            },
-            "thenExpectedError": "Course \"c0\" does not exist"
-        },
-        {
-            "description": "Change capacity of a course to a new value",
-            "givenEvents": [
-                {
-                    "type": "CourseDefined",
-                    "data": {
-                        "courseId": "c1",
-                        "capacity": 12
-                    }
-                }
-            ],
-            "whenCommand": {
-                "type": "changeCourseCapacity",
-                "data": {
-                    "courseId": "c1",
-                    "newCapacity": 15
-                }
-            },
-            "thenExpectedEvent": {
-                "type": "CourseCapacityChanged",
-                "data": {
-                    "courseId": "c1",
-                    "newCapacity": 15
-                }
-            }
-        }
-    ]
+```dcb id="course_subscription_02" extends="course_subscription_01"
+event CourseCapacityChanged { courseId: CourseId, newCapacity: integer }
+
+entity Course {
+  lifecycle exists
+  exists = CourseExists
+  capacity = CourseCapacity
 }
-</script>
+
+projection CourseCapacity(courseId: CourseId): integer = 0 {
+  on CourseDefined => set event.data.capacity
+  on CourseCapacityChanged => set event.data.newCapacity
+}
+
+command ChangeCourseCapacity(courseId: CourseId, newCapacity: integer) {
+  read course = Course[courseId]
+  require course.exists is true
+  require course.capacity != newCapacity
+  emit CourseCapacityChanged { courseId, newCapacity }
+
+  scenario "Change capacity of a non-existing course" {
+    when ChangeCourseCapacity { courseId: "c0", newCapacity: 15 }
+    then rejected by course.exists is true
+  }
+  scenario "Change capacity of a course to a new value" {
+    given CourseDefined { courseId: "c1", capacity: 12 }
+    when ChangeCourseCapacity { courseId: "c1", newCapacity: 15 }
+    then CourseCapacityChanged { courseId: "c1", newCapacity: 15 }
+  }
+}
+```
 
 ### Feature 3: Subscribe student to course
 
-The last implementation contains the core example that requires constraint checks across multiple entities, adding a `subscribeStudentToCourse` command with a corresponding handler that checks...
+The last implementation contains the core example that requires constraint checks across multiple entities, adding a `SubscribeStudentToCourse` command that checks...
 
 - ...whether the course with the specified id exists
 - ...whether the specified course still has available seats
 - ...whether the student with the specified id is not yet subscribed to given course
 - ...whether the student is not subscribed to more than 5 courses already
 
-<script type="application/dcb+json">
-{
-    "meta": {
-        "version": "1.0",
-        "id": "course_subscription_03",
-        "extends": "course_subscription_02"
-    },
-    "eventDefinitions": [
-        {
-            "name": "StudentSubscribedToCourse",
-            "schema": {
-                "type": "object",
-                "properties": {
-                    "studentId": {
-                        "type": "string"
-                    },
-                    "courseId": {
-                        "type": "string"
-                    }
-                }
-            },
-            "tagResolvers": [
-                "student:{data.studentId}",
-                "course:{data.courseId}"
-            ]
-        }
-    ],
-    "commandDefinitions": [
-        {
-            "name": "subscribeStudentToCourse",
-            "schema": {
-                "type": "object",
-                "properties": {
-                    "studentId": {
-                        "type": "string"
-                    },
-                    "courseId": {
-                        "type": "string"
-                    }
-                }
-            }
-        }
-    ],
-    "projections": [
-        {
-            "name": "studentAlreadySubscribed",
-            "parameterSchema": {
-                "type": "object",
-                "properties": {
-                    "studentId": {
-                        "type": "string"
-                    },
-                    "courseId": {
-                        "type": "string"
-                    }
-                }
-            },
-            "stateSchema": {
-                "type": "boolean",
-                "default": false
-            },
-            "handlers": {
-                "StudentSubscribedToCourse": "true"
-            },
-            "tagFilters": [
-                "student:{studentId}",
-                "course:{courseId}"
-            ]
-        },
-        {
-            "name": "numberOfCourseSubscriptions",
-            "parameterSchema": {
-                "type": "object",
-                "properties": {
-                    "courseId": {
-                        "type": "string"
-                    }
-                }
-            },
-            "stateSchema": {
-                "type": "number",
-                "default": 0
-            },
-            "handlers": {
-                "StudentSubscribedToCourse": "state + 1"
-            },
-            "tagFilters": [
-                "course:{courseId}"
-            ]
-        },
-        {
-            "name": "numberOfStudentSubscriptions",
-            "parameterSchema": {
-                "type": "object",
-                "properties": {
-                    "studentId": {
-                        "type": "string"
-                    }
-                }
-            },
-            "stateSchema": {
-                "type": "number",
-                "default": 0
-            },
-            "handlers": {
-                "StudentSubscribedToCourse": "state + 1"
-            },
-            "tagFilters": [
-                "student:{studentId}"
-            ]
-        }
-    ],
-    "commandHandlerDefinitions": [
-        {
-            "commandName": "subscribeStudentToCourse",
-            "decisionModels": [
-                {
-                    "name": "courseExists",
-                    "parameters": [
-                        "command.courseId"
-                    ]
-                },
-                {
-                    "name": "courseCapacity",
-                    "parameters": [
-                        "command.courseId"
-                    ]
-                },
-                {
-                    "name": "numberOfCourseSubscriptions",
-                    "parameters": [
-                        "command.courseId"
-                    ]
-                },
-                {
-                    "name": "numberOfStudentSubscriptions",
-                    "parameters": [
-                        "command.studentId"
-                    ]
-                },
-                {
-                    "name": "studentAlreadySubscribed",
-                    "parameters": [
-                        "command.studentId",
-                        "command.courseId"
-                    ]
-                }
-            ],
-            "constraintChecks": [
-                {
-                    "condition": "!state.courseExists",
-                    "errorMessage": "Course \"{command.courseId}\" does not exist"
-                },
-                {
-                    "condition": "state.numberOfCourseSubscriptions >= state.courseCapacity",
-                    "errorMessage": "Course \"{command.courseId}\" is already fully booked"
-                },
-                {
-                    "condition": "state.studentAlreadySubscribed",
-                    "errorMessage": "Student already subscribed to this course"
-                },
-                {
-                    "condition": "state.numberOfStudentSubscriptions >= 5",
-                    "errorMessage": "Student already subscribed to 5 courses"
-                }
-            ],
-            "successEvent": {
-                "type": "StudentSubscribedToCourse",
-                "data": {
-                    "studentId": "{command.studentId}",
-                    "courseId": "{command.courseId}"
-                }
-            }
-        }
-    ],
-    "testCases": [
-        {
-            "description": "Subscribe student to non-existing course",
-            "givenEvents": null,
-            "whenCommand": {
-                "type": "subscribeStudentToCourse",
-                "data": {
-                    "studentId": "s1",
-                    "courseId": "c0"
-                }
-            },
-            "thenExpectedError": "Course \"c0\" does not exist"
-        },
-        {
-            "description": "Subscribe student to fully booked course",
-            "givenEvents": [
-                {
-                    "type": "CourseDefined",
-                    "data": {
-                        "courseId": "c1",
-                        "capacity": 3
-                    }
-                },
-                {
-                    "type": "StudentSubscribedToCourse",
-                    "data": {
-                        "studentId": "s1",
-                        "courseId": "c1"
-                    }
-                },
-                {
-                    "type": "StudentSubscribedToCourse",
-                    "data": {
-                        "studentId": "s2",
-                        "courseId": "c1"
-                    }
-                },
-                {
-                    "type": "StudentSubscribedToCourse",
-                    "data": {
-                        "studentId": "s3",
-                        "courseId": "c1"
-                    }
-                }
-            ],
-            "whenCommand": {
-                "type": "subscribeStudentToCourse",
-                "data": {
-                    "studentId": "s4",
-                    "courseId": "c1"
-                }
-            },
-            "thenExpectedError": "Course \"c1\" is already fully booked"
-        },
-        {
-            "description": "Subscribe student to the same course twice",
-            "givenEvents": [
-                {
-                    "type": "CourseDefined",
-                    "data": {
-                        "courseId": "c1",
-                        "capacity": 10
-                    }
-                },
-                {
-                    "type": "StudentSubscribedToCourse",
-                    "data": {
-                        "studentId": "s1",
-                        "courseId": "c1"
-                    }
-                }
-            ],
-            "whenCommand": {
-                "type": "subscribeStudentToCourse",
-                "data": {
-                    "studentId": "s1",
-                    "courseId": "c1"
-                }
-            },
-            "thenExpectedError": "Student already subscribed to this course"
-        },
-        {
-            "description": "Subscribe student to more than 5 courses",
-            "givenEvents": [
-                {
-                    "type": "CourseDefined",
-                    "data": {
-                        "courseId": "c6",
-                        "capacity": 10
-                    }
-                },
-                {
-                    "type": "StudentSubscribedToCourse",
-                    "data": {
-                        "studentId": "s1",
-                        "courseId": "c1"
-                    }
-                },
-                {
-                    "type": "StudentSubscribedToCourse",
-                    "data": {
-                        "studentId": "s1",
-                        "courseId": "c2"
-                    }
-                },
-                {
-                    "type": "StudentSubscribedToCourse",
-                    "data": {
-                        "studentId": "s1",
-                        "courseId": "c3"
-                    }
-                },
-                {
-                    "type": "StudentSubscribedToCourse",
-                    "data": {
-                        "studentId": "s1",
-                        "courseId": "c4"
-                    }
-                },
-                {
-                    "type": "StudentSubscribedToCourse",
-                    "data": {
-                        "studentId": "s1",
-                        "courseId": "c5"
-                    }
-                }
-            ],
-            "whenCommand": {
-                "type": "subscribeStudentToCourse",
-                "data": {
-                    "studentId": "s1",
-                    "courseId": "c6"
-                }
-            },
-            "thenExpectedError": "Student already subscribed to 5 courses"
-        },
-        {
-            "description": "Subscribe student to course with capacity",
-            "givenEvents": [
-                {
-                    "type": "CourseDefined",
-                    "data": {
-                        "courseId": "c1",
-                        "capacity": 10
-                    }
-                }
-            ],
-            "whenCommand": {
-                "type": "subscribeStudentToCourse",
-                "data": {
-                    "studentId": "s1",
-                    "courseId": "c1"
-                }
-            },
-            "thenExpectedEvent": {
-                "type": "StudentSubscribedToCourse",
-                "data": {
-                    "studentId": "s1",
-                    "courseId": "c1"
-                }
-            }
-        }
-    ]
+The "Consistency boundary" tab shows the resulting Query: it combines Query Items for Events tagged with the course (`CourseId:{courseId}`) and with the student (`StudentId:{studentId}`). Because the appended `StudentSubscribedToCourse` Event carries both Tags, a concurrent subscription to the same course *or* by the same student makes the `AppendCondition` fail:
+
+```dcb id="course_subscription_03" extends="course_subscription_02"
+tag type StudentId = string
+
+event StudentSubscribedToCourse { studentId: StudentId, courseId: CourseId }
+
+entity Course {
+  lifecycle exists
+  exists = CourseExists
+  capacity = CourseCapacity
+  subscriptionCount = CourseSubscriptionCount
 }
-</script>
+
+entity Student {
+  subscriptionCount = StudentSubscriptionCount
+}
+
+projection CourseSubscriptionCount(courseId: CourseId): integer = 0 {
+  on StudentSubscribedToCourse => increment 1
+}
+projection StudentSubscriptionCount(studentId: StudentId): integer = 0 {
+  on StudentSubscribedToCourse => increment 1
+}
+projection StudentAlreadySubscribed(studentId: StudentId, courseId: CourseId): boolean = false {
+  on StudentSubscribedToCourse => set true
+}
+
+command SubscribeStudentToCourse(studentId: StudentId, courseId: CourseId) {
+  read course = Course[courseId]
+  read student = Student[studentId]
+  read alreadySubscribed = StudentAlreadySubscribed(studentId, courseId)
+
+  require course.exists is true
+  require course.subscriptionCount < course.capacity
+  require alreadySubscribed is false
+  require student.subscriptionCount < 5
+
+  emit StudentSubscribedToCourse { studentId, courseId }
+
+  scenario "Subscribe student to non-existing course" {
+    when SubscribeStudentToCourse { studentId: "s1", courseId: "c0" }
+    then rejected by course.exists is true
+  }
+  scenario "Subscribe student to fully booked course" {
+    given CourseDefined { courseId: "c1", capacity: 3 }
+    given StudentSubscribedToCourse { studentId: "s1", courseId: "c1" }
+    given StudentSubscribedToCourse { studentId: "s2", courseId: "c1" }
+    given StudentSubscribedToCourse { studentId: "s3", courseId: "c1" }
+    when SubscribeStudentToCourse { studentId: "s4", courseId: "c1" }
+    then rejected by course.subscriptionCount < course.capacity
+  }
+  scenario "Subscribe student to the same course twice" {
+    given CourseDefined { courseId: "c1", capacity: 10 }
+    given StudentSubscribedToCourse { studentId: "s1", courseId: "c1" }
+    when SubscribeStudentToCourse { studentId: "s1", courseId: "c1" }
+    then rejected by alreadySubscribed is false
+  }
+  scenario "Subscribe student to more than 5 courses" {
+    given CourseDefined { courseId: "c6", capacity: 10 }
+    given StudentSubscribedToCourse { studentId: "s1", courseId: "c1" }
+    given StudentSubscribedToCourse { studentId: "s1", courseId: "c2" }
+    given StudentSubscribedToCourse { studentId: "s1", courseId: "c3" }
+    given StudentSubscribedToCourse { studentId: "s1", courseId: "c4" }
+    given StudentSubscribedToCourse { studentId: "s1", courseId: "c5" }
+    when SubscribeStudentToCourse { studentId: "s1", courseId: "c6" }
+    then rejected by student.subscriptionCount < 5
+  }
+  scenario "Subscribe student to course with capacity" {
+    given CourseDefined { courseId: "c1", capacity: 10 }
+    when SubscribeStudentToCourse { studentId: "s1", courseId: "c1" }
+    then StudentSubscribedToCourse { studentId: "s1", courseId: "c1" }
+  }
+}
+```
 
 ### Other implementations
 
