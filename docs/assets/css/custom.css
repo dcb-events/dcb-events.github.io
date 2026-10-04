@@ -244,6 +244,10 @@
     }
 }
 
+.md-typeset pre.dcb-notation > code {
+    max-height: 20rem;
+}
+
 .md-typeset .dcb-notation .dcb-line--changed {
     display: inline-block;
     min-width: 100%;
