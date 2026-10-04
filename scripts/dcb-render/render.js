@@ -9,7 +9,7 @@
 //   { blocks: [{ id, source, notationHtml, boundaryHtml, link, warnings }] }
 //
 // A block with `extends` holds only what changes: every definition it declares replaces the
-// parent's definition of the same kind and name (scenarios included, as they sit inside it),
+// parent's definition of the same kind and name in place (scenarios included, as they sit inside it),
 // everything else is inherited. The rendered notation is always the complete model, printed
 // canonically, with the lines that differ from the parent marked.
 //
@@ -52,28 +52,52 @@ const playground = loadPlayground();
 
 // ---------- merging ----------
 
-// The parent's text without the definitions the child declares again (and without its
-// `model` line, when the child names the model itself).
-function withoutRedefined(parentSource, child) {
-  const parent = playground.parseModelSource(parentSource);
-  const redefined = new Set(child.spans.map((span) => `${span.kind} ${span.name}`));
-  const lines = parentSource.split('\n');
-  const drop = new Set();
-  for (const span of parent.spans) {
-    if (!redefined.has(`${span.kind} ${span.name}`)) continue;
-    for (let line = span.line; line <= span.endLine; line++) drop.add(line);
-    for (let line = span.line - 1; line >= 1 && /^\s*@/.test(lines[line - 1]); line--) drop.add(line);
+// The lines a definition occupies, including the annotations (`@feature(…)`) above it.
+function definitionRanges(lines, parsed) {
+  const ranges = new Map();
+  for (const span of parsed.spans) {
+    let first = span.line;
+    while (first > 1 && /^\s*@/.test(lines[first - 2])) first--;
+    ranges.set(`${span.kind} ${span.name}`, { first, last: span.endLine });
   }
-  if (child.name !== null) lines.forEach((line, i) => { if (/^\s*model\s+"/.test(line)) drop.add(i + 1); });
-  return lines.filter((_, i) => !drop.has(i + 1)).join('\n');
+  return ranges;
+}
+
+// The parent's text with every definition the child declares again replaced in place (so the
+// model keeps its order), followed by the child's new definitions. Returns `{ text, origin }`,
+// where `origin[i]` names the block line i + 1 of the merged text came from, for messages.
+function merge(parentSource, childSource, child, block) {
+  const parentLines = parentSource.split('\n');
+  const childLines = childSource.split('\n');
+  const childRanges = definitionRanges(childLines, child);
+  const parentRanges = definitionRanges(parentLines, playground.parseModelSource(parentSource));
+  const fromChild = (first, last) => childLines.slice(first - 1, last)
+    .map((line, i) => ({ line, origin: `line ${first + i} of block "${block.id}"` }));
+  const replacing = new Map([...parentRanges].filter(([key]) => childRanges.has(key))
+    .map(([key, range]) => [range.first, { ...range, key }]));
+  const out = [];
+  for (let n = 1; n <= parentLines.length; n++) {
+    const replaced = replacing.get(n);
+    if (replaced) {
+      const range = childRanges.get(replaced.key);
+      out.push(...fromChild(range.first, range.last));
+      n = replaced.last;
+    } else if (child.name !== null && /^\s*model\s+"/.test(parentLines[n - 1])) {
+      const modelLine = childLines.findIndex((line) => /^\s*model\s+"/.test(line)) + 1;
+      out.push(...fromChild(modelLine, modelLine));
+    } else {
+      out.push({ line: parentLines[n - 1], origin: `the model "${block.id}" extends ("${block.extends}")` });
+    }
+  }
+  for (const [key, range] of childRanges) {
+    if (!parentRanges.has(key)) out.push({ line: '', origin: '' }, ...fromChild(range.first, range.last));
+  }
+  return { text: out.map((entry) => entry.line).join('\n'), origin: out.map((entry) => entry.origin) };
 }
 
 // ---------- checks ----------
 
-function check(block, text, offset) {
-  const where = (line) => (line > offset
-    ? `line ${line - offset} of block "${block.id}"`
-    : `line ${line} of the model "${block.id}" extends ("${block.extends}")`);
+function check(block, text, where) {
   const parsed = playground.parseModelSource(text);
   const errors = parsed.diagnostics.filter((d) => d.severity === 'error');
   if (errors.length) throw new BuildError(errors.map((e) => `${where(e.line)}: ${e.message}`).join('\n'));
@@ -86,8 +110,7 @@ function check(block, text, offset) {
   return parsed;
 }
 
-function checkModel(block, model, parsed, offset) {
-  const where = (line) => (line > offset ? `line ${line - offset} of block "${block.id}"` : `the parent of "${block.id}"`);
+function checkModel(block, model, parsed, where) {
   const report = playground.sourceScenarioReport(model, parsed);
   const problems = [...report.errors, ...report.warnings];
   if (problems.length) {
@@ -189,18 +212,20 @@ function shareLink(model) {
 function renderBlock(block, parents) {
   const child = playground.parseModelSource(block.source);
   let text = block.source;
-  let offset = 0;
+  let where = (line) => `line ${line} of block "${block.id}"`;
   let parentSource = null;
   if (block.extends) {
     parentSource = parents[block.extends];
     if (parentSource === undefined) {
       throw new BuildError(`block "${block.id}" extends "${block.extends}", which is not defined before it`);
     }
-    const base = withoutRedefined(parentSource, child);
-    text = `${base}\n\n${block.source}`;
-    offset = base.split('\n').length + 1;
+    const childErrors = child.diagnostics.filter((d) => d.severity === 'error');
+    if (childErrors.length) throw new BuildError(childErrors.map((e) => `${where(e.line)}: ${e.message}`).join('\n'));
+    const merged = merge(parentSource, block.source, child, block);
+    text = merged.text;
+    where = (line) => merged.origin[line - 1] || `line ${line} of the merged model "${block.id}"`;
   }
-  const parsed = check(block, text, offset);
+  const parsed = check(block, text, where);
   const modelId = playground.createDcbModel(parsed.name);
   try {
     playground.applyModelSource(modelId, text);
@@ -208,7 +233,7 @@ function renderBlock(block, parents) {
     throw new BuildError(`block "${block.id}": ${error.message}`);
   }
   const model = playground.projectState()[modelId];
-  const source = checkModel(block, model, parsed, offset);
+  const source = checkModel(block, model, parsed, where);
   const warnings = playground.modelAdvisories(model).map((a) => `block "${block.id}", ${a.name}: ${a.message}`);
   return {
     id: block.id,
