@@ -34,146 +34,38 @@ With DCB, a random `idempotency token` can be safely generated on the client sid
 
 With that, a Decision Model can be created that is responsible for validating the uniqueness of the token within the context of that operation — ensuring that the same token cannot be used more than once. This allows the server to enforce idempotency without exposing domain identifiers to the client or requiring additional infrastructure for token tracking:
 
-<script type="application/dcb+json">
-{
-    "meta": {
-        "version": "1.0"
-    },
-    "eventDefinitions": [
-        {
-            "name": "OrderPlaced",
-            "schema": {
-                "type": "object",
-                "properties": {
-                    "orderId": {
-                        "type": "string"
-                    },
-                    "idempotencyToken": {
-                        "type": "string"
-                    }
-                }
-            },
-            "tagResolvers": [
-                "order:{data.orderId}",
-                "idempotency:{data.idempotencyToken}"
-            ]
-        }
-    ],
-    "commandDefinitions": [
-        {
-            "name": "placeOrder",
-            "schema": {
-                "type": "object",
-                "properties": {
-                    "orderId": {
-                        "type": "string"
-                    },
-                    "idempotencyToken": {
-                        "type": "string"
-                    }
-                }
-            }
-        }
-    ],
-    "projections": [
-        {
-            "name": "idempotencyTokenWasUsed",
-            "parameterSchema": {
-                "type": "object",
-                "properties": {
-                    "idempotencyToken": {
-                        "type": "string"
-                    }
-                }
-            },
-            "stateSchema": {
-                "type": "boolean",
-                "default": false
-            },
-            "handlers": {
-                "OrderPlaced": "true"
-            },
-            "tagFilters": [
-                "idempotency:{idempotencyToken}"
-            ]
-        }
-    ],
-    "commandHandlerDefinitions": [
-        {
-            "commandName": "placeOrder",
-            "decisionModels": [
-                {
-                    "name": "idempotencyTokenWasUsed",
-                    "parameters": [
-                        "command.idempotencyToken"
-                    ]
-                }
-            ],
-            "constraintChecks": [
-                {
-                    "condition": "state.idempotencyTokenWasUsed",
-                    "errorMessage": "Re-submission"
-                }
-            ],
-            "successEvent": {
-                "type": "OrderPlaced",
-                "data": {
-                    "orderId": "{command.orderId}",
-                    "idempotencyToken": "{command.idempotencyToken}"
-                }
-            }
-        }
-    ],
-    "testCases": [
-        {
-            "description": "Place order with previously used idempotency token",
-            "givenEvents": [
-                {
-                    "type": "OrderPlaced",
-                    "data": {
-                        "orderId": "o12345",
-                        "idempotencyToken": "11111"
-                    }
-                }
-            ],
-            "whenCommand": {
-                "type": "placeOrder",
-                "data": {
-                    "orderId": "o54321",
-                    "idempotencyToken": "11111"
-                }
-            },
-            "thenExpectedError": "Re-submission"
-        },
-        {
-            "description": "Place order with new idempotency token",
-            "givenEvents": [
-                {
-                    "type": "OrderPlaced",
-                    "data": {
-                        "orderId": "o12345",
-                        "idempotencyToken": "11111"
-                    }
-                }
-            ],
-            "whenCommand": {
-                "type": "placeOrder",
-                "data": {
-                    "orderId": "o54321",
-                    "idempotencyToken": "22222"
-                }
-            },
-            "thenExpectedEvent": {
-                "type": "OrderPlaced",
-                "data": {
-                    "orderId": "o54321",
-                    "idempotencyToken": "22222"
-                }
-            }
-        }
-    ]
+```dcb id="prevent_record_duplication_01"
+model "Prevent record duplication"
+
+tag type OrderId = string
+tag type IdempotencyToken = string
+
+event OrderPlaced { orderId: OrderId, idempotencyToken: IdempotencyToken }
+
+projection IdempotencyTokenWasUsed(idempotencyToken: IdempotencyToken): boolean = false {
+  on OrderPlaced => set true
 }
-</script>
+
+command PlaceOrder(orderId: OrderId, idempotencyToken: IdempotencyToken) {
+  read tokenUsed = IdempotencyTokenWasUsed(idempotencyToken)
+
+  require tokenUsed is false
+
+  emit OrderPlaced { orderId, idempotencyToken }
+
+  scenario "Place order with previously used idempotency token" {
+    given OrderPlaced { orderId: "o12345", idempotencyToken: "11111" }
+    when PlaceOrder { orderId: "o54321", idempotencyToken: "11111" }
+    then rejected by tokenUsed is false
+  }
+
+  scenario "Place order with new idempotency token" {
+    given OrderPlaced { orderId: "o12345", idempotencyToken: "11111" }
+    when PlaceOrder { orderId: "o54321", idempotencyToken: "22222" }
+    then OrderPlaced { orderId: "o54321", idempotencyToken: "22222" }
+  }
+}
+```
 
 Of course, the example can be extended to also ensure uniqueness of the  `orderId` and/or to allow a token to be reused once the order was placed.
 

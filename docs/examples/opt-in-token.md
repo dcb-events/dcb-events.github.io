@@ -25,238 +25,62 @@ With that, a dedicated Decision Model can be created that verifies the token. Th
 
 ### Feature 1: Simple One-Time Password (OTP)
 
-<script type="application/dcb+json">
-{
-    "meta": {
-        "version": "1.0",
-        "id": "opt_in_token_01"
-    },
-    "eventDefinitions": [
-        {
-            "name": "SignUpInitiated",
-            "schema": {
-                "type": "object",
-                "properties": {
-                    "emailAddress": {
-                        "type": "string"
-                    },
-                    "otp": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    }
-                }
-            },
-            "tagResolvers": [
-                "email:{data.emailAddress}",
-                "otp:{data.otp}"
-            ]
-        },
-        {
-            "name": "SignUpConfirmed",
-            "schema": {
-                "type": "object",
-                "properties": {
-                    "emailAddress": {
-                        "type": "string"
-                    },
-                    "otp": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    }
-                }
-            },
-            "tagResolvers": [
-                "email:{data.emailAddress}",
-                "otp:{data.otp}"
-            ]
-        }
-    ],
-    "commandDefinitions": [
-        {
-            "name": "confirmSignUp",
-            "schema": {
-                "type": "object",
-                "properties": {
-                    "emailAddress": {
-                        "type": "string"
-                    },
-                    "otp": {
-                        "type": "string"
-                    }
-                }
-            }
-        }
-    ],
-    "projections": [
-        {
-            "name": "pendingSignUp",
-            "parameterSchema": {
-                "type": "object",
-                "properties": {
-                    "emailAddress": {
-                        "type": "string"
-                    },
-                    "otp": {
-                        "type": "string"
-                    }
-                }
-            },
-            "stateSchema": {
-                "type": "object",
-                "properties": {
-                    "data": {
-                        "type": "object",
-                        "properties": {
-                            "name": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "otpUsed": {
-                        "type": "boolean"
-                    }
-                }
-            },
-            "handlers": {
-                "SignUpInitiated": "({data: event.data, otpUsed: false})",
-                "SignUpConfirmed": "({...state, otpUsed: true})"
-            },
-            "tagFilters": [
-                "email:{emailAddress}",
-                "otp:{otp}"
-            ]
-        }
-    ],
-    "commandHandlerDefinitions": [
-        {
-            "commandName": "confirmSignUp",
-            "decisionModels": [
-                {
-                    "name": "pendingSignUp",
-                    "parameters": [
-                        "command.emailAddress",
-                        "command.otp"
-                    ]
-                }
-            ],
-            "constraintChecks": [
-                {
-                    "condition": "!state.pendingSignUp",
-                    "errorMessage": "No pending sign-up for this OTP / email address"
-                },
-                {
-                    "condition": "state.pendingSignUp.otpUsed",
-                    "errorMessage": "OTP was already used"
-                }
-            ],
-            "successEvent": {
-                "type": "SignUpConfirmed",
-                "data": {
-                    "emailAddress": "{command.emailAddress}",
-                    "otp": "{command.otp}",
-                    "name": "{state.pendingSignUp.data.name}"
-                }
-            }
-        }
-    ],
-    "testCases": [
-        {
-            "description": "Confirm SignUp for non-existing OTP",
-            "givenEvents": null,
-            "whenCommand": {
-                "type": "confirmSignUp",
-                "data": {
-                    "emailAddress": "john.doe@example.com",
-                    "otp": "000000"
-                }
-            },
-            "thenExpectedError": "No pending sign-up for this OTP / email address"
-        },
-        {
-            "description": "Confirm SignUp for OTP assigned to different email address",
-            "givenEvents": [
-                {
-                    "type": "SignUpInitiated",
-                    "data": {
-                        "emailAddress": "john.doe@example.com",
-                        "otp": "111111",
-                        "name": "John Doe"
-                    }
-                }
-            ],
-            "whenCommand": {
-                "type": "confirmSignUp",
-                "data": {
-                    "emailAddress": "jane.doe@example.com",
-                    "otp": "111111"
-                }
-            },
-            "thenExpectedError": "No pending sign-up for this OTP / email address"
-        },
-        {
-            "description": "Confirm SignUp for already used OTP",
-            "givenEvents": [
-                {
-                    "type": "SignUpInitiated",
-                    "data": {
-                        "emailAddress": "john.doe@example.com",
-                        "otp": "222222",
-                        "name": "John Doe"
-                    }
-                },
-                {
-                    "type": "SignUpConfirmed",
-                    "data": {
-                        "emailAddress": "john.doe@example.com",
-                        "otp": "222222",
-                        "name": "John Doe"
-                    }
-                }
-            ],
-            "whenCommand": {
-                "type": "confirmSignUp",
-                "data": {
-                    "emailAddress": "john.doe@example.com",
-                    "otp": "222222"
-                }
-            },
-            "thenExpectedError": "OTP was already used"
-        },
-        {
-            "description": "Confirm SignUp for valid OTP",
-            "givenEvents": [
-                {
-                    "type": "SignUpInitiated",
-                    "data": {
-                        "emailAddress": "john.doe@example.com",
-                        "otp": "444444",
-                        "name": "John Doe"
-                    }
-                }
-            ],
-            "whenCommand": {
-                "type": "confirmSignUp",
-                "data": {
-                    "emailAddress": "john.doe@example.com",
-                    "otp": "444444"
-                }
-            },
-            "thenExpectedEvent": {
-                "type": "SignUpConfirmed",
-                "data": {
-                    "emailAddress": "john.doe@example.com",
-                    "otp": "444444",
-                    "name": "John Doe"
-                }
-            }
-        }
-    ]
+```dcb id="opt_in_token_01"
+model "Opt-in token"
+
+tag type EmailAddress = string
+tag type Otp = string
+
+event SignUpInitiated { emailAddress: EmailAddress, otp: Otp, name: string }
+event SignUpConfirmed { emailAddress: EmailAddress, otp: Otp, name: string }
+
+projection SignUpPending(emailAddress: EmailAddress, otp: Otp): boolean = false {
+  on SignUpInitiated => set true
 }
-</script>
+
+projection SignUpName(emailAddress: EmailAddress, otp: Otp): string = null {
+  on SignUpInitiated => set event.data.name
+}
+
+projection OtpUsed(emailAddress: EmailAddress, otp: Otp): boolean = false {
+  on SignUpConfirmed => set true
+}
+
+command ConfirmSignUp(emailAddress: EmailAddress, otp: Otp) {
+  read pending = SignUpPending(emailAddress, otp)
+  read used = OtpUsed(emailAddress, otp)
+  read name = SignUpName(emailAddress, otp)
+
+  require pending is true
+  require used is false
+
+  emit SignUpConfirmed { emailAddress, otp, name }
+
+  scenario "Confirm SignUp for non-existing OTP" {
+    when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "000000" }
+    then rejected by pending is true
+  }
+
+  scenario "Confirm SignUp for OTP assigned to different email address" {
+    given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "111111", name: "John Doe" }
+    when ConfirmSignUp { emailAddress: "jane.doe@example.com", otp: "111111" }
+    then rejected by pending is true
+  }
+
+  scenario "Confirm SignUp for already used OTP" {
+    given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "222222", name: "John Doe" }
+    given SignUpConfirmed { emailAddress: "john.doe@example.com", otp: "222222", name: "John Doe" }
+    when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "222222" }
+    then rejected by used is false
+  }
+
+  scenario "Confirm SignUp for valid OTP" {
+    given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "444444", name: "John Doe" }
+    when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "444444" }
+    then SignUpConfirmed { emailAddress: "john.doe@example.com", otp: "444444", name: "John Doe" }
+  }
+}
+```
 
 ### Feature 2: Expiring OTP
 
@@ -264,122 +88,62 @@ A requirement might be to _expire_ tokens after a given time (for example: 60 mi
 
 !!! note
 
-    The `minutesAgo` property of the Event metadata is a simplification. Typically, a timestamp representing the Event's recording time is stored within the Event's payload or metadata. This timestamp can be compared to the current date to determine the Event's age in the decision model.
+    The notation has no clock, so time is data: `SignUpInitiated` stores when the OTP expires (`expiresAt`), and the current time is passed to `ConfirmSignUp` as `now`. For simplicity, both are plain numbers of minutes. Typically, they are timestamps, with `expiresAt` calculated from the time the sign-up was initiated.
 
-<script type="application/dcb+json">
-{
-    "meta": {
-        "version": "1.0",
-        "id": "opt_in_token_02",
-        "extends": "opt_in_token_01"
-    },
-    "projections": [
-        {
-            "name": "pendingSignUp",
-            "parameterSchema": {
-                "type": "object",
-                "properties": {
-                    "emailAddress": {
-                        "type": "string"
-                    },
-                    "otp": {
-                        "type": "string"
-                    }
-                }
-            },
-            "stateSchema": {
-                "type": "object",
-                "properties": {
-                    "data": {
-                        "type": "object",
-                        "properties": {
-                            "name": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "otpUsed": {
-                        "type": "boolean"
-                    },
-                    "otpExpired": {
-                        "type": "boolean"
-                    }
-                }
-            },
-            "handlers": {
-                "SignUpInitiated": "({data: event.data, otpUsed: false, otpExpired: event.metadata?.minutesAgo > 60})",
-                "SignUpConfirmed": "({...state, otpUsed: true})"
-            },
-            "tagFilters": [
-                "email:{emailAddress}",
-                "otp:{otp}"
-            ]
-        }
-    ],
-    "commandHandlerDefinitions": [
-        {
-            "commandName": "confirmSignUp",
-            "decisionModels": [
-                {
-                    "name": "pendingSignUp",
-                    "parameters": [
-                        "command.emailAddress",
-                        "command.otp"
-                    ]
-                }
-            ],
-            "constraintChecks": [
-                {
-                    "condition": "!state.pendingSignUp",
-                    "errorMessage": "No pending sign-up for this OTP / email address"
-                },
-                {
-                    "condition": "state.pendingSignUp.otpUsed",
-                    "errorMessage": "OTP was already used"
-                },
-                {
-                    "condition": "state.pendingSignUp.otpExpired",
-                    "errorMessage": "OTP expired"
-                }
-            ],
-            "successEvent": {
-                "type": "SignUpConfirmed",
-                "data": {
-                    "emailAddress": "{command.emailAddress}",
-                    "otp": "{command.otp}",
-                    "name": "{state.pendingSignUp.data.name}"
-                }
-            }
-        }
-    ],
-    "testCases": [
-        {
-            "description": "Confirm SignUp for expired OTP",
-            "givenEvents": [
-                {
-                    "type": "SignUpInitiated",
-                    "data": {
-                        "emailAddress": "john.doe@example.com",
-                        "otp": "333333",
-                        "name": "John Doe"
-                    },
-                    "metadata": {
-                        "minutesAgo": 61
-                    }
-                }
-            ],
-            "whenCommand": {
-                "type": "confirmSignUp",
-                "data": {
-                    "emailAddress": "john.doe@example.com",
-                    "otp": "333333"
-                }
-            },
-            "thenExpectedError": "OTP expired"
-        }
-    ]
+```dcb id="opt_in_token_02" extends="opt_in_token_01"
+model "Opt-in token (expiring)"
+
+type Minute = integer
+
+event SignUpInitiated { emailAddress: EmailAddress, otp: Otp, name: string, expiresAt: Minute }
+
+projection OtpExpiresAt(emailAddress: EmailAddress, otp: Otp): Minute = 0 {
+  on SignUpInitiated => set event.data.expiresAt
 }
-</script>
+
+command ConfirmSignUp(emailAddress: EmailAddress, otp: Otp, now: Minute) {
+  read pending = SignUpPending(emailAddress, otp)
+  read used = OtpUsed(emailAddress, otp)
+  read expiresAt = OtpExpiresAt(emailAddress, otp)
+  read name = SignUpName(emailAddress, otp)
+
+  require pending is true
+  require used is false
+  require expiresAt > now
+
+  emit SignUpConfirmed { emailAddress, otp, name }
+
+  scenario "Confirm SignUp for non-existing OTP" {
+    when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "000000", now: 100 }
+    then rejected by pending is true
+  }
+
+  scenario "Confirm SignUp for OTP assigned to different email address" {
+    given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "111111", name: "John Doe", expiresAt: 160 }
+    when ConfirmSignUp { emailAddress: "jane.doe@example.com", otp: "111111", now: 100 }
+    then rejected by pending is true
+  }
+
+  scenario "Confirm SignUp for already used OTP" {
+    given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "222222", name: "John Doe", expiresAt: 160 }
+    given SignUpConfirmed { emailAddress: "john.doe@example.com", otp: "222222", name: "John Doe" }
+    when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "222222", now: 100 }
+    then rejected by used is false
+  }
+
+  scenario "Confirm SignUp for expired OTP" {
+    given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "333333", name: "John Doe", expiresAt: 99 }
+    when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "333333", now: 100 }
+    then rejected by expiresAt > now
+  }
+
+  scenario "Confirm SignUp for valid OTP" {
+    given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "444444", name: "John Doe", expiresAt: 160 }
+    when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "444444", now: 100 }
+    then SignUpConfirmed { emailAddress: "john.doe@example.com", otp: "444444", name: "John Doe" }
+  }
+}
+```
 
 ## Conclusion
 
