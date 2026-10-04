@@ -152,9 +152,17 @@ DCB_PLAYGROUND_APP=../dcb-playground/app node scripts/dcb-render/drafts/check.js
    - Done: the playground repo is at https://github.com/dcb-events/dcb-playground and is included
      as the `playground/` submodule, tracking `main`. Update the pinned version with
      `git submodule update --remote playground` and commit the new pointer.
-2. **Migrate the examples.** DSL fences, Node renderer, the "DCB notation" and "Consistency
-   boundary" tabs, "Open in Playground", "Download JSON", content migration per page, codapi
-   and PHP renderer removal. Playground: dedupe on import, the `CartLine[]` → `Item[]` advisory.
+2. **Done: migrate the examples.** All examples are ```dcb blocks rendered by
+   `scripts/dcb-render/render.js` via `extensions/dcb_notation.py`; codapi, the PHP renderer, the
+   JSON scenario blocks and the GWT web component are removed; CI uses Node instead of PHP. In the
+   playground: a link opened again switches to the existing model, and mistyped emissions are an
+   advisory. Beyond the plan: an extending block can drop definitions
+   (`removes="command OrderProduct, event ProductOrdered"`), and a redefinition keeps its place.
+   Known limitations:
+   - Adding a scenario in an extending block means restating its command with all scenarios.
+   - The diagrams `course-subscriptions-01.png`, `unique-username-01.png` and
+     `dynamic-product-price-0*.png` still show the old tag spelling (`course: c1` instead of
+     `CourseId:c1`).
 3. **Decide on code tabs.** Once phase 2 is live, decide whether a generated TypeScript tab
    (a Node generator reading the new model, in the site's existing "composed projections"
    style) is still worth it, or whether the "Consistency boundary" tab covers enough.
