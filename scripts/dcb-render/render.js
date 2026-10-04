@@ -4,13 +4,14 @@
 // it links to.
 //
 // Reads a JSON request from stdin:
-//   { blocks: [{ id, extends?, source }], parents: { <id>: <canonical source> } }
+//   { blocks: [{ id, extends?, removes?, source }], parents: { <id>: <canonical source> } }
 // and writes a JSON response to stdout:
 //   { blocks: [{ id, source, notationHtml, boundaryHtml, link, warnings }] }
 //
 // A block with `extends` holds only what changes: every definition it declares replaces the
 // parent's definition of the same kind and name in place (scenarios included, as they sit inside it),
-// everything else is inherited. The rendered notation is always the complete model, printed
+// everything else is inherited, except what `removes` lists ("command OrderProduct, event
+// ProductOrdered"). The rendered notation is always the complete model, printed
 // canonically, with the lines that differ from the parent marked.
 //
 // Any parse error, any definition the printer can only write as JSON, any scenario without a
@@ -52,6 +53,22 @@ const playground = loadPlayground();
 
 // ---------- merging ----------
 
+const KIND_OF_KEYWORD = {
+  type: 'custom-type-definition', event: 'event-definition', entity: 'entity-definition',
+  projection: 'projection-definition', command: 'command-definition',
+};
+
+// "command OrderProduct, event ProductOrdered" → ['command-definition OrderProduct', …]
+function removedKeys(block) {
+  return (block.removes || '').split(',').map((entry) => entry.trim()).filter(Boolean).map((entry) => {
+    const [keyword, name, ...rest] = entry.split(/\s+/);
+    if (!KIND_OF_KEYWORD[keyword] || !name || rest.length) {
+      throw new BuildError(`block "${block.id}": cannot remove "${entry}", expected e.g. "command OrderProduct"`);
+    }
+    return `${KIND_OF_KEYWORD[keyword]} ${name}`;
+  });
+}
+
 // The lines a definition occupies, including the annotations (`@feature(…)`) above it.
 function definitionRanges(lines, parsed) {
   const ranges = new Map();
@@ -73,14 +90,19 @@ function merge(parentSource, childSource, child, block) {
   const parentRanges = definitionRanges(parentLines, playground.parseModelSource(parentSource));
   const fromChild = (first, last) => childLines.slice(first - 1, last)
     .map((line, i) => ({ line, origin: `line ${first + i} of block "${block.id}"` }));
-  const replacing = new Map([...parentRanges].filter(([key]) => childRanges.has(key))
+  const removed = removedKeys(block);
+  for (const key of removed) {
+    if (!parentRanges.has(key)) throw new BuildError(`block "${block.id}" removes ${key}, which "${block.extends}" does not define`);
+    if (childRanges.has(key)) throw new BuildError(`block "${block.id}" both removes and defines ${key}`);
+  }
+  const replacing = new Map([...parentRanges].filter(([key]) => childRanges.has(key) || removed.includes(key))
     .map(([key, range]) => [range.first, { ...range, key }]));
   const out = [];
   for (let n = 1; n <= parentLines.length; n++) {
     const replaced = replacing.get(n);
     if (replaced) {
       const range = childRanges.get(replaced.key);
-      out.push(...fromChild(range.first, range.last));
+      if (range) out.push(...fromChild(range.first, range.last));
       n = replaced.last;
     } else if (child.name !== null && /^\s*model\s+"/.test(parentLines[n - 1])) {
       const modelLine = childLines.findIndex((line) => /^\s*model\s+"/.test(line)) + 1;
@@ -164,11 +186,14 @@ function notationHtml(source, parentSource) {
   return `<pre class="dcb-notation"><code>${body}</code></pre>`;
 }
 
-// "CourseId:courseId" → CourseId:{courseId}
+// "CourseId:courseId" → CourseId:{courseId}; "ProductId:each(items.productId)" (one tag per
+// list element) → ProductId:{items.productId} per element
 const tagHtml = (tag) => {
   const at = tag.indexOf(':');
-  return at < 0 ? `<code>${escapeHtml(tag)}</code>`
-    : `<code>${escapeHtml(tag.slice(0, at))}:{${escapeHtml(tag.slice(at + 1))}}</code>`;
+  if (at < 0) return `<code>${escapeHtml(tag)}</code>`;
+  const each = /^each\((.*)\)$/.exec(tag.slice(at + 1));
+  const value = each ? each[1] : tag.slice(at + 1);
+  return `<code>${escapeHtml(tag.slice(0, at))}:{${escapeHtml(value)}}</code>${each ? ' per element' : ''}`;
 };
 const listHtml = (values, render, empty) => (values.length ? values.map(render).join(', ') : empty);
 
@@ -214,6 +239,7 @@ function renderBlock(block, parents) {
   let text = block.source;
   let where = (line) => `line ${line} of block "${block.id}"`;
   let parentSource = null;
+  if (block.removes && !block.extends) throw new BuildError(`block "${block.id}" removes definitions but extends nothing`);
   if (block.extends) {
     parentSource = parents[block.extends];
     if (parentSource === undefined) {

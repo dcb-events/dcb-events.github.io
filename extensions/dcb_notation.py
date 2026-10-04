@@ -4,6 +4,9 @@
     ...
     ```
 
+A block that extends another can drop some of its definitions with
+`removes="command OrderProduct, event ProductOrdered"`.
+
 Each example gets a "DCB notation" tab with the complete model, a "Consistency boundary" tab
 with the Query and AppendCondition every command derives, and links to open it in the DCB
 Playground or download it as JSON. Blocks are checked and rendered by
@@ -44,7 +47,7 @@ class DcbNotationPreprocessor(markdown.preprocessors.Preprocessor):
         if not blocks:
             return lines
         request = {
-            'blocks': [{key: block[key] for key in ('id', 'extends', 'source') if block[key]} for block in blocks],
+            'blocks': [{key: block[key] for key in ('id', 'extends', 'removes', 'source') if block[key]} for block in blocks],
             'parents': _rendered,
         }
         result = subprocess.run(['node', str(RENDERER)], input=json.dumps(request), text=True, capture_output=True)
@@ -83,6 +86,7 @@ class DcbNotationPreprocessor(markdown.preprocessors.Preprocessor):
             blocks.append({
                 'id': block_id,
                 'extends': attributes.get('extends'),
+                'removes': attributes.get('removes'),
                 'source': '\n'.join(lines[i + 1:end]),
                 'start': i,
                 'end': end,
