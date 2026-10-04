@@ -1,5 +1,11 @@
 {% extends "base.html" %}
 
+{% block extrahead %}
+  {% if config.extra.noindex %}
+    <meta name="robots" content="noindex">
+  {% endif %}
+{% endblock %}
+
 {% block announce %}
   <div class="dcb-announce-bar">
     <a href="https://discord.gg/hmfHwuxMft" target="_blank" rel="noopener" class="dcb-announce">

@@ -104,6 +104,7 @@ plugins:
 
 hooks:
   - hooks/copyright.py
+  - hooks/preview.py
 
 watch:
   - hooks
