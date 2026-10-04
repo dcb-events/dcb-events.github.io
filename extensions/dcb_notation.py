@@ -8,11 +8,10 @@ A block that extends another can drop some of its definitions with
 `removes="command OrderProduct, event ProductOrdered"`.
 
 Each example gets a "DCB notation" tab with the complete model, a "Consistency boundary" tab
-with the Query and AppendCondition every command derives, and links to open it in the DCB
-Playground or download it as JSON. Blocks are checked and rendered by
-`scripts/dcb-render/render.js` with the playground's own code; see there for how `extends`
-works and what fails the build. A block containing ``` itself (a script) can be fenced with
-four or more backticks.
+with the Query and AppendCondition every command derives, and a link to open it in the DCB
+Playground. Blocks are checked and rendered by `scripts/dcb-render/render.js` with the
+playground's own code; see there for how `extends` works and what fails the build. A block
+containing ``` itself (a script) can be fenced with four or more backticks.
 """
 import html
 import json
@@ -62,7 +61,7 @@ class DcbNotationPreprocessor(markdown.preprocessors.Preprocessor):
                 log.warning(warning)
             _rendered[example['id']] = example['source']
             out.extend(lines[position:block['start']])
-            out.extend(['', self.md.htmlStash.store(self._html(number, block, example)), ''])
+            out.extend(['', self.md.htmlStash.store(self._html(number, example)), ''])
             position = block['end'] + 1
         out.extend(lines[position:])
         return out
@@ -95,7 +94,7 @@ class DcbNotationPreprocessor(markdown.preprocessors.Preprocessor):
         return blocks
 
     @staticmethod
-    def _html(number, block, example):
+    def _html(number, example):
         name = f'__dcb_{number}'
         link = html.escape(example['link'])
         return (
@@ -103,8 +102,6 @@ class DcbNotationPreprocessor(markdown.preprocessors.Preprocessor):
             '<div class="dcb-example__actions">'
             f'<a class="md-button md-button--primary" href="{link}" target="_blank" rel="noopener" '
             f'title="Open this model in the DCB Playground">{_icon("play-box-outline")} Open in Playground</a>'
-            f'<a class="md-button" href="{link}" data-dcb-download="{html.escape(block["id"])}.json" '
-            f'title="Download this model as JSON">{_icon("download")} JSON</a>'
             '</div>'
             '<div class="tabbed-set tabbed-alternate">'
             f'<input checked="checked" id="{name}_1" name="{name}" type="radio">'

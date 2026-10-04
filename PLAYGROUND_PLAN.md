@@ -84,7 +84,7 @@ example on the site openable in the playground. Running examples via codapi goes
   deterministic, because a link keeps showing the same model even after the example is edited.
   The JSON envelope is used rather than the DSL because it is versioned (`dcbModelVersion`) and
   migrated on import. Measured link sizes are 1.1–1.9 KB with JSON and 0.7–1.4 KB with the DSL.
-- A small **"Download JSON"** link next to the button. No JSON tab.
+- No "Download JSON" link (dropped), no JSON tab.
 - Removed: the JS tab, the TS tab (for now), the GWT (WIP) tab, `dcb-scenario.bundle.js`.
 
 ### Examples: content migration

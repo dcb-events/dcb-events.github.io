@@ -112,7 +112,5 @@ watch:
   - extensions
   - overrides
 
-extra_javascript:
-  - assets/js/dcb-examples.js
 extra_css:
   - assets/css/custom.css
