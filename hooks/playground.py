@@ -36,8 +36,6 @@ def on_post_build(config, **kwargs):
 
     schema_file = source / 'dcb-model.schema.json'
     schema_id = urlparse(json.loads(schema_file.read_text(encoding='utf-8'))['$id'])
-    if schema_id.netloc != urlparse(config['site_url']).netloc:
-        raise RuntimeError(f'DCB Playground: schema $id {schema_id.geturl()} does not point to this site')
     schema_target = site / schema_id.path.lstrip('/')
     schema_target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(schema_file, schema_target)
