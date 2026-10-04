@@ -231,14 +231,16 @@
 }
 
 @media screen and (max-width: 44.9375em) {
-    .md-typeset .dcb-example__actions {
-        position: static;
-        justify-content: flex-end;
-        margin-bottom: .4rem;
+    .md-typeset .dcb-example__actions .md-button {
+        padding: .2em .5em;
+    }
+
+    .md-typeset .dcb-example__label {
+        display: none;
     }
 
     .md-typeset .dcb-example .tabbed-labels {
-        padding-right: 0;
+        padding-right: 3rem;
     }
 }
 
