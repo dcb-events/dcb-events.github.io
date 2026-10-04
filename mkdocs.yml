@@ -23,24 +23,16 @@ theme:
   custom_dir: overrides
 
   palette:
-    - media: "(prefers-color-scheme)"
+    - scheme: slate
       toggle:
-        icon: material/brightness-auto
+        icon: material/weather-sunny
         name: Switch to light mode
       primary: teal
       accent: deep orange
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
+    - scheme: default
       toggle:
         icon: material/weather-night
         name: Switch to dark mode
-      primary: teal
-      accent: deep orange
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      toggle:
-        icon: material/weather-sunny
-        name: Switch to system preference
       primary: teal
       accent: deep orange
 

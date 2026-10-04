@@ -36,9 +36,9 @@ example on the site openable in the playground. Running examples via codapi goes
   `index`, so writing it back depends on the palette order in `mkdocs.yml`. The bridge therefore
   has two halves. The playground offers a generic, optional hook, `window.DCB_PLAYGROUND_HOST.theme`
   (`get` / `set` / `onChange`), and knows nothing about Material. `hooks/playground.py` injects
-  the implementation, generated from `theme.palette`. The site has a third, automatic palette
-  (`media: "(prefers-color-scheme)"`) so the playground's system/light/dark options map
-  one-to-one.
+  the implementation, generated from `theme.palette`. The site starts in dark mode and only
+  toggles between dark and light, ignoring the system preference, so the playground's "system"
+  option has no counterpart.
 
 ### Site header
 
@@ -148,7 +148,7 @@ DCB_PLAYGROUND_APP=../dcb-playground/app node scripts/dcb-render/drafts/check.js
      link.
    - Done in the website: `hooks/playground.py` (copies the app, injects the theme bridge,
      publishes the schema; set `DCB_PLAYGROUND_DIR=../dcb-playground` to build against a local
-     checkout), automatic palette, header icon, link on the examples index, CI submodule checkout.
+     checkout), header icon, link on the examples index, CI submodule checkout.
    - Done: the playground repo is at https://github.com/dcb-events/dcb-playground and is included
      as the `playground/` submodule, tracking `main`. Update the pinned version with
      `git submodule update --remote playground` and commit the new pointer.
