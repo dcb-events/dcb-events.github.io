@@ -28,7 +28,7 @@ There are several potential strategies to solve this without DCB:
 
 ## DCB approach
 
-With DCB the challenge can be solved without any specific [Tags](../specification.md#tag) (except for the `product:<id>` tag):
+With DCB the challenge can be solved without any specific [Tags](../specification.md#tag) (except for the `ProductId:<id>` tag):
 
 ### Feature 1: Order single product
 
@@ -36,101 +36,45 @@ If only a single product with a fixed price can be purchased at a time, the impl
 
 ![dynamic product price example](img/dynamic-product-price-01.png)
 
-```js
-// event type definitions:
+The `OrderProduct` command compares the displayed price with the current price of the product and only records the order if they match. As the "Consistency boundary" tab shows, the Query only covers `ProductDefined` Events tagged with the ordered product's `ProductId`:
 
-function ProductDefined({ productId, price }) {
-  return {
-    type: "ProductDefined",
-    data: { productId, price },
-    tags: [`product:${productId}`],
-  }
+```dcb id="dynamic_product_price_01"
+model "Dynamic product price"
+
+tag type ProductId = string
+type Money = number { minimum: 0 }
+
+event ProductDefined { productId: ProductId, price: Money }
+event ProductOrdered { productId: ProductId, price: Money }
+
+entity Product {
+  price = ProductPrice
 }
 
-function ProductOrdered({ productId, price }) {
-  return {
-    type: "ProductOrdered",
-    data: { productId, price },
-    tags: [`product:${productId}`],
-  }
+projection ProductPrice(productId: ProductId): Money = null {
+  on ProductDefined => set event.data.price
 }
 
-// projections for decision models:
+command OrderProduct(productId: ProductId, displayedPrice: Money) {
+  read product = Product[productId]
 
-function ProductPriceProjection(productId) {
-  return createProjection({
-    initialState: 0,
-    handlers: {
-      ProductDefined: (state, event) => event.data.price,
-    },
-    tags: [`product:${productId}`],
-  })
-}
+  require product.price == displayedPrice
 
-// command handlers:
+  emit ProductOrdered { productId, price: displayedPrice }
 
-class Api {
-  eventStore
-  constructor(eventStore) {
-    this.eventStore = eventStore
+  scenario "Order product with invalid displayed price" {
+    given ProductDefined { productId: "p1", price: 123 }
+    when OrderProduct { productId: "p1", displayedPrice: 100 }
+    then rejected by product.price == displayedPrice
   }
 
-  orderProduct(command) {
-    const { state, appendCondition } = buildDecisionModel(this.eventStore, {
-      productPrice: ProductPriceProjection(command.productId),
-    })
-    if (state.productPrice !== command.displayedPrice) {
-      throw new Error(`invalid price for product "${command.productId}"`)
-    }
-    this.eventStore.append(
-      ProductOrdered({
-        productId: command.productId,
-        price: command.displayedPrice,
-      }),
-      appendCondition
-    )
+  scenario "Order product with valid displayed price" {
+    given ProductDefined { productId: "p1", price: 123 }
+    when OrderProduct { productId: "p1", displayedPrice: 123 }
+    then ProductOrdered { productId: "p1", price: 123 }
   }
 }
-
-// test cases:
-
-const eventStore = new InMemoryDcbEventStore()
-const api = new Api(eventStore)
-runTests(api, eventStore, [
-  {
-    description: "Order product with invalid displayed price",
-    given: {
-      events: [ProductDefined({ productId: "p1", price: 123 })],
-    },
-    when: {
-      command: {
-        type: "orderProduct",
-        data: { productId: "p1", displayedPrice: 100 },
-      },
-    },
-    then: {
-      expectedError: 'invalid price for product "p1"',
-    },
-  },
-  {
-    description: "Order product with valid displayed price",
-    given: {
-      events: [ProductDefined({ productId: "p1", price: 123 })],
-    },
-    when: {
-      command: {
-        type: "orderProduct",
-        data: { productId: "p1", displayedPrice: 123 },
-      },
-    },
-    then: {
-      expectedEvent: ProductOrdered({ productId: "p1", price: 123 }),
-    },
-  },
-])
 ```
-
-<codapi-snippet engine="browser" sandbox="javascript" template="/assets/js/dcb.js"></codapi-snippet>
 
 ### Feature 2: Changing product prices
 
@@ -138,509 +82,142 @@ Complexity increases if the product price can be changed and previous prices sha
 
 ![dynamic product price example 2](img/dynamic-product-price-02.png)
 
+The `ProductPrice` projection now determines all prices that are valid at the time of the order: the price that was in effect 10 minutes ago, and every price that was set since then. Because that depends on the age of each Event, it is written as a scripted projection that receives the current time as an argument. The Query now covers `ProductPriceChanged` Events, too – so a price change that happens in the meantime makes the order fail.
+
 !!! note
 
-    The `minutesAgo` property of the Event metadata is a simplification. Typically, a timestamp representing the Event's recording time is stored within the Event's payload or metadata. This timestamp can be compared to the current date to determine the Event's age in the decision model.
+    The playground has neither a clock nor Event metadata, so time is part of the data in this example: `ProductDefined` and `ProductPriceChanged` carry the minute they were recorded at (`at`), and the `OrderProduct` command is passed the current minute (`now`). Typically, a timestamp representing the Event's recording time is stored within the Event's payload or metadata, and it is compared to the current date to determine the Event's age in the decision model.
 
-```{.js .partial hl_lines="29-51 65-70 117-240"}
-// event type definitions:
+````dcb id="dynamic_product_price_02" extends="dynamic_product_price_01"
+model "Dynamic product price (grace period)"
 
-function ProductDefined({ productId, price }) {
-  return {
-    type: "ProductDefined",
-    data: { productId, price },
-    tags: [`product:${productId}`],
-  }
+type Minute = integer
+
+event ProductDefined { productId: ProductId, price: Money, at: Minute }
+event ProductPriceChanged { productId: ProductId, newPrice: Money, at: Minute }
+
+entity Product {
+  validPrices = ProductPrice
 }
 
-function ProductPriceChanged({ productId, newPrice }) {
-  return {
-    type: "ProductPriceChanged",
-    data: { productId, newPrice },
-    tags: [`product:${productId}`],
-  }
+projection ProductPrice: Money[] {
+  script(productId: ProductId, now: Minute)
+  tagFilter ["ProductId:{productId}"]
+  initialState []
+  on ProductDefined => ```[event.data.price]```
+  on ProductPriceChanged => ```args.now - event.data.at <= 10 ? [...state, event.data.newPrice] : [event.data.newPrice]```
 }
 
-function ProductOrdered({ productId, price }) {
-  return {
-    type: "ProductOrdered",
-    data: { productId, price },
-    tags: [`product:${productId}`],
-  }
-}
+command OrderProduct(productId: ProductId, displayedPrice: Money, now: Minute) {
+  read product = Product[productId] with (now)
 
-// projections for decision models:
+  require product.validPrices contains displayedPrice
 
-function ProductPriceProjection(productId) {
-  const productPriceGracePeriod = 10 // minutes
-  return createProjection({
-    initialState: { lastValidOldPrice: null, validNewPrices: [] },
-    handlers: {
-      ProductDefined: (state, event) =>
-        event.metadata?.minutesAgo <= productPriceGracePeriod
-          ? { lastValidOldPrice: null, validNewPrices: [event.data.price] }
-          : { lastValidOldPrice: event.data.price, validNewPrices: [] },
-      ProductPriceChanged: (state, event) =>
-        event.metadata?.minutesAgo <= productPriceGracePeriod
-          ? {
-              lastValidOldPrice: state.lastValidOldPrice,
-              validNewPrices: [...state.validNewPrices, event.data.newPrice],
-            }
-          : {
-              lastValidOldPrice: event.data.newPrice,
-              validNewPrices: state.validNewPrices,
-            },
-    },
-    tagFilter: [`product:${productId}`],
-  })
-}
+  emit ProductOrdered { productId, price: displayedPrice }
 
-// command handlers:
-
-class Api {
-  eventStore
-  constructor(eventStore) {
-    this.eventStore = eventStore
+  scenario "Order product with invalid displayed price" {
+    given ProductDefined { productId: "p1", price: 123, at: 100 }
+    when OrderProduct { productId: "p1", displayedPrice: 100, now: 100 }
+    then rejected by product.validPrices contains displayedPrice
   }
 
-  orderProduct(command) {
-    const { state, appendCondition } = buildDecisionModel(this.eventStore, {
-      productPrice: ProductPriceProjection(command.productId),
-    })
-    if (
-      state.productPrice.lastValidOldPrice !== command.displayedPrice &&
-      !state.productPrice.validNewPrices.includes(command.displayedPrice)
-    ) {
-      throw new Error(`invalid price for product "${command.productId}"`)
-    }
-    this.eventStore.append(
-      ProductOrdered({
-        productId: command.productId,
-        price: command.displayedPrice,
-      }),
-      appendCondition
-    )
+  scenario "Order product with valid displayed price" {
+    given ProductDefined { productId: "p1", price: 123, at: 100 }
+    when OrderProduct { productId: "p1", displayedPrice: 123, now: 100 }
+    then ProductOrdered { productId: "p1", price: 123 }
+  }
+
+  scenario "Order product with a displayed price that was never valid" {
+    given ProductDefined { productId: "p1", price: 123, at: 80 }
+    when OrderProduct { productId: "p1", displayedPrice: 100, now: 100 }
+    then rejected by product.validPrices contains displayedPrice
+  }
+
+  scenario "Order product with a price that was changed more than 10 minutes ago" {
+    given ProductDefined { productId: "p1", price: 123, at: 80 }
+    given ProductPriceChanged { productId: "p1", newPrice: 134, at: 80 }
+    when OrderProduct { productId: "p1", displayedPrice: 123, now: 100 }
+    then rejected by product.validPrices contains displayedPrice
+  }
+
+  scenario "Order product with initial valid price" {
+    given ProductDefined { productId: "p1", price: 123, at: 80 }
+    when OrderProduct { productId: "p1", displayedPrice: 123, now: 100 }
+    then ProductOrdered { productId: "p1", price: 123 }
+  }
+
+  scenario "Order product with a price that was changed less than 10 minutes ago" {
+    given ProductDefined { productId: "p1", price: 123, at: 80 }
+    given ProductPriceChanged { productId: "p1", newPrice: 134, at: 91 }
+    when OrderProduct { productId: "p1", displayedPrice: 123, now: 100 }
+    then ProductOrdered { productId: "p1", price: 123 }
+  }
+
+  scenario "Order product with valid new price" {
+    given ProductDefined { productId: "p1", price: 123, at: 80 }
+    given ProductPriceChanged { productId: "p1", newPrice: 134, at: 91 }
+    when OrderProduct { productId: "p1", displayedPrice: 134, now: 100 }
+    then ProductOrdered { productId: "p1", price: 134 }
   }
 }
-
-// test cases:
-
-const eventStore = new InMemoryDcbEventStore()
-const api = new Api(eventStore)
-
-runTests(api, eventStore, [
-  {
-    description: "Order product with invalid displayed price",
-    given: {
-      events: [ProductDefined({ productId: "p1", price: 123 })],
-    },
-    when: {
-      command: {
-        type: "orderProduct",
-        data: { productId: "p1", displayedPrice: 100 },
-      },
-    },
-    then: {
-      expectedError: 'invalid price for product "p1"',
-    },
-  },
-  {
-    description: "Order product with valid displayed price",
-    given: {
-      events: [ProductDefined({ productId: "p1", price: 123 })],
-    },
-    when: {
-      command: {
-        type: "orderProduct",
-        data: { productId: "p1", displayedPrice: 123 },
-      },
-    },
-    then: {
-      expectedEvent: ProductOrdered({ productId: "p1", price: 123 }),
-    },
-  },
-  {
-    description: "Order product with a displayed price that was never valid",
-    given: {
-      events: [
-        addEventMetadata(ProductDefined({ productId: "p1", price: 123 }), {
-          minutesAgo: 20,
-        }),
-      ],
-    },
-    when: {
-      command: {
-        type: "orderProduct",
-        data: { productId: "p1", displayedPrice: 100 },
-      },
-    },
-    then: {
-      expectedError: 'invalid price for product "p1"',
-    },
-  },
-  {
-    description:
-      "Order product with a price that was changed more than 10 minutes ago",
-    given: {
-      events: [
-        addEventMetadata(ProductDefined({ productId: "p1", price: 123 }), {
-          minutesAgo: 20,
-        }),
-        addEventMetadata(
-          ProductPriceChanged({ productId: "p1", newPrice: 134 }),
-          {
-            minutesAgo: 20,
-          }
-        ),
-      ],
-    },
-    when: {
-      command: {
-        type: "orderProduct",
-        data: { productId: "p1", displayedPrice: 123 },
-      },
-    },
-    then: {
-      expectedError: 'invalid price for product "p1"',
-    },
-  },
-  {
-    description: "Order product with initial valid price",
-    given: {
-      events: [
-        addEventMetadata(ProductDefined({ productId: "p1", price: 123 }), {
-          minutesAgo: 20,
-        }),
-      ],
-    },
-    when: {
-      command: {
-        type: "orderProduct",
-        data: { productId: "p1", displayedPrice: 123 },
-      },
-    },
-    then: {
-      expectedEvent: ProductOrdered({
-        productId: "p1",
-        price: 123,
-      }),
-    },
-  },
-  {
-    description:
-      "Order product with a price that was changed less than 10 minutes ago",
-    given: {
-      events: [
-        addEventMetadata(ProductDefined({ productId: "p1", price: 123 }), {
-          minutesAgo: 20,
-        }),
-        addEventMetadata(
-          ProductPriceChanged({ productId: "p1", newPrice: 134 }),
-          {
-            minutesAgo: 9,
-          }
-        ),
-      ],
-    },
-    when: {
-      command: {
-        type: "orderProduct",
-        data: { productId: "p1", displayedPrice: 123 },
-      },
-    },
-    then: {
-      expectedEvent: ProductOrdered({
-        productId: "p1",
-        price: 123,
-      }),
-    },
-  },
-  {
-    description: "Order product with valid new price",
-    given: {
-      events: [
-        addEventMetadata(ProductDefined({ productId: "p1", price: 123 }), {
-          minutesAgo: 20,
-        }),
-        addEventMetadata(
-          ProductPriceChanged({ productId: "p1", newPrice: 134 }),
-          {
-            minutesAgo: 9,
-          }
-        ),
-      ],
-    },
-    when: {
-      command: {
-        type: "orderProduct",
-        data: { productId: "p1", displayedPrice: 134 },
-      },
-    },
-    then: {
-      expectedEvent: ProductOrdered({
-        productId: "p1",
-        price: 134,
-      }),
-    },
-  },
-])
-```
-
-<codapi-snippet engine="browser" sandbox="javascript" template="/assets/js/dcb.js"></codapi-snippet>
+````
 
 ### Feature 3: Multiple products (shopping cart)
 
 The previous stages could be implemented with a traditional Event-Sourced Aggregate in theory.
-But with the requirement to be able to order *multiple products at once* with a dynamic price, the flexibility of DCB shines:
+But with the requirement to be able to order *multiple products at once* with a dynamic price, the flexibility of DCB shines.
 
-```{.js .partial hl_lines="19-25 61-87 96-243"}
-// event type definitions:
+The `OrderProducts` command replaces `OrderProduct`: it reads the `Product` once for every item in the cart and checks each displayed price against the valid prices of that product. The "Consistency boundary" tab shows the result: one Query Item per ordered product, and a `ProductsOrdered` Event that is tagged with the `ProductId` of every product it contains. All products are covered by a single decision – if the price of any of them changes in the meantime, the whole order fails:
 
-function ProductDefined({ productId, price }) {
-  return {
-    type: "ProductDefined",
-    data: { productId, price },
-    tags: [`product:${productId}`],
-  }
-}
+````dcb id="dynamic_product_price_03" extends="dynamic_product_price_02" removes="command OrderProduct, event ProductOrdered"
+model "Dynamic product price (shopping cart)"
 
-function ProductPriceChanged({ productId, newPrice }) {
-  return {
-    type: "ProductPriceChanged",
-    data: { productId, newPrice },
-    tags: [`product:${productId}`],
-  }
-}
+record Item { productId: ProductId, price: Money }
 
-function ProductsOrdered({ items }) {
-  return {
-    type: "ProductsOrdered",
-    data: { items },
-    tags: items.map((item) => `product:${item.productId}`),
-  }
-}
+event ProductsOrdered { items: Item[] }
 
-// projections for decision models:
+command OrderProducts(items: Item[], now: Minute) {
+  read product = Product[items.productId] with (now)
 
-function ProductPriceProjection(productId) {
-  const productPriceGracePeriod = 10 // minutes
-  return createProjection({
-    initialState: { lastValidOldPrice: null, validNewPrices: [] },
-    handlers: {
-      ProductDefined: (state, event) =>
-        event.metadata.minutesAgo <= productPriceGracePeriod
-          ? { lastValidOldPrice: null, validNewPrices: [event.data.price] }
-          : { lastValidOldPrice: event.data.price, validNewPrices: [] },
-      ProductPriceChanged: (state, event) =>
-        event.metadata.minutesAgo <= productPriceGracePeriod
-          ? {
-              lastValidOldPrice: state.lastValidOldPrice,
-              validNewPrices: [...state.validNewPrices, event.data.newPrice],
-            }
-          : {
-              lastValidOldPrice: event.data.newPrice,
-              validNewPrices: state.validNewPrices,
-            },
-    },
-    tagFilter: [`product:${productId}`],
-  })
-}
+  require product.validPrices contains items.price
 
-// command handlers:
+  emit ProductsOrdered { items }
 
-class Api {
-  eventStore
-  constructor(eventStore) {
-    this.eventStore = eventStore
+  scenario "Order product with a displayed price that was never valid" {
+    given ProductDefined { productId: "p1", price: 123, at: 80 }
+    when OrderProducts { items: [{ productId: "p1", price: 100 }], now: 100 }
+    then rejected by product.validPrices contains items.price
   }
 
-  orderProducts(command) {
-    const { state, appendCondition } = buildDecisionModel(
-      this.eventStore,
-      command.items.reduce((models, item) => {
-        models[item.productId] = ProductPriceProjection(item.productId)
-        return models
-      }, {})
-    )
-    for (const item of command.items) {
-      if (
-        state[item.productId].lastValidOldPrice !== item.displayedPrice &&
-        !state[item.productId].validNewPrices.includes(item.displayedPrice)
-      ) {
-        throw new Error(`invalid price for product "${item.productId}"`)
-      }
-    }
+  scenario "Order product with a price that was changed more than 10 minutes ago" {
+    given ProductDefined { productId: "p1", price: 123, at: 80 }
+    given ProductPriceChanged { productId: "p1", newPrice: 134, at: 80 }
+    when OrderProducts { items: [{ productId: "p1", price: 123 }], now: 100 }
+    then rejected by product.validPrices contains items.price
+  }
 
-    this.eventStore.append(
-      ProductsOrdered({
-        items: command.items.map((item) => ({
-          productId: item.productId,
-          price: item.displayedPrice,
-        })),
-      }),
-      appendCondition
-    )
+  scenario "Order product with initial valid price" {
+    given ProductDefined { productId: "p1", price: 123, at: 80 }
+    when OrderProducts { items: [{ productId: "p1", price: 123 }], now: 100 }
+    then ProductsOrdered { items: [{ productId: "p1", price: 123 }] }
+  }
+
+  scenario "Order product with a price that was changed less than 10 minutes ago" {
+    given ProductDefined { productId: "p1", price: 123, at: 80 }
+    given ProductPriceChanged { productId: "p1", newPrice: 134, at: 91 }
+    when OrderProducts { items: [{ productId: "p1", price: 123 }], now: 100 }
+    then ProductsOrdered { items: [{ productId: "p1", price: 123 }] }
+  }
+
+  scenario "Order multiple products with valid prices" {
+    given ProductDefined { productId: "p1", price: 123, at: 80 }
+    given ProductPriceChanged { productId: "p1", newPrice: 134, at: 91 }
+    given ProductDefined { productId: "p2", price: 321, at: 92 }
+    when OrderProducts { items: [{ productId: "p1", price: 123 }, { productId: "p2", price: 321 }], now: 100 }
+    then ProductsOrdered { items: [{ productId: "p1", price: 123 }, { productId: "p2", price: 321 }] }
   }
 }
-
-// test cases:
-
-const eventStore = new InMemoryDcbEventStore()
-const api = new Api(eventStore)
-
-runTests(api, eventStore, [
-  {
-    description: "Order product with a displayed price that was never valid",
-    given: {
-      events: [
-        addEventMetadata(ProductDefined({ productId: "p1", price: 123 }), {
-          minutesAgo: 20,
-        }),
-      ],
-    },
-    when: {
-      command: {
-        type: "orderProducts",
-        data: { items: [{ productId: "p1", displayedPrice: 100 }] },
-      },
-    },
-    then: {
-      expectedError: 'invalid price for product "p1"',
-    },
-  },
-  {
-    description:
-      "Order product with a price that was changed more than 10 minutes ago",
-    given: {
-      events: [
-        addEventMetadata(ProductDefined({ productId: "p1", price: 123 }), {
-          minutesAgo: 20,
-        }),
-        addEventMetadata(
-          ProductPriceChanged({ productId: "p1", newPrice: 134 }),
-          {
-            minutesAgo: 20,
-          }
-        ),
-      ],
-    },
-    when: {
-      command: {
-        type: "orderProducts",
-        data: { items: [{ productId: "p1", displayedPrice: 123 }] },
-      },
-    },
-    then: {
-      expectedError: 'invalid price for product "p1"',
-    },
-  },
-  {
-    description: "Order product with initial valid price",
-    given: {
-      events: [
-        addEventMetadata(ProductDefined({ productId: "p1", price: 123 }), {
-          minutesAgo: 20,
-        }),
-      ],
-    },
-    when: {
-      command: {
-        type: "orderProducts",
-        data: { items: [{ productId: "p1", displayedPrice: 123 }] },
-      },
-    },
-    then: {
-      expectedEvent: ProductsOrdered({
-        items: [
-          {
-            productId: "p1",
-            price: 123,
-          },
-        ],
-      }),
-    },
-  },
-  {
-    description:
-      "Order product with a price that was changed less than 10 minutes ago",
-    given: {
-      events: [
-        addEventMetadata(ProductDefined({ productId: "p1", price: 123 }), {
-          minutesAgo: 20,
-        }),
-        addEventMetadata(
-          ProductPriceChanged({ productId: "p1", newPrice: 134 }),
-          {
-            minutesAgo: 9,
-          }
-        ),
-      ],
-    },
-    when: {
-      command: {
-        type: "orderProducts",
-        data: { items: [{ productId: "p1", displayedPrice: 123 }] },
-      },
-    },
-    then: {
-      expectedEvent: ProductsOrdered({
-        items: [
-          {
-            productId: "p1",
-            price: 123,
-          },
-        ],
-      }),
-    },
-  },
-  {
-    description: "Order multiple products with valid prices",
-    given: {
-      events: [
-        addEventMetadata(ProductDefined({ productId: "p1", price: 123 }), {
-          minutesAgo: 20,
-        }),
-        addEventMetadata(
-          ProductPriceChanged({ productId: "p1", newPrice: 134 }),
-          {
-            minutesAgo: 9,
-          }
-        ),
-        addEventMetadata(ProductDefined({ productId: "p2", price: 321 }), {
-          minutesAgo: 8,
-        }),
-      ],
-    },
-    when: {
-      command: {
-        type: "orderProducts",
-        data: {
-          items: [
-            { productId: "p1", displayedPrice: 123 },
-            { productId: "p2", displayedPrice: 321 },
-          ],
-        },
-      },
-    },
-    then: {
-      expectedEvent: ProductsOrdered({
-        items: [
-          {
-            productId: "p1",
-            price: 123,
-          },
-          {
-            productId: "p2",
-            price: 321,
-          },
-        ],
-      }),
-    },
-  },
-])
-```
-
-<codapi-snippet engine="browser" sandbox="javascript" template="/assets/js/dcb.js"></codapi-snippet>
+````
 
 ## Conclusion
 
