@@ -63,7 +63,6 @@ const events = [
   "CourseDefined"
 ]
 ```
-<codapi-snippet id="example1" engine="browser"></codapi-snippet>
 
 In order to find out how many active courses there are in total, the following simple projection could be defined and we can use JavaScripts `reduce`[:octicons-link-external-16:](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce){:target="_blank" .small} function to aggregate all Events creating a single state, starting with the `initialState`:
 
@@ -84,7 +83,6 @@ const numberOfActiveCourses = events.reduce(projection, initialState)
 
 console.log({numberOfActiveCourses})
 ```
-<codapi-snippet engine="browser" sandbox="javascript" depends-on="example1"></codapi-snippet>
 
 !!! note
 
@@ -121,7 +119,6 @@ console.log(
   )
 )
 ```
-<codapi-snippet engine="browser" sandbox="javascript" depends-on="example1"></codapi-snippet>
 
 ### Filter Events by Tags
 
@@ -171,7 +168,6 @@ const events = [
   },
 ]
 ```
-<codapi-snippet id="example3" engine="browser"></codapi-snippet>
 
 ...and extend the projection by some `tagFilter`:
 
@@ -193,8 +189,6 @@ console.log(
   )
 )
 ```
-
-<codapi-snippet engine="browser" sandbox="javascript" depends-on="example3"></codapi-snippet>
 
 In the above example, the projection is hard-coded to filter events tagged `course:c1`. In a real application, the `tagFilter` is the most dynamic part of the projection as it depends on the specific use case, i.e. the affected entity instance(s). So it makes sense to create some kind of _factory_ that allows to pass in the relevant dynamic information (the **course id** in this case):
 
@@ -226,8 +220,6 @@ const CourseExistsProjection = (courseId) =>
   })
 ```
 
-<codapi-snippet id="example4" engine="browser"></codapi-snippet>
-
 The resulting object can be used to easily filter events and to build the projection state:
 
 ```js
@@ -246,8 +238,6 @@ const state = events
 console.log("projected state:", state)
 ```
 
-<codapi-snippet engine="browser" sandbox="javascript" depends-on="example3 example4" template="/assets/js/dcb.js"></codapi-snippet>
-
 Similarly a projection for the current `title` of a course would look like this:
 
 ```js
@@ -261,7 +251,6 @@ const CourseTitleProjection = (courseId) =>
     tagFilter: [`course:${courseId}`],
   })
 ```
-<codapi-snippet id="example5" engine="browser"></codapi-snippet>
 
 ??? info "The library is not a requirement"
 
@@ -316,8 +305,6 @@ const state = events
 console.log(state)
 ```
 
-<codapi-snippet engine="browser" sandbox="javascript" depends-on="example3" template="/assets/js/dcb.js"></codapi-snippet>
-
 But that has some drawbacks, namely:
 
 - It increases complexity of the projection code and makes it harder to reason about
@@ -340,8 +327,6 @@ const state = events
 console.log("projected state:", state)
 ```
 
-<codapi-snippet engine="browser" sandbox="javascript" depends-on="example3 example4 example5" template="/assets/js/dcb.js"></codapi-snippet>
-
 As you can see, the state of the composite projection is an object with a key for every projection of the composition. Likewise, the resulting query will match only Events that are relevant for at least one of the composed projections.
 
 ## How to use this with DCB
@@ -363,8 +348,6 @@ const { state, appendCondition } = buildDecisionModel(eventStore, {
 console.log("state:", state)
 console.log("append condition:", appendCondition)
 ```
-
-<codapi-snippet engine="browser" sandbox="javascript" depends-on="example3 example4 example5" template="/assets/js/dcb.js"></codapi-snippet>
 
 !!! note
 
