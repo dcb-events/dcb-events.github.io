@@ -1,0 +1,63 @@
+model "Dynamic product price (cart, grace period)"
+
+tag type ProductId = string
+type Money = number { minimum: 0 }
+// Minute the event was recorded; stands in for the website's metadata.minutesAgo.
+type Minute = integer
+record Item { productId: ProductId, price: Money }
+
+
+event ProductDefined { productId: ProductId, price: Money, at: Minute }
+event ProductPriceChanged { productId: ProductId, newPrice: Money, at: Minute }
+event ProductsOrdered { items: Item[] }
+
+entity Product {
+  validPrices = ProductValidPrices
+}
+
+projection ProductValidPrices: Money[] {
+  script(productId: ProductId, now: Minute)
+  tagFilter ["ProductId:{productId}"]
+  initialState { lastValidOldPrice: null, validNewPrices: [], valid: [] }
+  exposes valid
+  on ProductDefined => ```args.now - event.data.at <= 10 ? { lastValidOldPrice: null, validNewPrices: [event.data.price], valid: [event.data.price] } : { lastValidOldPrice: event.data.price, validNewPrices: [], valid: [event.data.price] }```
+  on ProductPriceChanged => ```args.now - event.data.at <= 10 ? { lastValidOldPrice: state.lastValidOldPrice, validNewPrices: [...state.validNewPrices, event.data.newPrice], valid: [state.lastValidOldPrice, ...state.validNewPrices, event.data.newPrice].filter((p) => p !== null) } : { lastValidOldPrice: event.data.newPrice, validNewPrices: state.validNewPrices, valid: [event.data.newPrice, ...state.validNewPrices] }```
+}
+
+command OrderProducts(items: Item[], now: Minute) {
+  read product = Product[items.productId] with (now)
+
+  require product.validPrices contains items.price
+
+  emit ProductsOrdered { items }
+
+  scenario "never valid" {
+    given ProductDefined { productId: "p1", price: 123, at: 80 }
+    when OrderProducts { items: [{ productId: "p1", price: 100 }], now: 100 }
+    then rejected by product.validPrices contains items.price
+  }
+  scenario "changed more than 10 minutes ago" {
+    given ProductDefined { productId: "p1", price: 123, at: 80 }
+    given ProductPriceChanged { productId: "p1", newPrice: 134, at: 80 }
+    when OrderProducts { items: [{ productId: "p1", price: 123 }], now: 100 }
+    then rejected by product.validPrices contains items.price
+  }
+  scenario "initial valid price" {
+    given ProductDefined { productId: "p1", price: 123, at: 80 }
+    when OrderProducts { items: [{ productId: "p1", price: 123 }], now: 100 }
+    then ProductsOrdered { items: [{ productId: "p1", price: 123 }] }
+  }
+  scenario "changed less than 10 minutes ago, old price" {
+    given ProductDefined { productId: "p1", price: 123, at: 80 }
+    given ProductPriceChanged { productId: "p1", newPrice: 134, at: 91 }
+    when OrderProducts { items: [{ productId: "p1", price: 123 }], now: 100 }
+    then ProductsOrdered { items: [{ productId: "p1", price: 123 }] }
+  }
+  scenario "multiple products with valid prices" {
+    given ProductDefined { productId: "p1", price: 123, at: 80 }
+    given ProductPriceChanged { productId: "p1", newPrice: 134, at: 91 }
+    given ProductDefined { productId: "p2", price: 321, at: 92 }
+    when OrderProducts { items: [{ productId: "p1", price: 123 }, { productId: "p2", price: 321 }], now: 100 }
+    then ProductsOrdered { items: [{ productId: "p1", price: 123 }, { productId: "p2", price: 321 }] }
+  }
+}

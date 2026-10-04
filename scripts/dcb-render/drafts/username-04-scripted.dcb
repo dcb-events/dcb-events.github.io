@@ -1,0 +1,72 @@
+model "Unique username (with retention)"
+
+tag type Username = string
+// A day number stands in for the event's recording time (the website uses metadata.daysAgo).
+type Day = integer
+
+event AccountRegistered { username: Username }
+event AccountClosed { username: Username, closedOn: Day }
+event UsernameChanged { oldUsername: Username, newUsername: Username, changedOn: Day }
+
+projection UsernameClaimed: boolean {
+  script(username: Username, today: Day)
+  tagFilter ["Username:{username}"]
+  initialState false
+  on AccountRegistered => ```true```
+  on AccountClosed => ```args.today - event.data.closedOn <= 3```
+  on UsernameChanged => ```event.data.newUsername === args.username || args.today - event.data.changedOn <= 3```
+}
+
+command RegisterAccount(username: Username, today: Day) {
+  read claimed = UsernameClaimed(username, today)
+
+  require claimed is false
+
+  emit AccountRegistered { username }
+
+  scenario "Register account with claimed username" {
+    given AccountRegistered { username: "u1" }
+    when RegisterAccount { username: "u1", today: 10 }
+    then rejected by claimed is false
+  }
+
+  scenario "Register account with unused username" {
+    when RegisterAccount { username: "u1", today: 10 }
+    then AccountRegistered { username: "u1" }
+  }
+
+  scenario "Register username of closed account before retention period" {
+    given AccountRegistered { username: "u1" }
+    given AccountClosed { username: "u1", closedOn: 7 }
+    when RegisterAccount { username: "u1", today: 10 }
+    then rejected by claimed is false
+  }
+
+  scenario "Register changed username before retention period" {
+    given AccountRegistered { username: "u1" }
+    given UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 7 }
+    when RegisterAccount { username: "u1", today: 10 }
+    then rejected by claimed is false
+  }
+
+  scenario "Register username of closed account after retention period" {
+    given AccountRegistered { username: "u1" }
+    given AccountClosed { username: "u1", closedOn: 6 }
+    when RegisterAccount { username: "u1", today: 10 }
+    then AccountRegistered { username: "u1" }
+  }
+
+  scenario "Register changed username after retention period" {
+    given AccountRegistered { username: "u1" }
+    given UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 6 }
+    when RegisterAccount { username: "u1", today: 10 }
+    then AccountRegistered { username: "u1" }
+  }
+
+  scenario "Register account with a username that another username was changed to" {
+    given AccountRegistered { username: "u1" }
+    given UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 6 }
+    when RegisterAccount { username: "u1changed", today: 10 }
+    then rejected by claimed is false
+  }
+}
