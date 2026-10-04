@@ -149,9 +149,9 @@ DCB_PLAYGROUND_APP=../dcb-playground/app node scripts/dcb-render/drafts/check.js
    - Done in the website: `hooks/playground.py` (copies the app, injects the theme bridge,
      publishes the schema; set `DCB_PLAYGROUND_DIR=../dcb-playground` to build against a local
      checkout), automatic palette, header icon, link on the examples index, CI submodule checkout.
-   - Open: publish the playground repo under `dcb-events`, then
-     `git submodule add <url> playground`. Until then the hook skips `/playground/` with a
-     warning, and the header icon leads to a 404, so don't deploy before the submodule exists.
+   - Done: the playground repo is at https://github.com/dcb-events/dcb-playground and is included
+     as the `playground/` submodule, tracking `main`. Update the pinned version with
+     `git submodule update --remote playground` and commit the new pointer.
 2. **Migrate the examples.** DSL fences, Node renderer, the "DCB notation" and "Consistency
    boundary" tabs, "Open in Playground", "Download JSON", content migration per page, codapi
    and PHP renderer removal. Playground: dedupe on import, the `CartLine[]` → `Item[]` advisory.
