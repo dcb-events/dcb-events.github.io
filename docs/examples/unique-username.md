@@ -42,131 +42,40 @@ With DCB all Events that affect the unique constraint (the username in this exam
 
 This example is the most simple one just checking whether a given username is claimed
 
-<script type="application/dcb+json">
-{
-  "meta": {
-    "version": "1.0",
-    "id": "unique_username_01"
-  },
-  "eventDefinitions": [
-    {
-      "name": "AccountRegistered",
-      "schema": {
-        "type": "object",
-        "properties": {
-          "username": {
-            "type": "string"
-          }
-        }
-      },
-      "tagResolvers": [
-        "username:{data.username}"
-      ]
-    }
-  ],
-  "commandDefinitions": [
-    {
-      "name": "registerAccount",
-      "schema": {
-        "type": "object",
-        "properties": {
-          "username": {
-            "type": "string"
-          }
-        }
-      }
-    }
-  ],
-  "projections": [
-    {
-      "name": "isUsernameClaimed",
-      "parameterSchema": {
-        "type": "object",
-        "properties": {
-          "username": {
-            "type": "string"
-          }
-        }
-      },
-      "stateSchema": {
-        "type": "boolean",
-        "default": false
-      },
-      "handlers": {
-        "AccountRegistered": "true"
-      },
-      "tagFilters": [
-        "username:{username}"
-      ]
-    }
-  ],
-  "commandHandlerDefinitions": [
-    {
-      "commandName": "registerAccount",
-      "decisionModels": [
-        {
-          "name": "isUsernameClaimed",
-          "parameters": [
-            "command.username"
-          ]
-        }
-      ],
-      "constraintChecks": [
-        {
-          "condition": "state.isUsernameClaimed",
-          "errorMessage": "Username \"{command.username}\" is claimed"
-        }
-      ],
-      "successEvent": {
-        "type": "AccountRegistered",
-        "data": {
-          "username": "{command.username}"
-        }
-      }
-    }
-  ],
-  "testCases": [
-    {
-      "description": "Register account with claimed username",
-      "givenEvents": [
-        {
-          "type": "AccountRegistered",
-          "data": {
-            "username": "u1"
-          }
-        }
-      ],
-      "whenCommand": {
-        "type": "registerAccount",
-        "data": {
-          "username": "u1"
-        }
-      },
-      "thenExpectedError": "Username \"u1\" is claimed"
-    },
-    {
-      "description": "Register account with unused username",
-      "givenEvents": null,
-      "whenCommand": {
-        "type": "registerAccount",
-        "data": {
-          "username": "u1"
-        }
-      },
-      "thenExpectedEvent": {
-        "type": "AccountRegistered",
-        "data": {
-          "username": "u1"
-        }
-      }
-    }
-  ]
+```dcb id="unique_username_01"
+model "Unique username"
+
+tag type Username = string
+
+event AccountRegistered { username: Username }
+
+projection UsernameClaimed(username: Username): boolean = false {
+  on AccountRegistered => set true
 }
-</script>
+
+command RegisterAccount(username: Username) {
+  read claimed = UsernameClaimed(username)
+
+  require claimed is false
+
+  emit AccountRegistered { username }
+
+  scenario "Register account with claimed username" {
+    given AccountRegistered { username: "u1" }
+    when RegisterAccount { username: "u1" }
+    then rejected by claimed is false
+  }
+
+  scenario "Register account with unused username" {
+    when RegisterAccount { username: "u1" }
+    then AccountRegistered { username: "u1" }
+  }
+}
+```
 
 !!! note
 
-    To keep the example simple, we use the `username` directly as value for the Tag. In a real implementation, you probably would want to hash the value. And, more importantly, normalize it such that the usernames `jamesbond` and `JamesBond` are considered equal
+    To keep the example simple, we use the `username` directly as value for the Tag (e.g. `Username:u1`). In a real implementation, you probably would want to hash the value. And, more importantly, normalize it such that the usernames `jamesbond` and `JamesBond` are considered equal
 
 ### Feature 2: Release usernames
 
@@ -176,362 +85,192 @@ This example extends the previous one to show how a previously claimed username 
     It's most probably not a good idea to allow new users to take over the username of a closed account!
     Part 4 introduces a potential remedy, on its own this is merely an oversimplified example.
 
-<script type="application/dcb+json">
-{
-  "meta": {
-    "version": "1.0",
-    "id": "unique_username_02",
-    "extends": "unique_username_01"
-  },
-  "eventDefinitions": [
-    {
-      "name": "AccountClosed",
-      "schema": {
-        "type": "object",
-        "properties": {
-          "username": {
-            "type": "string"
-          }
-        }
-      },
-      "tagResolvers": [
-        "username:{data.username}"
-      ]
-    }
-  ],
-  "projections": [
-    {
-      "name": "isUsernameClaimed",
-      "parameterSchema": {
-        "type": "object",
-        "properties": {
-          "username": {
-            "type": "string"
-          }
-        }
-      },
-      "stateSchema": {
-        "type": "boolean",
-        "default": false
-      },
-      "handlers": {
-        "AccountRegistered": "true",
-        "AccountClosed": "false"
-      },
-      "tagFilters": [
-        "username:{username}"
-      ]
-    }
-  ],
-  "testCases": [
-    {
-      "description": "Register account with username of closed account",
-      "givenEvents": [
-        {
-          "type": "AccountRegistered",
-          "data": {
-            "username": "u1"
-          }
-        },
-        {
-          "type": "AccountClosed",
-          "data": { "username": "u1" }
-        }
-      ],
-      "whenCommand": {
-        "type": "registerAccount",
-        "data": {
-          "username": "u1"
-        }
-      },
-      "thenExpectedEvent": {
-        "type": "AccountRegistered",
-        "data": {
-          "username": "u1"
-        }
-      }
-    }
-  ]
+```dcb id="unique_username_02" extends="unique_username_01"
+event AccountClosed { username: Username }
+
+projection UsernameClaimed(username: Username): boolean = false {
+  on AccountRegistered => set true
+  on AccountClosed => set false
 }
-</script>
+
+command RegisterAccount(username: Username) {
+  read claimed = UsernameClaimed(username)
+
+  require claimed is false
+
+  emit AccountRegistered { username }
+
+  scenario "Register account with claimed username" {
+    given AccountRegistered { username: "u1" }
+    when RegisterAccount { username: "u1" }
+    then rejected by claimed is false
+  }
+
+  scenario "Register account with unused username" {
+    when RegisterAccount { username: "u1" }
+    then AccountRegistered { username: "u1" }
+  }
+
+  scenario "Register account with username of closed account" {
+    given AccountRegistered { username: "u1" }
+    given AccountClosed { username: "u1" }
+    when RegisterAccount { username: "u1" }
+    then AccountRegistered { username: "u1" }
+  }
+}
+```
 
 ### Feature 3: Allow changing of usernames
 
-This example extends the previous one to show how the username of an active account could be changed
+This example extends the previous one to show how the username of an active account could be changed.
 
-<script type="application/dcb+json">
-{
-  "meta": {
-    "version": "1.0",
-    "id": "unique_username_03",
-    "extends": "unique_username_02"
-  },
-  "eventDefinitions": [
-    {
-      "name": "UsernameChanged",
-      "schema": {
-        "type": "object",
-        "properties": {
-          "oldUsername": {
-            "type": "string"
-          },
-          "newUsername": {
-            "type": "string"
-          }
-        }
-      },
-      "tagResolvers": [
-        "username:{data.oldUsername}",
-        "username:{data.newUsername}"
-      ]
-    }
-  ],
-  "projections": [
-    {
-      "name": "isUsernameClaimed",
-      "parameterSchema": {
-        "type": "object",
-        "properties": {
-          "username": {
-            "type": "string"
-          }
-        }
-      },
-      "stateSchema": {
-        "type": "boolean",
-        "default": false
-      },
-      "handlers": {
-        "AccountRegistered": "true",
-        "AccountClosed": "false",
-        "UsernameChanged": "event.data.newUsername === username"
-      },
-      "tagFilters": [
-        "username:{username}"
-      ]
-    }
-  ],
-  "testCases": [
-    {
-      "description": "Register account with a username that was previously used and then changed",
-      "givenEvents": [
-        {
-          "type": "AccountRegistered",
-          "data": {
-            "username": "u1"
-          }
-        },
-        {
-          "type": "UsernameChanged",
-          "data": { "oldUsername": "u1", "newUsername": "u1changed" }
-        }
-      ],
-      "whenCommand": {
-        "type": "registerAccount",
-        "data": {
-          "username": "u1"
-        }
-      },
-      "thenExpectedEvent": {
-        "type": "AccountRegistered",
-        "data": {
-          "username": "u1"
-        }
-      }
-    },
-    {
-      "description": "Register account with a username that another username was changed to",
-      "givenEvents": [
-        {
-          "type": "AccountRegistered",
-          "data": {
-            "username": "u1"
-          }
-        },
-        {
-          "type": "UsernameChanged",
-          "data": { "oldUsername": "u1", "newUsername": "u1changed" }
-        }
-      ],
-      "whenCommand": {
-        "type": "registerAccount",
-        "data": {
-          "username": "u1changed"
-        }
-      },
-      "thenExpectedError": "Username \"u1changed\" is claimed"
-    }
-  ]
+The `UsernameChanged` Event is tagged with the old _and_ the new username, so it is part of the Query for both (see the "Consistency boundary" tab). A declarative handler cannot tell which of the two usernames it is folding, so the `UsernameClaimed` projection is scripted from here on: the change releases the old username and claims the new one.
+
+````dcb id="unique_username_03" extends="unique_username_02"
+event UsernameChanged { oldUsername: Username, newUsername: Username }
+
+projection UsernameClaimed: boolean {
+  script(username: Username)
+  tagFilter ["Username:{username}"]
+  initialState false
+  on AccountRegistered => ```true```
+  on AccountClosed => ```false```
+  on UsernameChanged => ```event.data.newUsername === args.username```
 }
-</script>
+
+command RegisterAccount(username: Username) {
+  read claimed = UsernameClaimed(username)
+
+  require claimed is false
+
+  emit AccountRegistered { username }
+
+  scenario "Register account with claimed username" {
+    given AccountRegistered { username: "u1" }
+    when RegisterAccount { username: "u1" }
+    then rejected by claimed is false
+  }
+
+  scenario "Register account with unused username" {
+    when RegisterAccount { username: "u1" }
+    then AccountRegistered { username: "u1" }
+  }
+
+  scenario "Register account with username of closed account" {
+    given AccountRegistered { username: "u1" }
+    given AccountClosed { username: "u1" }
+    when RegisterAccount { username: "u1" }
+    then AccountRegistered { username: "u1" }
+  }
+
+  scenario "Register account with a username that was previously used and then changed" {
+    given AccountRegistered { username: "u1" }
+    given UsernameChanged { oldUsername: "u1", newUsername: "u1changed" }
+    when RegisterAccount { username: "u1" }
+    then AccountRegistered { username: "u1" }
+  }
+
+  scenario "Register account with a username that another username was changed to" {
+    given AccountRegistered { username: "u1" }
+    given UsernameChanged { oldUsername: "u1", newUsername: "u1changed" }
+    when RegisterAccount { username: "u1changed" }
+    then rejected by claimed is false
+  }
+}
+````
 
 ### Feature 4: Username retention
 
 In the previous examples a username that is no longer claimed, can be used _immediately_ again for new accounts.
-This example extends the previous one to show how the a username can be reserved for a configurable amount of time before it is released.
+This example extends the previous one to show how a username can be reserved for a configurable amount of time before it is released.
 
 !!! note
 
-    The `daysAgo` property of the Event metadata is a simplification. Typically, a timestamp representing the Event's recording time is stored within the Event's payload or metadata. This timestamp can be compared to the current date to determine the Event's age in the decision model.
+    The decision depends on the current date, so it is passed in with the command (`today`), and the Events record when they happened in their payload (`closedOn`, `changedOn`). That keeps the decision model deterministic: it compares the two to determine the Event's age. Representing dates as day numbers is a simplification, typically this would be a timestamp.
 
-<script type="application/dcb+json">
-{
-  "meta": {
-    "version": "1.0",
-    "id": "unique_username_04",
-    "extends": "unique_username_03"
-  },
-  "projections": [
-    {
-      "name": "isUsernameClaimed",
-      "parameterSchema": {
-        "type": "object",
-        "properties": {
-          "username": {
-            "type": "string"
-          }
-        }
-      },
-      "stateSchema": {
-        "type": "boolean",
-        "default": false
-      },
-      "handlers": {
-        "AccountRegistered": "true",
-        "AccountClosed": "event.metadata?.daysAgo <= 3",
-        "UsernameChanged": "event.data.newUsername === username || event.metadata?.daysAgo <= 3"
-      },
-      "tagFilters": [
-        "username:{username}"
-      ]
-    }
-  ],
-  "testCases": [
-    {
-      "description": "Register username of closed account before retention period",
-      "givenEvents": [
-        {
-          "type": "AccountRegistered",
-          "data": {
-            "username": "u1"
-          },
-          "metadata": {
-            "daysAgo": 4
-          }
-        },
-        {
-          "type": "AccountClosed",
-          "data": { "username": "u1" },
-          "metadata": {
-            "daysAgo": 3
-          }
-        }
-      ],
-      "whenCommand": {
-        "type": "registerAccount",
-        "data": {
-          "username": "u1"
-        }
-      },
-      "thenExpectedError": "Username \"u1\" is claimed"
-    },
-    {
-      "description": "Register changed username before retention period",
-      "givenEvents": [
-        {
-          "type": "AccountRegistered",
-          "data": {
-            "username": "u1"
-          },
-          "metadata": {
-            "daysAgo": 4
-          }
-        },
-        {
-          "type": "UsernameChanged",
-          "data": { "oldUsername": "u1", "newUsername": "u1changed" },
-          "metadata": {
-            "daysAgo": 3
-          }
-        }
-      ],
-      "whenCommand": {
-        "type": "registerAccount",
-        "data": {
-          "username": "u1"
-        }
-      },
-      "thenExpectedError": "Username \"u1\" is claimed"
-    },
-    {
-      "description": "Register username of closed account after retention period",
-      "givenEvents": [
-        {
-          "type": "AccountRegistered",
-          "data": {
-            "username": "u1"
-          },
-          "metadata": {
-            "daysAgo": 4
-          }
-        },
-        {
-          "type": "AccountClosed",
-          "data": { "username": "u1" },
-          "metadata": {
-            "daysAgo": 4
-          }
-        }
-      ],
-      "whenCommand": {
-        "type": "registerAccount",
-        "data": {
-          "username": "u1"
-        }
-      },
-      "thenExpectedEvent": {
-        "type": "AccountRegistered",
-        "data": {
-          "username": "u1"
-        }
-      }
-    },
-    {
-      "description": "Register changed username after retention period",
-      "givenEvents": [
-        {
-          "type": "AccountRegistered",
-          "data": {
-            "username": "u1"
-          },
-          "metadata": {
-            "daysAgo": 4
-          }
-        },
-        {
-          "type": "UsernameChanged",
-          "data": { "oldUsername": "u1", "newUsername": "u1changed" },
-          "metadata": {
-            "daysAgo": 4
-          }
-        }
-      ],
-      "whenCommand": {
-        "type": "registerAccount",
-        "data": {
-          "username": "u1"
-        }
-      },
-      "thenExpectedEvent": {
-        "type": "AccountRegistered",
-        "data": {
-          "username": "u1"
-        }
-      }
-    }
-  ]
+````dcb id="unique_username_04" extends="unique_username_03"
+type Day = integer
+
+event AccountClosed { username: Username, closedOn: Day }
+event UsernameChanged { oldUsername: Username, newUsername: Username, changedOn: Day }
+
+projection UsernameClaimed: boolean {
+  script(username: Username, today: Day)
+  tagFilter ["Username:{username}"]
+  initialState false
+  on AccountRegistered => ```true```
+  on AccountClosed => ```args.today - event.data.closedOn <= 3```
+  on UsernameChanged => ```event.data.newUsername === args.username || args.today - event.data.changedOn <= 3```
 }
-</script>
+
+command RegisterAccount(username: Username, today: Day) {
+  read claimed = UsernameClaimed(username, today)
+
+  require claimed is false
+
+  emit AccountRegistered { username }
+
+  scenario "Register account with claimed username" {
+    given AccountRegistered { username: "u1" }
+    when RegisterAccount { username: "u1", today: 10 }
+    then rejected by claimed is false
+  }
+
+  scenario "Register account with unused username" {
+    when RegisterAccount { username: "u1", today: 10 }
+    then AccountRegistered { username: "u1" }
+  }
+
+  scenario "Register account with username of closed account" {
+    given AccountRegistered { username: "u1" }
+    given AccountClosed { username: "u1", closedOn: 1 }
+    when RegisterAccount { username: "u1", today: 10 }
+    then AccountRegistered { username: "u1" }
+  }
+
+  scenario "Register account with a username that was previously used and then changed" {
+    given AccountRegistered { username: "u1" }
+    given UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 1 }
+    when RegisterAccount { username: "u1", today: 10 }
+    then AccountRegistered { username: "u1" }
+  }
+
+  scenario "Register account with a username that another username was changed to" {
+    given AccountRegistered { username: "u1" }
+    given UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 1 }
+    when RegisterAccount { username: "u1changed", today: 10 }
+    then rejected by claimed is false
+  }
+
+  scenario "Register username of closed account before retention period" {
+    given AccountRegistered { username: "u1" }
+    given AccountClosed { username: "u1", closedOn: 7 }
+    when RegisterAccount { username: "u1", today: 10 }
+    then rejected by claimed is false
+  }
+
+  scenario "Register changed username before retention period" {
+    given AccountRegistered { username: "u1" }
+    given UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 7 }
+    when RegisterAccount { username: "u1", today: 10 }
+    then rejected by claimed is false
+  }
+
+  scenario "Register username of closed account after retention period" {
+    given AccountRegistered { username: "u1" }
+    given AccountClosed { username: "u1", closedOn: 6 }
+    when RegisterAccount { username: "u1", today: 10 }
+    then AccountRegistered { username: "u1" }
+  }
+
+  scenario "Register changed username after retention period" {
+    given AccountRegistered { username: "u1" }
+    given UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 6 }
+    when RegisterAccount { username: "u1", today: 10 }
+    then AccountRegistered { username: "u1" }
+  }
+}
+````
 
 ## Conclusion
 
