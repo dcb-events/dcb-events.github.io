@@ -12,7 +12,7 @@ The goal is an application that allows students to subscribe to courses, with th
 
 - A course cannot accept more than N students
 - N, the course capacity, can change at any time to any positive integer different from the current one
-- The student cannot join more than 10 courses
+- The student cannot join more than 5 courses
 
 ## Traditional approaches
 
@@ -20,7 +20,7 @@ The first and last constraints, in particular, make this example difficult to im
 
 There are several potential strategies to solve this without DCB:
 
-- **Eventual consistency:** Turn one of the invariants into a *soft constraint*, i.e. use the <dfn title="Representation of data tailored for specific read operations, often denormalized for performance">Read Model</dfn> for verification and accept the fact that there might be overbooked courses and/or students with more than 10 subscriptions
+- **Eventual consistency:** Turn one of the invariants into a *soft constraint*, i.e. use the <dfn title="Representation of data tailored for specific read operations, often denormalized for performance">Read Model</dfn> for verification and accept the fact that there might be overbooked courses and/or students with more than 5 subscriptions
 
     > :material-forward: This is of course a potential solution, with or without DCB, but it falls outside the scope of these examples
 
@@ -211,7 +211,7 @@ The second implementation extends the first by a `changeCourseCapacity` command 
             "schema": {
                 "type": "object",
                 "properties": {
-                    "studentId": {
+                    "courseId": {
                         "type": "string"
                     },
                     "newCapacity": {

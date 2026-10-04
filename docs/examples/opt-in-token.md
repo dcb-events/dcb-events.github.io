@@ -364,7 +364,7 @@ A requirement might be to _expire_ tokens after a given time (for example: 60 mi
                         "name": "John Doe"
                     },
                     "metadata": {
-                        "minutesAgo": "61"
+                        "minutesAgo": 61
                     }
                 }
             ],
@@ -372,10 +372,10 @@ A requirement might be to _expire_ tokens after a given time (for example: 60 mi
                 "type": "confirmSignUp",
                 "data": {
                     "emailAddress": "john.doe@example.com",
-                    "otp": "000000"
+                    "otp": "333333"
                 }
             },
-            "thenExpectedError": "No pending sign-up for this OTP / email address"
+            "thenExpectedError": "OTP expired"
         }
     ]
 }
