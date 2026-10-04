@@ -17,25 +17,28 @@ example on the site openable in the playground. Running examples via codapi goes
   `generate-*.js` and other dev-only files. The hook also runs for `mkdocs serve`.
 - The same hook copies `dcb-model.schema.json` to `site/schemas/model/v6.json`, so the schema's
   `$id` and the `$schema` field of every model actually resolve.
-- CI (`.github/workflows/ci.yml`) needs `actions/checkout` with `submodules: true` and
-  `setup-node`. PHP stays until phase 3 is decided. Monaco adds about 10 MB to the
+- CI (`.github/workflows/ci.yml`) needs `actions/checkout` with `submodules: true` (phase 1)
+  and `setup-node` (phase 2). PHP stays until phase 3 is decided. Monaco adds about 10 MB to the
   Pages deploy, which is acceptable.
 
 ### Playground page
 
 - `/playground/` runs as its own full-screen app, without the Material layout and not in an iframe.
-- The playground header gets a "← dcb.events" link and a "Preview" badge, since the model format
-  is young and major changes are expected.
+- The playground header gets a "← dcb.events" link. The existing "Experimental — everything here
+  is subject to change." bar above the header serves as the preview label, so there is no
+  separate badge.
 - Colours: the chrome (header, buttons, links, focus rings) uses the site's teal / deep orange. The
   colours for commands, events, entities, projections and rules stay as they are (EventStorming
   conventions). If deep orange next to orange events reads as "event", use teal for the accent
   inside the playground. These changes go into the playground's own tokens in `shared.css`.
-- **One theme setting, shared with the site.** On dcb.events the playground reads Material's
-  same-origin localStorage key `/.__palette` (`color.scheme`: `slate` / `default`), and its own
-  theme toggle writes back to it. The bridge lives in the playground repo and only takes effect
-  when that key exists, so the playground keeps working when hosted elsewhere. The site gets a
-  third, automatic palette (`media: "(prefers-color-scheme)"`) so the playground's
-  system/light/dark options map one-to-one.
+- **One theme setting, shared with the site.** Material stores the selected palette as
+  `{index, color}` under the same-origin localStorage key `/.__palette` and selects the toggle by
+  `index`, so writing it back depends on the palette order in `mkdocs.yml`. The bridge therefore
+  has two halves. The playground offers a generic, optional hook, `window.DCB_PLAYGROUND_HOST.theme`
+  (`get` / `set` / `onChange`), and knows nothing about Material. `hooks/playground.py` injects
+  the implementation, generated from `theme.palette`. The site has a third, automatic palette
+  (`media: "(prefers-color-scheme)"`) so the playground's system/light/dark options map
+  one-to-one.
 
 ### Site header
 
@@ -132,7 +135,7 @@ DCB_PLAYGROUND_APP=../dcb-playground/app node scripts/dcb-render/drafts/check.js
 
 ## Phases
 
-0. **Now, independent of everything else.** Fix existing bugs in the example pages:
+0. **Done.** Fix existing bugs in the example pages:
    - `docs/examples/course-subscriptions.md:214`: the `changeCourseCapacity` schema declares
      `studentId` instead of `courseId`.
    - `docs/examples/course-subscriptions.md`: the prose says "not more than 10 courses" (line 15)
@@ -140,10 +143,15 @@ DCB_PLAYGROUND_APP=../dcb-playground/app node scripts/dcb-render/drafts/check.js
    - `docs/examples/opt-in-token.md:375`: the "expired OTP" test confirms with OTP `000000`
      while the given event has `333333`, so it never tests expiry. `minutesAgo` is the string
      `"61"` (line 367).
-1. **Host the playground.** LICENSE + publish the repo, add the submodule, the copy hook, the
-   schema publishing, the CI changes, the header icon, the automatic site palette, and in the
-   playground the theme bridge, colours, "← dcb.events" link and "Preview" badge. The examples
-   stay untouched.
+1. **Host the playground.** The examples stay untouched.
+   - Done in the playground: MIT LICENSE, `--accent` chrome colour, theme hook, "← dcb.events"
+     link.
+   - Done in the website: `hooks/playground.py` (copies the app, injects the theme bridge,
+     publishes the schema; set `DCB_PLAYGROUND_DIR=../dcb-playground` to build against a local
+     checkout), automatic palette, header icon, link on the examples index, CI submodule checkout.
+   - Open: publish the playground repo under `dcb-events`, then
+     `git submodule add <url> playground`. Until then the hook skips `/playground/` with a
+     warning, and the header icon leads to a 404, so don't deploy before the submodule exists.
 2. **Migrate the examples.** DSL fences, Node renderer, the "DCB notation" and "Consistency
    boundary" tabs, "Open in Playground", "Download JSON", content migration per page, codapi
    and PHP renderer removal. Playground: dedupe on import, the `CartLine[]` → `Item[]` advisory.
