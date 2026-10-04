@@ -100,17 +100,6 @@ command RegisterAccount(username: Username) {
 
   emit AccountRegistered { username }
 
-  scenario "Register account with claimed username" {
-    given AccountRegistered { username: "u1" }
-    when RegisterAccount { username: "u1" }
-    then rejected by claimed is false
-  }
-
-  scenario "Register account with unused username" {
-    when RegisterAccount { username: "u1" }
-    then AccountRegistered { username: "u1" }
-  }
-
   scenario "Register account with username of closed account" {
     given AccountRegistered { username: "u1" }
     given AccountClosed { username: "u1" }
@@ -144,24 +133,6 @@ command RegisterAccount(username: Username) {
   require claimed is false
 
   emit AccountRegistered { username }
-
-  scenario "Register account with claimed username" {
-    given AccountRegistered { username: "u1" }
-    when RegisterAccount { username: "u1" }
-    then rejected by claimed is false
-  }
-
-  scenario "Register account with unused username" {
-    when RegisterAccount { username: "u1" }
-    then AccountRegistered { username: "u1" }
-  }
-
-  scenario "Register account with username of closed account" {
-    given AccountRegistered { username: "u1" }
-    given AccountClosed { username: "u1" }
-    when RegisterAccount { username: "u1" }
-    then AccountRegistered { username: "u1" }
-  }
 
   scenario "Register account with a username that was previously used and then changed" {
     given AccountRegistered { username: "u1" }

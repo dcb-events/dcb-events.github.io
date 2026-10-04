@@ -9,8 +9,9 @@
 //   { blocks: [{ id, source, notationHtml, boundaryHtml, link, warnings }] }
 //
 // A block with `extends` holds only what changes: every definition it declares replaces the
-// parent's definition of the same kind and name in place (scenarios included, as they sit inside it),
-// everything else is inherited, except what `removes` lists ("command OrderProduct, event
+// parent's definition of the same kind and name in place. Scenarios merge by name: a redefined
+// command or projection keeps the parent's scenarios, a restated one (same name) replaces the
+// parent's, and new ones are added. Everything else is inherited, except what `removes` lists ("command OrderProduct, event
 // ProductOrdered"). The rendered notation is always the complete model, printed
 // canonically, with the lines that differ from the parent marked.
 //
@@ -51,6 +52,20 @@ function loadPlayground() {
 
 const playground = loadPlayground();
 
+// The ids the playground generates (scenario ids end up in the share link) come from
+// Math.random. Seeding it per block keeps every link the same from build to build as long as
+// the example does not change, which is what lets the playground recognize a link it opened before.
+function seedRandom(seedText) {
+  let seed = 0;
+  for (const char of seedText) seed = (Math.imul(seed, 31) + char.codePointAt(0)) | 0;
+  vm.runInContext('Math', playground).random = () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 // ---------- merging ----------
 
 const KIND_OF_KEYWORD = {
@@ -80,6 +95,48 @@ function definitionRanges(lines, parsed) {
   return ranges;
 }
 
+// The line (1-based) of the `}` closing the block opened on `line` — outside strings, comments
+// and ``` code.
+function blockEnd(lines, line) {
+  let depth = 0;
+  let inString = false;
+  let inCode = false;
+  for (let n = line; n <= lines.length; n++) {
+    const text = lines[n - 1];
+    for (let i = 0; i < text.length; i++) {
+      if (inCode) {
+        if (text.startsWith('```', i)) { inCode = false; i += 2; }
+      } else if (inString) {
+        if (text[i] === '\\') i++;
+        else if (text[i] === '"') inString = false;
+      } else if (text.startsWith('```', i)) {
+        inCode = true;
+        i += 2;
+      } else if (text.startsWith('//', i)) {
+        break;
+      } else if (text[i] === '"') {
+        inString = true;
+      } else if (text[i] === '{') {
+        depth++;
+      } else if (text[i] === '}' && --depth === 0) {
+        return n;
+      }
+    }
+  }
+  return lines.length;
+}
+
+// The scenarios nested in a definition, in order: `{ name, first, last }` (name null if unnamed).
+function scenariosOf(lines, parsed, key) {
+  return parsed.scenarios
+    .filter((record) => record.block && `${record.block.kind} ${record.block.name}` === key)
+    .map((record) => ({
+      name: (record.body && record.body.name) || null,
+      first: record.head.line,
+      last: blockEnd(lines, record.head.line),
+    }));
+}
+
 // The parent's text with every definition the child declares again replaced in place (so the
 // model keeps its order), followed by the child's new definitions. Returns `{ text, origin }`,
 // where `origin[i]` names the block line i + 1 of the merged text came from, for messages.
@@ -87,9 +144,32 @@ function merge(parentSource, childSource, child, block) {
   const parentLines = parentSource.split('\n');
   const childLines = childSource.split('\n');
   const childRanges = definitionRanges(childLines, child);
-  const parentRanges = definitionRanges(parentLines, playground.parseModelSource(parentSource));
+  const parent = playground.parseModelSource(parentSource);
+  const parentRanges = definitionRanges(parentLines, parent);
   const fromChild = (first, last) => childLines.slice(first - 1, last)
     .map((line, i) => ({ line, origin: `line ${first + i} of block "${block.id}"` }));
+  // A redefined command or projection keeps the parent's scenarios it does not restate: one
+  // with the same name replaces the parent's in place, new ones follow the inherited ones.
+  const redefinition = (key, range) => {
+    const inherited = scenariosOf(parentLines, parent, key);
+    if (!inherited.length) return fromChild(range.first, range.last);
+    const own = scenariosOf(childLines, child, key);
+    const restated = new Map(own.filter((s) => s.name !== null).map((s) => [s.name, s]));
+    const scenarios = [
+      ...inherited.map((s) => (restated.has(s.name) ? fromChild(restated.get(s.name).first, restated.get(s.name).last)
+        : parentLines.slice(s.first - 1, s.last).map((line) => ({
+          line,
+          origin: `scenario "${s.name}", which block "${block.id}" inherits from "${block.extends}" `
+            + '(restate it under the same name to replace it)',
+        })))),
+      ...own.filter((s) => s.name === null || !inherited.some((p) => p.name === s.name))
+        .map((s) => fromChild(s.first, s.last)),
+    ];
+    const lines = fromChild(range.first, own.length ? own[0].first - 1 : range.last - 1);
+    while (lines.length && lines[lines.length - 1].line.trim() === '') lines.pop();
+    for (const scenario of scenarios) lines.push({ line: '', origin: '' }, ...scenario);
+    return [...lines, ...fromChild(range.last, range.last)];
+  };
   const removed = removedKeys(block);
   for (const key of removed) {
     if (!parentRanges.has(key)) throw new BuildError(`block "${block.id}" removes ${key}, which "${block.extends}" does not define`);
@@ -102,7 +182,7 @@ function merge(parentSource, childSource, child, block) {
     const replaced = replacing.get(n);
     if (replaced) {
       const range = childRanges.get(replaced.key);
-      if (range) out.push(...fromChild(range.first, range.last));
+      if (range) out.push(...redefinition(replaced.key, range));
       n = replaced.last;
     } else if (child.name !== null && /^\s*model\s+"/.test(parentLines[n - 1])) {
       const modelLine = childLines.findIndex((line) => /^\s*model\s+"/.test(line)) + 1;
@@ -235,6 +315,7 @@ function shareLink(model) {
 // ---------- main ----------
 
 function renderBlock(block, parents) {
+  seedRandom(block.id);
   const child = playground.parseModelSource(block.source);
   let text = block.source;
   let where = (line) => `line ${line} of block "${block.id}"`;

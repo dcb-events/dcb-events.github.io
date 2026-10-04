@@ -158,8 +158,9 @@ DCB_PLAYGROUND_APP=../dcb-playground/app node scripts/dcb-render/drafts/check.js
    playground: a link opened again switches to the existing model, and mistyped emissions are an
    advisory. Beyond the plan: an extending block can drop definitions
    (`removes="command OrderProduct, event ProductOrdered"`), and a redefinition keeps its place.
-   Known limitations:
-   - Adding a scenario in an extending block means restating its command with all scenarios.
+   Scenarios of a redefined command or projection merge by name, so an extending block only
+   lists new or changed ones. Share links are stable across builds (generated ids are seeded per
+   block). Known limitation:
    - The diagrams `course-subscriptions-01.png`, `unique-username-01.png` and
      `dynamic-product-price-0*.png` still show the old tag spelling (`course: c1` instead of
      `CourseId:c1`).

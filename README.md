@@ -27,5 +27,5 @@ command ChangeCourseCapacity(courseId: CourseId, newCapacity: integer) {
 ```
 ````
 
-A block with `extends` only contains the definitions it adds or replaces (and can drop some with `removes="command OrderProduct, event ProductOrdered"`); it is rendered as the complete model with the changed lines highlighted, next to the consistency boundary of each command and a link that opens the model in the playground.
+A block with `extends` only contains the definitions it adds or replaces (and can drop some with `removes="command OrderProduct, event ProductOrdered"`). The scenarios of a replaced command or projection are inherited unless restated under the same name, so a block only lists its new or changed scenarios. A block is rendered as the complete model with the changed lines highlighted, next to the consistency boundary of each command and a link that opens the model in the playground.
 The build fails if an example cannot be parsed or one of its scenarios does not hold (see `scripts/dcb-render/render.js`).
