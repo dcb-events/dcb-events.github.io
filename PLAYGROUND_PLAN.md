@@ -163,9 +163,8 @@ DCB_PLAYGROUND_APP=../dcb-playground/app node scripts/dcb-render/drafts/check.js
    - The diagrams `course-subscriptions-01.png`, `unique-username-01.png` and
      `dynamic-product-price-0*.png` still show the old tag spelling (`course: c1` instead of
      `CourseId:c1`).
-3. **Decide on code tabs.** Once phase 2 is live, decide whether a generated TypeScript tab
-   (a Node generator reading the new model, in the site's existing "composed projections"
-   style) is still worth it, or whether the "Consistency boundary" tab covers enough.
+3. **Decided: no code tabs.** The "Consistency boundary" tab covers what the generated code
+   showed. A code export may be added to the playground itself later.
 
 ## Parked
 
