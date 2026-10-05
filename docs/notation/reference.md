@@ -4,7 +4,7 @@ icon: material/book-alphabet
 
 # DCB notation reference
 
-Every construct of the [DCB notation](index.md), grouped like the help of the [:material-play-box-outline: DCB Playground](/playground/). Entries marked <span class="dcb-badge">advanced</span> are not needed to read most examples. The [guide](index.md) introduces the notation step by step.
+Every construct of the [DCB notation](index.md), grouped like the help of the [:material-play-box-outline: DCB Playground](/playground/). The [advanced](#advanced) constructs, which are not needed to read most examples, are listed at the end. The [guide](index.md) introduces the notation step by step.
 
 The snippets are taken from one model about courses and students, which the build of this website checks like every example.
 
@@ -203,26 +203,6 @@ Comments are for the reader only. The DCB Playground does not store them, so the
 
 Values are written as JSON. Keys of objects may be written without quotes. Members of an [`enum`](#enum) are written without quotes wherever the type is known.
 
-### Annotations <span class="dcb-badge">advanced</span> { #annotations data-toc-label="Annotations" }
-
-| Annotation | On | Effect |
-|---|---|---|
-| `@icon("📚")` | entities, events, commands | the symbol the playground shows it with |
-| `@feature("Enrolment")` | commands | the feature the playground lists it under |
-| `@tagSchema("{type}={value}")` | tag types | how a Tag of the type is written, see [`tag type`](#tag-type) |
-
-```dcb excerpt="notation_reference" show="entity Student, command RegisterStudent"
-```
-
-### `json` <span class="dcb-badge">advanced</span> { #json data-toc-label="json" }
-
-```dcb-fragment
-// Written as JSON: …
-command Foo json { … }
-```
-
-A definition the notation cannot express is written as the JSON the DCB Playground stores, under a comment explaining why. Examples on this website never contain one. See [the guide](index.md#json-fallback).
-
 ## Data
 
 ### `tag type` { #tag-type }
@@ -246,27 +226,6 @@ An [Event](../specification.md#event), named in the past tense, with its propert
 | `courseId: CourseId` | a property, typed with a declared type or a basic one (`string`, `number`, `integer`, `boolean`) |
 | `email?: string` | optional: `null` when not set |
 | `slots: TimeSlot[]` | a list |
-
-### `type` <span class="dcb-badge">advanced</span> { #type data-toc-label="type" }
-
-```dcb excerpt="notation_reference" show="type Capacity, type TimeSlot"
-```
-
-A named type based on `string`, `number`, `integer`, `boolean`, `object`, `array` or `null`, optionally followed by JSON Schema keywords that constrain it. `type Point = { …schema… }` declares a type by a complete JSON Schema.
-
-### `enum` <span class="dcb-badge">advanced</span> { #enum data-toc-label="enum" }
-
-```dcb excerpt="notation_reference" show="enum CourseStatus"
-```
-
-A fixed set of values. The members are strings and are written without quotes wherever the type is known: `set Existent`, `course.status == Existent`.
-
-### `record` <span class="dcb-badge">advanced</span> { #record data-toc-label="record" }
-
-```dcb excerpt="notation_reference" show="record PersonName"
-```
-
-A value with fields, each typed with a basic or declared type. A record has no identity and no Tag of its own.
 
 ## State
 
@@ -299,6 +258,118 @@ on CourseDefined => set event.data.capacity
 ```
 
 A property of the Event being handled. Besides that, a handler's value is a [literal](#literals) or an enum member.
+
+## Behaviour
+
+### `command` { #command }
+
+```dcb excerpt="notation_reference" show="command ChangeCourseCapacity"
+```
+
+What can be done: the command's properties (`?` optional, `[]` a list), then its [reads](#read), [conditions](#require) and [Events](#emit), in this order.
+
+### `read` { #read }
+
+```dcb-fragment
+read numbering = CourseNumbering()
+read count = CourseSubscriptionCount(courseId)
+```
+
+Binds the value of a projection to a name that conditions and Events refer to. There is one argument per parameter of the projection, `StudentExists(studentId: tutorId)`, and `(courseId)` is short for `(courseId: courseId)`. The arguments are properties of the command, earlier reads or literals.
+
+### `require` { #require }
+
+```dcb excerpt="notation_reference" show="command SubscribeStudentToCourse"
+```
+
+A condition that has to hold, otherwise the command is rejected. Operands are properties of the command (`studentId`), reads and their properties (`course.status`), literals and enum members.
+
+| Condition | Meaning |
+|---|---|
+| `a == b`, `a != b`, `<`, `<=`, `>`, `>=` | comparison |
+| `x in [Draft, Published]`, `x not in […]` | one of a list of values |
+| `xs contains x`, `xs containsAny ys` | lists |
+| `s startsWith "c"`, `s endsWith "1"` | strings |
+| `count(xs) < 10`, `==`, `>` | the length of a list |
+| `x is empty`, `x is not empty` | an empty string or list, or `null` |
+| `b is true`, `b is false` | booleans |
+| `not a < b`, `xs not contains x` | negation |
+
+### `emit` { #emit }
+
+```dcb-fragment
+emit CourseDefined { courseId: numbering, capacity }
+```
+
+Appends an Event if all conditions hold. Each property is taken from a property of the command, a read or a literal. `capacity` is short for `capacity: capacity`.
+
+### Consistency boundary { #consistency-boundary }
+
+Never written. Each read contributes the Event types of the projections it uses, with the Tags of their arguments. The Events are appended with an [Append Condition](../specification.md#append-condition) that fails if an Event matching that Query was appended since the command read. See [from notation to DCB](index.md#from-notation-to-dcb) in the guide.
+
+## Scenarios
+
+### `scenario` { #scenario }
+
+```dcb excerpt="notation_reference" show="command ArchiveCourse"
+```
+
+An example that pins behaviour down, inside the command or projection it is about. The name is optional.
+
+| Line | Meaning |
+|---|---|
+| `given E { … }` | an Event already appended. Values are JSON, enum members without quotes |
+| `when C { … }` | the command, with all of its properties |
+| `then E { … }` | the Events appended |
+| `then nothing` | no Event appended |
+| `then rejected by <condition>` | the condition that rejected the command |
+
+In the DCB Playground the `then` is optional, applying a text without one records what the model does. On this website every scenario has to state it.
+
+## Advanced
+
+The constructs below are not needed to read most examples. They are listed in the same order as the ones above.
+
+### Annotations <span class="dcb-badge">advanced</span> { #annotations data-toc-label="Annotations" }
+
+| Annotation | On | Effect |
+|---|---|---|
+| `@icon("📚")` | entities, events, commands | the symbol the playground shows it with |
+| `@feature("Enrolment")` | commands | the feature the playground lists it under |
+| `@tagSchema("{type}={value}")` | tag types | how a Tag of the type is written, see [`tag type`](#tag-type) |
+
+```dcb excerpt="notation_reference" show="entity Student, command RegisterStudent"
+```
+
+### `json` <span class="dcb-badge">advanced</span> { #json data-toc-label="json" }
+
+```dcb-fragment
+// Written as JSON: …
+command Foo json { … }
+```
+
+A definition the notation cannot express is written as the JSON the DCB Playground stores, under a comment explaining why. Examples on this website never contain one. See [the guide](index.md#json-fallback).
+
+### `type` <span class="dcb-badge">advanced</span> { #type data-toc-label="type" }
+
+```dcb excerpt="notation_reference" show="type Capacity, type TimeSlot"
+```
+
+A named type based on `string`, `number`, `integer`, `boolean`, `object`, `array` or `null`, optionally followed by JSON Schema keywords that constrain it. `type Point = { …schema… }` declares a type by a complete JSON Schema.
+
+### `enum` <span class="dcb-badge">advanced</span> { #enum data-toc-label="enum" }
+
+```dcb excerpt="notation_reference" show="enum CourseStatus"
+```
+
+A fixed set of values. The members are strings and are written without quotes wherever the type is known: `set Existent`, `course.status == Existent`.
+
+### `record` <span class="dcb-badge">advanced</span> { #record data-toc-label="record" }
+
+```dcb excerpt="notation_reference" show="record PersonName"
+```
+
+A value with fields, each typed with a basic or declared type. A record has no identity and no Tag of its own.
 
 ### `successor` <span class="dcb-badge">advanced</span> { #successor data-toc-label="successor" }
 
@@ -356,24 +427,6 @@ A projection written in JavaScript:
 
 The DCB Playground asks for confirmation before it opens a model containing scripts, and `?safe` in its address disables them.
 
-## Behaviour
-
-### `command` { #command }
-
-```dcb excerpt="notation_reference" show="command ChangeCourseCapacity"
-```
-
-What can be done: the command's properties (`?` optional, `[]` a list), then its [reads](#read), [conditions](#require) and [Events](#emit), in this order.
-
-### `read` { #read }
-
-```dcb-fragment
-read numbering = CourseNumbering()
-read count = CourseSubscriptionCount(courseId)
-```
-
-Binds the value of a projection to a name that conditions and Events refer to. There is one argument per parameter of the projection, `StudentExists(studentId: tutorId)`, and `(courseId)` is short for `(courseId: courseId)`. The arguments are properties of the command, earlier reads or literals.
-
 ### `read` an entity <span class="dcb-badge">advanced</span> { #read-entity data-toc-label="read an entity" }
 
 ```dcb-fragment
@@ -410,32 +463,6 @@ read course = Course[courseId] with (since: today)
 
 Arguments for the [scripted projections](#script) among the entity's properties.
 
-### `require` { #require }
-
-```dcb excerpt="notation_reference" show="command SubscribeStudentToCourse"
-```
-
-A condition that has to hold, otherwise the command is rejected. Operands are properties of the command (`studentId`), reads and their properties (`course.status`), literals and enum members.
-
-| Condition | Meaning |
-|---|---|
-| `a == b`, `a != b`, `<`, `<=`, `>`, `>=` | comparison |
-| `x in [Draft, Published]`, `x not in […]` | one of a list of values |
-| `xs contains x`, `xs containsAny ys` | lists |
-| `s startsWith "c"`, `s endsWith "1"` | strings |
-| `count(xs) < 10`, `==`, `>` | the length of a list |
-| `x is empty`, `x is not empty` | an empty string or list, or `null` |
-| `b is true`, `b is false` | booleans |
-| `not a < b`, `xs not contains x` | negation |
-
-### `emit` { #emit }
-
-```dcb-fragment
-emit CourseDefined { courseId: numbering, capacity }
-```
-
-Appends an Event if all conditions hold. Each property is taken from a property of the command, a read or a literal. `capacity` is short for `capacity: capacity`.
-
 ### `emit … when` <span class="dcb-badge">advanced</span> { #emit-when data-toc-label="emit … when" }
 
 ```dcb-fragment
@@ -446,29 +473,6 @@ emit StudentWaitlistedForCourse { courseId, studentId }
 ```
 
 The Event is only appended if its conditions hold, combined with `and`. A failing `when` does not reject the command. If no Event is appended, the command still succeeds. The conditions count towards the Query like the ones of `require`.
-
-### Consistency boundary { #consistency-boundary }
-
-Never written. Each read contributes the Event types of the projections it uses, with the Tags of their arguments. The Events are appended with an [Append Condition](../specification.md#append-condition) that fails if an Event matching that Query was appended since the command read. See [from notation to DCB](index.md#from-notation-to-dcb) in the guide.
-
-## Scenarios
-
-### `scenario` { #scenario }
-
-```dcb excerpt="notation_reference" show="command ArchiveCourse"
-```
-
-An example that pins behaviour down, inside the command or projection it is about. The name is optional.
-
-| Line | Meaning |
-|---|---|
-| `given E { … }` | an Event already appended. Values are JSON, enum members without quotes |
-| `when C { … }` | the command, with all of its properties |
-| `then E { … }` | the Events appended |
-| `then nothing` | no Event appended |
-| `then rejected by <condition>` | the condition that rejected the command |
-
-In the DCB Playground the `then` is optional, applying a text without one records what the model does. On this website every scenario has to state it.
 
 ### `saw` and `at` <span class="dcb-badge">advanced</span> { #saw data-toc-label="saw and at" }
 

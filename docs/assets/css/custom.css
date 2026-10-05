@@ -303,16 +303,15 @@
 /* Marks the advanced parts of the DCB notation pages */
 .md-typeset .dcb-badge {
     display: inline-block;
-    margin-left: .4em;
-    padding: .1em .5em;
-    border-radius: .2rem;
+    margin-left: .5em;
+    padding: .15em .55em;
+    border-radius: 1em;
     font-size: .6rem;
-    font-weight: 600;
-    letter-spacing: .02em;
-    text-transform: uppercase;
+    font-weight: 500;
+    line-height: 1.4;
     vertical-align: middle;
-    color: var(--md-accent-fg-color);
-    border: 1px solid currentColor;
+    color: var(--md-default-fg-color--light);
+    background-color: var(--md-default-fg-color--lightest);
 }
 
 /* Excerpts and fragments of the DCB notation (extensions/dcb_notation.py) */
