@@ -1,3 +1,7 @@
+---
+icon: material/file-document-check-outline
+---
+
 !!! note
 
     This document defines the *minimal feature set* an Event Store must provide to be DCB compliant.
