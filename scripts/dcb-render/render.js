@@ -4,15 +4,23 @@
 // it links to.
 //
 // Reads a JSON request from stdin:
-//   { blocks: [{ id, extends?, removes?, source }], parents: { <id>: <canonical source> } }
-// and writes a JSON response to stdout:
-//   { blocks: [{ id, source, notationHtml, boundaryHtml, link, warnings }] }
+//   { blocks: [{ id, extends?, removes?, source, surface? }
+//              | { excerpt, show } | { fragment }], parents: { <id>: <canonical source> } }
+// and writes a JSON response to stdout, one entry per block:
+//   { id, source, notationHtml, boundaryHtml, link, warnings } for a model,
+//   { notationHtml } for an excerpt or a fragment.
+//
+// An excerpt shows some definitions of a model rendered before it ("command OrderProduct,
+// event ProductOrdered"), cut from its canonical source, so a snippet is checked without being
+// a complete model. A fragment is any text, only highlighted: for syntax that is not a whole
+// definition. A model's `surface: "code"` makes its link open the playground's code view.
 //
 // A block with `extends` holds only what changes: every definition it declares replaces the
 // parent's definition of the same kind and name in place. Scenarios merge by name: a redefined
 // command or projection keeps the parent's scenarios, a restated one (same name) replaces the
 // parent's, and new ones are added. Everything else is inherited, except what `removes` lists ("command OrderProduct, event
-// ProductOrdered"). The rendered notation is always the complete model, printed
+// ProductOrdered"). A definition that is both removed and declared again replaces the parent's
+// entirely, without inheriting its scenarios. The rendered notation is always the complete model, printed
 // canonically, with the lines that differ from the parent marked.
 //
 // Any parse error, any definition the printer can only write as JSON, any scenario without a
@@ -69,20 +77,22 @@ function seedRandom(seedText) {
 // ---------- merging ----------
 
 const KIND_OF_KEYWORD = {
-  type: 'custom-type-definition', event: 'event-definition', entity: 'entity-definition',
+  type: 'custom-type-definition', enum: 'custom-type-definition', record: 'custom-type-definition', event: 'event-definition', entity: 'entity-definition',
   projection: 'projection-definition', command: 'command-definition',
 };
 
 // "command OrderProduct, event ProductOrdered" → ['command-definition OrderProduct', …]
-function removedKeys(block) {
-  return (block.removes || '').split(',').map((entry) => entry.trim()).filter(Boolean).map((entry) => {
+function definitionKeys(list, what) {
+  return (list || '').split(',').map((entry) => entry.trim()).filter(Boolean).map((entry) => {
     const [keyword, name, ...rest] = entry.split(/\s+/);
     if (!KIND_OF_KEYWORD[keyword] || !name || rest.length) {
-      throw new BuildError(`block "${block.id}": cannot remove "${entry}", expected e.g. "command OrderProduct"`);
+      throw new BuildError(`${what}: cannot read "${entry}", expected e.g. "command OrderProduct"`);
     }
     return `${KIND_OF_KEYWORD[keyword]} ${name}`;
   });
 }
+
+const removedKeys = (block) => definitionKeys(block.removes, `block "${block.id}" removes`);
 
 // The lines a definition occupies, including the annotations (`@feature(…)`) above it.
 function definitionRanges(lines, parsed) {
@@ -173,7 +183,6 @@ function merge(parentSource, childSource, child, block) {
   const removed = removedKeys(block);
   for (const key of removed) {
     if (!parentRanges.has(key)) throw new BuildError(`block "${block.id}" removes ${key}, which "${block.extends}" does not define`);
-    if (childRanges.has(key)) throw new BuildError(`block "${block.id}" both removes and defines ${key}`);
   }
   const replacing = new Map([...parentRanges].filter(([key]) => childRanges.has(key) || removed.includes(key))
     .map(([key, range]) => [range.first, { ...range, key }]));
@@ -182,7 +191,7 @@ function merge(parentSource, childSource, child, block) {
     const replaced = replacing.get(n);
     if (replaced) {
       const range = childRanges.get(replaced.key);
-      if (range) out.push(...redefinition(replaced.key, range));
+      if (range) out.push(...(removed.includes(replaced.key) ? fromChild(range.first, range.last) : redefinition(replaced.key, range)));
       n = replaced.last;
     } else if (child.name !== null && /^\s*model\s+"/.test(parentLines[n - 1])) {
       const modelLine = childLines.findIndex((line) => /^\s*model\s+"/.test(line)) + 1;
@@ -251,7 +260,7 @@ function changedLines(base, lines) {
   return changed;
 }
 
-function notationHtml(source, parentSource) {
+function notationHtml(source, parentSource = null) {
   const lines = [[]];
   for (const [cls, text] of playground.sourceHighlight(source)) {
     text.split('\n').forEach((part, i) => {
@@ -307,9 +316,33 @@ function boundaryHtml(model) {
   return `<div class="dcb-boundary">${sections.join('')}</div>`;
 }
 
-function shareLink(model) {
+function shareLink(model, surface) {
   const envelope = playground.buildShareEnvelope(model, []);
-  return PLAYGROUND_URL + '#model=' + zlib.gzipSync(JSON.stringify(envelope)).toString('base64url');
+  return PLAYGROUND_URL + '#model=' + zlib.gzipSync(JSON.stringify(envelope)).toString('base64url')
+    + (surface ? `&surface=${surface}` : '');
+}
+
+// The definitions `show` names, in that order, each with the annotations above it and the
+// scenarios inside it, spaced the way the printer spaces them: one-liners together, a blank
+// line around anything longer.
+function renderExcerpt(block, parents) {
+  const source = parents[block.excerpt];
+  if (source === undefined) throw new BuildError(`excerpt of "${block.excerpt}", which is not defined before it`);
+  const lines = source.split('\n');
+  const ranges = definitionRanges(lines, playground.parseModelSource(source));
+  const keys = definitionKeys(block.show, `excerpt of "${block.excerpt}"`);
+  if (!keys.length) throw new BuildError(`excerpt of "${block.excerpt}" shows nothing, name definitions in show="…"`);
+  const out = [];
+  let previousWasLine = false;
+  for (const key of keys) {
+    const range = ranges.get(key);
+    if (!range) throw new BuildError(`excerpt of "${block.excerpt}" shows ${key}, which that model does not define`);
+    const oneLine = range.first === range.last;
+    if (out.length && !(oneLine && previousWasLine)) out.push('');
+    out.push(...lines.slice(range.first - 1, range.last));
+    previousWasLine = oneLine;
+  }
+  return { notationHtml: notationHtml(out.join('\n')) };
 }
 
 // ---------- main ----------
@@ -347,7 +380,7 @@ function renderBlock(block, parents) {
     source,
     notationHtml: notationHtml(source, parentSource),
     boundaryHtml: boundaryHtml(model),
-    link: shareLink(model),
+    link: shareLink(model, block.surface),
     warnings,
   };
 }
@@ -357,9 +390,15 @@ function main() {
   const parents = { ...(request.parents || {}) };
   const blocks = [];
   for (const block of request.blocks) {
-    const rendered = renderBlock(block, parents);
-    parents[block.id] = rendered.source;
-    blocks.push(rendered);
+    if (block.excerpt !== undefined) {
+      blocks.push(renderExcerpt(block, parents));
+    } else if (block.fragment !== undefined) {
+      blocks.push({ notationHtml: notationHtml(block.fragment.replace(/\n+$/, '')) });
+    } else {
+      const rendered = renderBlock(block, parents);
+      parents[block.id] = rendered.source;
+      blocks.push(rendered);
+    }
   }
   process.stdout.write(JSON.stringify({ blocks }));
 }

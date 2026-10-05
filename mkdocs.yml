@@ -106,6 +106,7 @@ hooks:
   - hooks/copyright.py
   - hooks/preview.py
   - hooks/playground.py
+  - hooks/dcb_notation.py
 
 watch:
   - hooks
