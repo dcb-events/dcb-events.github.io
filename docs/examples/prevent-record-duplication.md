@@ -50,13 +50,14 @@ command PlaceOrder(orderId: OrderId, idempotencyToken: IdempotencyToken) {
   read tokenUsed = IdempotencyTokenWasUsed(idempotencyToken)
 
   require tokenUsed is false
+    else reject "Order was already placed"
 
   emit OrderPlaced { orderId, idempotencyToken }
 
   scenario "Place order with previously used idempotency token" {
     given OrderPlaced { orderId: "o12345", idempotencyToken: "11111" }
     when PlaceOrder { orderId: "o54321", idempotencyToken: "11111" }
-    then rejected by tokenUsed is false
+    then rejected "Order was already placed"
   }
 
   scenario "Place order with new idempotency token" {

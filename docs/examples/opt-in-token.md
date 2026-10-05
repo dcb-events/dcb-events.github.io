@@ -52,26 +52,28 @@ command ConfirmSignUp(emailAddress: EmailAddress, otp: Otp) {
   read name = SignUpName(emailAddress, otp)
 
   require pending is true
+    else reject "No sign-up is pending for this code"
   require used is false
+    else reject "Code was already used"
 
   emit SignUpConfirmed { emailAddress, otp, name }
 
   scenario "Confirm SignUp for non-existing OTP" {
     when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "000000" }
-    then rejected by pending is true
+    then rejected "No sign-up is pending for this code"
   }
 
   scenario "Confirm SignUp for OTP assigned to different email address" {
     given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "111111", name: "John Doe" }
     when ConfirmSignUp { emailAddress: "jane.doe@example.com", otp: "111111" }
-    then rejected by pending is true
+    then rejected "No sign-up is pending for this code"
   }
 
   scenario "Confirm SignUp for already used OTP" {
     given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "222222", name: "John Doe" }
     given SignUpConfirmed { emailAddress: "john.doe@example.com", otp: "222222", name: "John Doe" }
     when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "222222" }
-    then rejected by used is false
+    then rejected "Code was already used"
   }
 
   scenario "Confirm SignUp for valid OTP" {
@@ -108,33 +110,36 @@ command ConfirmSignUp(emailAddress: EmailAddress, otp: Otp, now: Minute) {
   read name = SignUpName(emailAddress, otp)
 
   require pending is true
+    else reject "No sign-up is pending for this code"
   require used is false
+    else reject "Code was already used"
   require expiresAt > now
+    else reject "Code has expired"
 
   emit SignUpConfirmed { emailAddress, otp, name }
 
   scenario "Confirm SignUp for non-existing OTP" {
     when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "000000", now: 100 }
-    then rejected by pending is true
+    then rejected "No sign-up is pending for this code"
   }
 
   scenario "Confirm SignUp for OTP assigned to different email address" {
     given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "111111", name: "John Doe", expiresAt: 160 }
     when ConfirmSignUp { emailAddress: "jane.doe@example.com", otp: "111111", now: 100 }
-    then rejected by pending is true
+    then rejected "No sign-up is pending for this code"
   }
 
   scenario "Confirm SignUp for already used OTP" {
     given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "222222", name: "John Doe", expiresAt: 160 }
     given SignUpConfirmed { emailAddress: "john.doe@example.com", otp: "222222", name: "John Doe" }
     when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "222222", now: 100 }
-    then rejected by used is false
+    then rejected "Code was already used"
   }
 
   scenario "Confirm SignUp for expired OTP" {
     given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "333333", name: "John Doe", expiresAt: 99 }
     when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "333333", now: 100 }
-    then rejected by expiresAt > now
+    then rejected "Code has expired"
   }
 
   scenario "Confirm SignUp for valid OTP" {

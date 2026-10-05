@@ -59,13 +59,14 @@ command OrderProduct(productId: ProductId, displayedPrice: Money) {
   read product = Product[productId]
 
   require product.price == displayedPrice
+    else reject "Price has changed"
 
   emit ProductOrdered { productId, price: displayedPrice }
 
   scenario "Order product with invalid displayed price" {
     given ProductDefined { productId: "p1", price: 123 }
     when OrderProduct { productId: "p1", displayedPrice: 100 }
-    then rejected by product.price == displayedPrice
+    then rejected "Price has changed"
   }
 
   scenario "Order product with valid displayed price" {
@@ -112,13 +113,14 @@ command OrderProduct(productId: ProductId, displayedPrice: Money, now: Minute) {
   read product = Product[productId] with (now)
 
   require product.validPrices contains displayedPrice
+    else reject "Price is no longer valid"
 
   emit ProductOrdered { productId, price: displayedPrice }
 
   scenario "Order product with invalid displayed price" {
     given ProductDefined { productId: "p1", price: 123, at: 100 }
     when OrderProduct { productId: "p1", displayedPrice: 100, now: 100 }
-    then rejected by product.validPrices contains displayedPrice
+    then rejected "Price is no longer valid"
   }
 
   scenario "Order product with valid displayed price" {
@@ -130,14 +132,14 @@ command OrderProduct(productId: ProductId, displayedPrice: Money, now: Minute) {
   scenario "Order product with a displayed price that was never valid" {
     given ProductDefined { productId: "p1", price: 123, at: 80 }
     when OrderProduct { productId: "p1", displayedPrice: 100, now: 100 }
-    then rejected by product.validPrices contains displayedPrice
+    then rejected "Price is no longer valid"
   }
 
   scenario "Order product with a price that was changed more than 10 minutes ago" {
     given ProductDefined { productId: "p1", price: 123, at: 80 }
     given ProductPriceChanged { productId: "p1", newPrice: 134, at: 80 }
     when OrderProduct { productId: "p1", displayedPrice: 123, now: 100 }
-    then rejected by product.validPrices contains displayedPrice
+    then rejected "Price is no longer valid"
   }
 
   scenario "Order product with initial valid price" {
@@ -180,20 +182,21 @@ command OrderProducts(items: Item[], now: Minute) {
   read product = Product[items.productId] with (now)
 
   require product.validPrices contains items.price
+    else reject "Price is no longer valid"
 
   emit ProductsOrdered { items }
 
   scenario "Order product with a displayed price that was never valid" {
     given ProductDefined { productId: "p1", price: 123, at: 80 }
     when OrderProducts { items: [{ productId: "p1", price: 100 }], now: 100 }
-    then rejected by product.validPrices contains items.price
+    then rejected "Price is no longer valid"
   }
 
   scenario "Order product with a price that was changed more than 10 minutes ago" {
     given ProductDefined { productId: "p1", price: 123, at: 80 }
     given ProductPriceChanged { productId: "p1", newPrice: 134, at: 80 }
     when OrderProducts { items: [{ productId: "p1", price: 123 }], now: 100 }
-    then rejected by product.validPrices contains items.price
+    then rejected "Price is no longer valid"
   }
 
   scenario "Order product with initial valid price" {

@@ -61,12 +61,13 @@ projection CourseExists(courseId: CourseId): boolean = false {
 command DefineCourse(courseId: CourseId, capacity: integer) {
   read course = Course[courseId]
   require course.exists is false
+    else reject "Course already exists"
   emit CourseDefined { courseId, capacity }
 
   scenario "Define course with existing id" {
     given CourseDefined { courseId: "c1", capacity: 10 }
     when DefineCourse { courseId: "c1", capacity: 15 }
-    then rejected by course.exists is false
+    then rejected "Course already exists"
   }
   scenario "Define course with new id" {
     when DefineCourse { courseId: "c1", capacity: 15 }
@@ -96,12 +97,14 @@ projection CourseCapacity(courseId: CourseId): integer = 0 {
 command ChangeCourseCapacity(courseId: CourseId, newCapacity: integer) {
   read course = Course[courseId]
   require course.exists is true
+    else reject "Course does not exist"
   require course.capacity != newCapacity
+    else reject "Capacity is unchanged"
   emit CourseCapacityChanged { courseId, newCapacity }
 
   scenario "Change capacity of a non-existing course" {
     when ChangeCourseCapacity { courseId: "c0", newCapacity: 15 }
-    then rejected by course.exists is true
+    then rejected "Course does not exist"
   }
   scenario "Change capacity of a course to a new value" {
     given CourseDefined { courseId: "c1", capacity: 12 }
@@ -154,15 +157,19 @@ command SubscribeStudentToCourse(studentId: StudentId, courseId: CourseId) {
   read alreadySubscribed = StudentAlreadySubscribed(studentId, courseId)
 
   require course.exists is true
+    else reject "Course does not exist"
   require course.subscriptionCount < course.capacity
+    else reject "Course is full"
   require alreadySubscribed is false
+    else reject "Student is already subscribed"
   require student.subscriptionCount < 5
+    else reject "Student is subscribed to too many courses"
 
   emit StudentSubscribedToCourse { studentId, courseId }
 
   scenario "Subscribe student to non-existing course" {
     when SubscribeStudentToCourse { studentId: "s1", courseId: "c0" }
-    then rejected by course.exists is true
+    then rejected "Course does not exist"
   }
   scenario "Subscribe student to fully booked course" {
     given CourseDefined { courseId: "c1", capacity: 3 }
@@ -170,13 +177,13 @@ command SubscribeStudentToCourse(studentId: StudentId, courseId: CourseId) {
     given StudentSubscribedToCourse { studentId: "s2", courseId: "c1" }
     given StudentSubscribedToCourse { studentId: "s3", courseId: "c1" }
     when SubscribeStudentToCourse { studentId: "s4", courseId: "c1" }
-    then rejected by course.subscriptionCount < course.capacity
+    then rejected "Course is full"
   }
   scenario "Subscribe student to the same course twice" {
     given CourseDefined { courseId: "c1", capacity: 10 }
     given StudentSubscribedToCourse { studentId: "s1", courseId: "c1" }
     when SubscribeStudentToCourse { studentId: "s1", courseId: "c1" }
-    then rejected by alreadySubscribed is false
+    then rejected "Student is already subscribed"
   }
   scenario "Subscribe student to more than 5 courses" {
     given CourseDefined { courseId: "c6", capacity: 10 }
@@ -186,7 +193,7 @@ command SubscribeStudentToCourse(studentId: StudentId, courseId: CourseId) {
     given StudentSubscribedToCourse { studentId: "s1", courseId: "c4" }
     given StudentSubscribedToCourse { studentId: "s1", courseId: "c5" }
     when SubscribeStudentToCourse { studentId: "s1", courseId: "c6" }
-    then rejected by student.subscriptionCount < 5
+    then rejected "Student is subscribed to too many courses"
   }
   scenario "Subscribe student to course with capacity" {
     given CourseDefined { courseId: "c1", capacity: 10 }

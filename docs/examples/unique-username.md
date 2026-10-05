@@ -57,13 +57,14 @@ command RegisterAccount(username: Username) {
   read claimed = UsernameClaimed(username)
 
   require claimed is false
+    else reject "Username is already taken"
 
   emit AccountRegistered { username }
 
   scenario "Register account with claimed username" {
     given AccountRegistered { username: "u1" }
     when RegisterAccount { username: "u1" }
-    then rejected by claimed is false
+    then rejected "Username is already taken"
   }
 
   scenario "Register account with unused username" {
@@ -97,6 +98,7 @@ command RegisterAccount(username: Username) {
   read claimed = UsernameClaimed(username)
 
   require claimed is false
+    else reject "Username is already taken"
 
   emit AccountRegistered { username }
 
@@ -131,6 +133,7 @@ command RegisterAccount(username: Username) {
   read claimed = UsernameClaimed(username)
 
   require claimed is false
+    else reject "Username is already taken"
 
   emit AccountRegistered { username }
 
@@ -145,7 +148,7 @@ command RegisterAccount(username: Username) {
     given AccountRegistered { username: "u1" }
     given UsernameChanged { oldUsername: "u1", newUsername: "u1changed" }
     when RegisterAccount { username: "u1changed" }
-    then rejected by claimed is false
+    then rejected "Username is already taken"
   }
 }
 ````
@@ -178,13 +181,14 @@ command RegisterAccount(username: Username, today: Day) {
   read claimed = UsernameClaimed(username, today)
 
   require claimed is false
+    else reject "Username is already taken"
 
   emit AccountRegistered { username }
 
   scenario "Register account with claimed username" {
     given AccountRegistered { username: "u1" }
     when RegisterAccount { username: "u1", today: 10 }
-    then rejected by claimed is false
+    then rejected "Username is already taken"
   }
 
   scenario "Register account with unused username" {
@@ -210,21 +214,21 @@ command RegisterAccount(username: Username, today: Day) {
     given AccountRegistered { username: "u1" }
     given UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 1 }
     when RegisterAccount { username: "u1changed", today: 10 }
-    then rejected by claimed is false
+    then rejected "Username is already taken"
   }
 
   scenario "Register username of closed account before retention period" {
     given AccountRegistered { username: "u1" }
     given AccountClosed { username: "u1", closedOn: 7 }
     when RegisterAccount { username: "u1", today: 10 }
-    then rejected by claimed is false
+    then rejected "Username is already taken"
   }
 
   scenario "Register changed username before retention period" {
     given AccountRegistered { username: "u1" }
     given UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 7 }
     when RegisterAccount { username: "u1", today: 10 }
-    then rejected by claimed is false
+    then rejected "Username is already taken"
   }
 
   scenario "Register username of closed account after retention period" {

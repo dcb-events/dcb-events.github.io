@@ -111,7 +111,9 @@ command ChangeCourseCapacity(courseId: CourseId, newCapacity: Capacity) {
   read course = Course[courseId]
 
   require course.status == Existent
+    else reject "Course is not active"
   require course.subscriptionCount <= newCapacity
+    else reject "Course has more subscriptions than that"
 
   emit CourseCapacityChanged { courseId, newCapacity }
 }
@@ -121,6 +123,7 @@ command ArchiveCourse(courseId: CourseId) {
   read course = Course[courseId]
 
   require course.status == Existent
+    else reject "Course is not active"
 
   emit CourseArchived { courseId }
 
@@ -128,7 +131,7 @@ command ArchiveCourse(courseId: CourseId) {
     given CourseDefined { courseId: "c1", capacity: 10 }
     given CourseArchived { courseId: "c1" }
     when ArchiveCourse { courseId: "c1" }
-    then rejected by course.status == Existent saw Archived, Existent
+    then rejected "Course is not active"
   }
 
   scenario "an existing course is archived" {
@@ -145,7 +148,9 @@ command RescheduleCourse(courseId: CourseId, slots: TimeSlot[]) {
   read theirs = Course[students.subscribedCourseIds] excluding courseId
 
   require course.status == Existent
+    else reject "Course is not active"
   require theirs.slots not containsAny slots
+    else reject "Slots clash with a subscriber's other course"
 
   emit CourseRescheduled { courseId, slots }
 }
@@ -155,6 +160,7 @@ command RegisterStudent(studentId: StudentId, name: PersonName, email?: string) 
   read student = Student[studentId]
 
   require student.exists is false
+    else reject "Student is already registered"
 
   emit StudentRegistered { studentId, name, email }
 }
@@ -165,9 +171,13 @@ command SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
   read student = Student[studentId]
 
   require course.status == Existent
+    else reject "Course is not active"
   require student.exists is true
+    else reject "Student is not registered"
   require course.subscribedStudentIds not contains studentId
+    else reject "Student is already subscribed"
   require count(student.subscribedCourseIds) < 10
+    else reject "Student is subscribed to too many courses"
 
   emit StudentSubscribedToCourse { courseId, studentId }
     when course.isFull is false
@@ -282,7 +292,9 @@ Binds the value of a projection to a name that conditions and Events refer to. T
 ```dcb excerpt="notation_reference" show="command SubscribeStudentToCourse"
 ```
 
-A condition that has to hold, otherwise the command is rejected. Operands are properties of the command (`studentId`), reads and their properties (`course.status`), literals and enum members.
+A condition that has to hold, otherwise the command is rejected with the message after `else reject`. The message is required, on the same line or the next. It is static text, one line, by convention in sentence case without a full stop. Several conditions may share a message: the messages are the complete set of reasons a command can be rejected for, and a scenario names a rejection by its message.
+
+Operands are properties of the command (`studentId`), reads and their properties (`course.status`), literals and enum members.
 
 | Condition | Meaning |
 |---|---|
@@ -322,7 +334,7 @@ An example that pins behaviour down, inside the command or projection it is abou
 | `when C { … }` | the command, with all of its properties |
 | `then E { … }` | the Events appended |
 | `then nothing` | no Event appended |
-| `then rejected by <condition>` | the condition that rejected the command |
+| `then rejected "<message>"` | the message the command was rejected with |
 
 In the DCB Playground the `then` is optional, applying a text without one records what the model does. On this website every scenario has to state it.
 
@@ -473,15 +485,6 @@ emit StudentWaitlistedForCourse { courseId, studentId }
 ```
 
 The Event is only appended if its conditions hold, combined with `and`. A failing `when` does not reject the command. If no Event is appended, the command still succeeds. The conditions count towards the Query like the ones of `require`.
-
-### `saw` and `at` <span class="dcb-badge">advanced</span> { #saw data-toc-label="saw and at" }
-
-```dcb-fragment
-then rejected by course.status == Existent saw Archived, Existent
-then rejected by otherCourses.slots not containsAny slots saw ["mon-9"], ["mon-9", "tue-9"] at 0
-```
-
-The values the rejecting condition saw, left and right. For a condition over a [fan-out](#fan-out), `at` is the position of the instance it failed for. Both are optional when written. The DCB Playground fills them in.
 
 ### Projection scenarios <span class="dcb-badge">advanced</span> { #projection-scenario data-toc-label="Projection scenarios" }
 

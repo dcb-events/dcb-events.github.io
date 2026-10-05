@@ -11,7 +11,7 @@ What makes it useful for DCB is what it does *not* contain: a command never stat
 !!! warning "Experimental"
 
     The DCB notation is the text form of models in the [:material-play-box-outline: DCB Playground](/playground/) and, like the playground, it is subject to change.
-    The source of truth is the playground's JSON format ([schema v6](/schemas/model/v6.json)): every construct of the notation is exactly one shape of that format, so a model can be turned into text and back without losing anything.
+    The source of truth is the playground's JSON format ([schema v7](/schemas/model/v7.json)): every construct of the notation is exactly one shape of that format, so a model can be turned into text and back without losing anything.
 
 This page introduces the notation step by step. The first part covers the basics needed to read the examples. The second part, marked <span class="dcb-badge">advanced</span>, covers the rest. Every keyword is listed in the [reference](reference.md).
 
@@ -36,13 +36,14 @@ command DefineCourse(courseId: CourseId, capacity: integer) {
   read courseExists = CourseExists(courseId)
 
   require courseExists is false
+    else reject "Course already exists"
 
   emit CourseDefined { courseId, capacity }
 
   scenario "Define course with existing id" {
     given CourseDefined { courseId: "c1", capacity: 10 }
     when DefineCourse { courseId: "c1", capacity: 15 }
-    then rejected by courseExists is false
+    then rejected "Course already exists"
   }
   scenario "Define course with new id" {
     when DefineCourse { courseId: "c1", capacity: 15 }
@@ -100,6 +101,7 @@ command DefineCourse(courseId: CourseId, capacity: integer) {
   read courseExists = CourseExists(courseId)
 
   require courseExists is false
+    else reject "Course already exists"
 
   emit CourseDefined { courseId, capacity }
 }
@@ -108,7 +110,7 @@ command DefineCourse(courseId: CourseId, capacity: integer) {
 A command has three parts, always in this order:
 
 1. `read` binds the value of a projection to a name, here the projection `CourseExists` for the course of the command
-2. `require` states a condition that has to hold. If one does not, the command is rejected
+2. `require` states a condition that has to hold. If one does not, the command is rejected with the message after `else reject`. Every condition needs one
 3. `emit` appends an Event. Each of its properties is taken from the command or from a read. `{ courseId, capacity }` is short for `{ courseId: courseId, capacity: capacity }`
 
 ### Scenarios
@@ -117,13 +119,11 @@ A command has three parts, always in this order:
 scenario "Define course with existing id" {
   given CourseDefined { courseId: "c1", capacity: 10 }
   when DefineCourse { courseId: "c1", capacity: 15 }
-  then rejected by courseExists is false
+  then rejected "Course already exists"
 }
 ```
 
-A scenario sits inside the command it tests: `given` the Events already appended, `when` the command is handled, `then` the Events it appends, `nothing`, or the condition that rejected it.
-
-In the rendered model, a rejection also states the values the condition [saw](#rejections): `then rejected by courseExists is false saw true`.
+A scenario sits inside the command it tests: `given` the Events already appended, `when` the command is handled, `then` the Events it appends, `nothing`, or the message it was rejected with.
 
 The scenarios are not just documentation: the build of this website fails if one of them does not hold.
 
@@ -144,13 +144,15 @@ command ChangeCourseCapacity(courseId: CourseId, newCapacity: integer) {
   read capacity = CourseCapacity(courseId)
 
   require courseExists is true
+    else reject "Course does not exist"
   require capacity != newCapacity
+    else reject "Capacity is unchanged"
 
   emit CourseCapacityChanged { courseId, newCapacity }
 
   scenario "Change capacity of a non-existing course" {
     when ChangeCourseCapacity { courseId: "c0", newCapacity: 15 }
-    then rejected by courseExists is true
+    then rejected "Course does not exist"
   }
   scenario "Change capacity of a course to a new value" {
     given CourseDefined { courseId: "c1", capacity: 12 }
@@ -188,9 +190,13 @@ command SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
   read studentCourseIds = StudentCourseIds(studentId)
 
   require courseExists is true
+    else reject "Course does not exist"
   require subscriptionCount < capacity
+    else reject "Course is full"
   require studentCourseIds not contains courseId
+    else reject "Student is already subscribed"
   require count(studentCourseIds) < 5
+    else reject "Student is subscribed to too many courses"
 
   emit StudentSubscribedToCourse { courseId, studentId }
 
@@ -198,13 +204,13 @@ command SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
     given CourseDefined { courseId: "c1", capacity: 1 }
     given StudentSubscribedToCourse { courseId: "c1", studentId: "s1" }
     when SubscribeStudentToCourse { courseId: "c1", studentId: "s2" }
-    then rejected by subscriptionCount < capacity
+    then rejected "Course is full"
   }
   scenario "Subscribe student to the same course twice" {
     given CourseDefined { courseId: "c1", capacity: 10 }
     given StudentSubscribedToCourse { courseId: "c1", studentId: "s1" }
     when SubscribeStudentToCourse { courseId: "c1", studentId: "s1" }
-    then rejected by studentCourseIds not contains courseId
+    then rejected "Student is already subscribed"
   }
   scenario "Subscribe student to course with capacity" {
     given CourseDefined { courseId: "c1", capacity: 10 }
@@ -260,13 +266,14 @@ command DefineCourse(courseId: CourseId, capacity: integer) {
   read course = Course[courseId]
 
   require course.exists is false
+    else reject "Course already exists"
 
   emit CourseDefined { courseId, capacity }
 
   scenario "Define course with existing id" {
     given CourseDefined { courseId: "c1", capacity: 10 }
     when DefineCourse { courseId: "c1", capacity: 15 }
-    then rejected by course.exists is false
+    then rejected "Course already exists"
   }
 }
 
@@ -274,13 +281,15 @@ command ChangeCourseCapacity(courseId: CourseId, newCapacity: integer) {
   read course = Course[courseId]
 
   require course.exists is true
+    else reject "Course does not exist"
   require course.capacity != newCapacity
+    else reject "Capacity is unchanged"
 
   emit CourseCapacityChanged { courseId, newCapacity }
 
   scenario "Change capacity of a non-existing course" {
     when ChangeCourseCapacity { courseId: "c0", newCapacity: 15 }
-    then rejected by course.exists is true
+    then rejected "Course does not exist"
   }
 }
 
@@ -289,9 +298,13 @@ command SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
   read student = Student[studentId]
 
   require course.exists is true
+    else reject "Course does not exist"
   require course.subscriptionCount < course.capacity
+    else reject "Course is full"
   require student.courseIds not contains courseId
+    else reject "Student is already subscribed"
   require count(student.courseIds) < 5
+    else reject "Student is subscribed to too many courses"
 
   emit StudentSubscribedToCourse { courseId, studentId }
 
@@ -299,13 +312,13 @@ command SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
     given CourseDefined { courseId: "c1", capacity: 1 }
     given StudentSubscribedToCourse { courseId: "c1", studentId: "s1" }
     when SubscribeStudentToCourse { courseId: "c1", studentId: "s2" }
-    then rejected by course.subscriptionCount < course.capacity
+    then rejected "Course is full"
   }
   scenario "Subscribe student to the same course twice" {
     given CourseDefined { courseId: "c1", capacity: 10 }
     given StudentSubscribedToCourse { courseId: "c1", studentId: "s1" }
     when SubscribeStudentToCourse { courseId: "c1", studentId: "s1" }
-    then rejected by student.courseIds not contains courseId
+    then rejected "Student is already subscribed"
   }
 }
 ```
@@ -351,13 +364,14 @@ command DefineCourse(courseId: CourseId, capacity: integer) {
   read course = Course[courseId]
 
   require course.status == NonExistent
+    else reject "Course already exists"
 
   emit CourseDefined { courseId, capacity }
 
   scenario "Define course with existing id" {
     given CourseDefined { courseId: "c1", capacity: 10 }
     when DefineCourse { courseId: "c1", capacity: 15 }
-    then rejected by course.status == NonExistent
+    then rejected "Course already exists"
   }
 }
 
@@ -365,13 +379,15 @@ command ChangeCourseCapacity(courseId: CourseId, newCapacity: integer) {
   read course = Course[courseId]
 
   require course.status == Existent
+    else reject "Course is not active"
   require course.capacity != newCapacity
+    else reject "Capacity is unchanged"
 
   emit CourseCapacityChanged { courseId, newCapacity }
 
   scenario "Change capacity of a non-existing course" {
     when ChangeCourseCapacity { courseId: "c0", newCapacity: 15 }
-    then rejected by course.status == Existent
+    then rejected "Course is not active"
   }
 }
 
@@ -379,6 +395,7 @@ command ArchiveCourse(courseId: CourseId) {
   read course = Course[courseId]
 
   require course.status == Existent
+    else reject "Course is not active"
 
   emit CourseArchived { courseId }
 
@@ -386,7 +403,7 @@ command ArchiveCourse(courseId: CourseId) {
     given CourseDefined { courseId: "c1", capacity: 10 }
     given CourseArchived { courseId: "c1" }
     when ArchiveCourse { courseId: "c1" }
-    then rejected by course.status == Existent
+    then rejected "Course is not active"
   }
 }
 
@@ -395,9 +412,13 @@ command SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
   read student = Student[studentId]
 
   require course.status == Existent
+    else reject "Course is not active"
   require course.subscriptionCount < course.capacity
+    else reject "Course is full"
   require student.courseIds not contains courseId
+    else reject "Student is already subscribed"
   require count(student.courseIds) < 5
+    else reject "Student is subscribed to too many courses"
 
   emit StudentSubscribedToCourse { courseId, studentId }
 }
@@ -438,7 +459,9 @@ command RescheduleCourse(courseId: CourseId, slots: string[]) {
   read otherCourses = Course[students.courseIds] excluding courseId
 
   require course.status == Existent
+    else reject "Course is not active"
   require otherCourses.slots not containsAny slots
+    else reject "Slots clash with a subscriber's other course"
 
   emit CourseRescheduled { courseId, slots }
 
@@ -449,7 +472,7 @@ command RescheduleCourse(courseId: CourseId, slots: string[]) {
     given StudentSubscribedToCourse { courseId: "c1", studentId: "s1" }
     given StudentSubscribedToCourse { courseId: "c2", studentId: "s1" }
     when RescheduleCourse { courseId: "c1", slots: ["mon-9", "tue-9"] }
-    then rejected by otherCourses.slots not containsAny slots
+    then rejected "Slots clash with a subscriber's other course"
   }
 }
 ```
@@ -486,8 +509,11 @@ command SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
   read student = Student[studentId]
 
   require course.status == Existent
+    else reject "Course is not active"
   require student.courseIds not contains courseId
+    else reject "Student is already subscribed"
   require count(student.courseIds) < 5
+    else reject "Student is subscribed to too many courses"
 
   emit StudentSubscribedToCourse { courseId, studentId }
     when course.isFull is false
@@ -603,16 +629,18 @@ tag type CourseId = string
 
 ### Rejections in detail <span class="dcb-badge">advanced</span> { #rejections data-toc-label="Rejections in detail" }
 
-A rejection in a scenario can state the values the condition saw, left and right of the operator:
+A rejection is identified by its message, not by the condition. Several conditions may share one message, and they are then one outcome:
 
 ```dcb-fragment
-then rejected by course.status == Existent saw Archived, Existent
-then rejected by otherCourses.slots not containsAny slots saw ["mon-9"], ["mon-9", "tue-9"] at 0
+require course.status != NonExistent
+  else reject "Course is not available"
+require course.status != Archived
+  else reject "Course is not available"
 ```
 
-When writing a scenario, `saw` can be left out. The DCB Playground fills it in, which is why every rendered model contains it. For a condition over a [fan-out read](#fan-out-reads), `at` is the position of the instance it failed for.
+The messages of a command are the complete set of reasons it can be rejected for, and the DCB Playground lists them for each command. A message is static text, one line, by convention in sentence case without a full stop.
 
-A rejection carries no custom message: the condition that failed *is* the message.
+A scenario that expects a rejection states the message and nothing else. Which condition rejected the command, and the values it read, are not part of the outcome: conditions sharing a message are interchangeable, and a projection that stores its state differently still rejects for the same reason. The DCB Playground shows both when a scenario is opened.
 
 ### When the notation can't express something <span class="dcb-badge">advanced</span> { #json-fallback data-toc-label="JSON fallback" }
 
@@ -645,9 +673,8 @@ The DCB notation is not the first language for event-sourced models, and it borr
 
 **Weltenwanderer** [:octicons-link-external-16:](https://www.weltenwanderer.dev/){:target="_blank" .small} is a specification language for domain models that compiles to verified TypeScript, organised around *deciders*: a state, the commands decided on it, and the Events that evolve it.
 
-- *Borrowed:* `require` for a condition, `type X = string`, and `X[]` for lists.
+- *Borrowed:* `require … else reject "…"` for a condition and the message the command is rejected with, required in both languages, `type X = string`, and `X[]` for lists.
 - *Different:* a decider groups commands around one state, which is what an Aggregate does. The DCB notation deliberately has no such grouping: an [entity](#entities) only names projections, and each command's boundary is derived from what it reads, not from what it belongs to.
-- *Different:* Weltenwanderer attaches a message to a condition (`require … else reject "…"`). The DCB Playground's model has no place for such a message, so a rejection is reported as the condition that failed.
 
 Both use `@annotation(…)` for metadata, as does the notation.
 
