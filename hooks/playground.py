@@ -5,11 +5,15 @@ The playground is a static app without a build step, included as a git submodule
 folder is copied as is, minus tests and generators, and a small script is injected that
 lets the playground share the site's light/dark setting (see `DCB_PLAYGROUND_HOST` in the
 playground's `shared.js`).
+
+The playground's help links to the reference of the DCB notation on this site, anchor by
+anchor. The build fails if one of those pages or anchors does not exist.
 """
 import json
 import logging
 import os
 import shutil
+import subprocess
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -39,6 +43,27 @@ def on_post_build(config, **kwargs):
     schema_target = site / schema_id.path.lstrip('/')
     schema_target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(schema_file, schema_target)
+
+    _check_help_links(config, site)
+
+
+def _check_help_links(config, site):
+    script = Path(__file__).resolve().parent.parent / 'scripts' / 'dcb-render' / 'help-links.js'
+    result = subprocess.run(['node', str(script)], text=True, capture_output=True)
+    if result.returncode != 0:
+        raise RuntimeError(f'DCB Playground: the links of its help could not be read:\n{result.stderr.strip()}')
+    site_url = config['site_url'].rstrip('/') + '/'
+    broken = []
+    for link in json.loads(result.stdout):
+        if not link.startswith(site_url):
+            continue
+        page, _, anchor = link[len(site_url):].partition('#')
+        file = site / page / 'index.html'
+        if not file.is_file() or (anchor and f'id="{anchor}"' not in file.read_text(encoding='utf-8')):
+            broken.append(link)
+    if broken:
+        raise RuntimeError('DCB Playground: its help links to pages or anchors this site does not have:\n'
+                           + '\n'.join(broken))
 
 
 def _host_script(config):
