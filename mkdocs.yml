@@ -40,6 +40,9 @@ nav:
   - DCB:
     - Home: index.md
     - Specification: specification.md
+    - DCB notation:
+      - notation/index.md
+      - Reference: notation/reference.md
   - Examples:
       - examples/index.md
       - Course subscriptions: examples/course-subscriptions.md

@@ -10,6 +10,8 @@ The following sections demonstrate several of the numerous scenarios that can be
 
     Model and test your own scenarios in the browser with the [:material-play-box-outline: DCB Playground](/playground/) – commands, events, projections and the consistency boundary each command derives
 
+    The examples are written in the [DCB notation](../notation/index.md), the text form of a playground model
+
 ## Constraints affecting multiple entities
 
 The most popular use case for DCB is to enforce hard constraints that affect multiple domain entities/concepts since it was covered in the "Killing the Aggregate" blog post by Sara Pellegrini [:octicons-link-external-16:](https://sara.event-thinking.io/2023/04/kill-aggregate-chapter-1-I-am-here-to-kill-the-aggregate.html){:target="_blank" .small}.
