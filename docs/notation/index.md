@@ -4,7 +4,7 @@ icon: material/code-braces
 
 # DCB notation
 
-The examples on this website are written in the *DCB notation*, a small text language for describing a DCB model: the Events of a system, the projections that fold them into state, and the command handlers that decide on that state and append new Events.
+The examples on this website are written in the *DCB notation*, a small text language for describing a DCB model: the Events of a system, the projections that fold them into state, and the commands that decide on that state and append new Events.
 
 What makes it useful for DCB is what it does *not* contain: a command never states its consistency boundary. The notation says what a command reads, and the [Query](../specification.md#query) and [Append Condition](../specification.md#append-condition) are derived from that. Every example on this site shows the result in its "Consistency boundary" tab.
 
@@ -32,7 +32,7 @@ projection CourseExists (tag courseId: CourseId): boolean = false {
   on CourseDefined => set true
 }
 
-handler DefineCourse(courseId: CourseId, capacity: integer) {
+command DefineCourse(courseId: CourseId, capacity: integer) {
   require CourseExists(courseId) is false
     else reject "Course already exists"
 
@@ -94,10 +94,10 @@ The handlers are a fixed set of operations:
 
 A value is a literal (`true`, `0`, `"c1"`) or a property of the Event: `event.data.capacity`.
 
-### Command handlers
+### Commands
 
 ```dcb-fragment
-handler DefineCourse(courseId: CourseId, capacity: integer) {
+command DefineCourse(courseId: CourseId, capacity: integer) {
   require CourseExists(courseId) is false
     else reject "Course already exists"
 
@@ -105,7 +105,7 @@ handler DefineCourse(courseId: CourseId, capacity: integer) {
 }
 ```
 
-A `handler` declares a command and decides it. Its header is the command: its name and its properties, `DefineCourse` with a `courseId` and a `capacity`. Its body has two parts, in this order:
+A `command` declares what can be done and how it is decided: its name and its properties, `DefineCourse` with a `courseId` and a `capacity`, then a body with two parts, in this order:
 
 1. `require` states a condition that has to hold. If one does not, the command is rejected with the message after `else reject`. Every condition needs one
 2. `emit` appends an Event. Each of its properties is taken from the command, a read or a literal. `{ courseId, capacity }` is short for `{ courseId: courseId, capacity: capacity }`
@@ -124,7 +124,7 @@ scenarios {
 }
 ```
 
-The scenarios of a handler sit in one `scenarios` group at its end. Each one states the Events already appended (`given`), the command that is handled (`when`), and `then` the Events it appends, `nothing`, or the message it was rejected with.
+The scenarios of a command sit in one `scenarios` group at its end. Each one states the Events already appended (`given`), the command that is handled (`when`), and `then` the Events it appends, `nothing`, or the message it was rejected with.
 
 The scenarios are not just documentation: the build of this website fails if one of them does not hold.
 
@@ -140,7 +140,7 @@ projection CourseCapacity (tag courseId: CourseId): integer = 0 {
   on CourseCapacityChanged => set event.data.newCapacity
 }
 
-handler ChangeCourseCapacity(courseId: CourseId, newCapacity: integer) {
+command ChangeCourseCapacity(courseId: CourseId, newCapacity: integer) {
   require CourseExists(courseId) is true
     else reject "Course does not exist"
   require CourseCapacity(courseId) != newCapacity
@@ -183,7 +183,7 @@ projection StudentCourseIds (tag studentId: StudentId): CourseId[] = [] {
   on StudentSubscribedToCourse => append event.data.courseId
 }
 
-handler SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
+command SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
   alias studentCourseIds = StudentCourseIds(studentId)
 
   require CourseExists(courseId) is true
@@ -287,12 +287,12 @@ The playground runs scripts unsandboxed in the browser, so it asks for confirmat
 
 Instead of the client choosing a course id, the model can number courses itself. `successor(…)` is the value following another one (`c1` → `c2`, `inv-009` → `inv-010`), and an `untagged` projection sees all Events of its types:
 
-```dcb id="notation_numbering" extends="notation_03" removes="handler DefineCourse" hidden="true"
+```dcb id="notation_numbering" extends="notation_03" removes="command DefineCourse" hidden="true"
 untagged projection CourseNumbering: CourseId = "c1" {
   on CourseDefined => set successor(event.data.courseId)
 }
 
-handler DefineCourse(capacity: integer) {
+command DefineCourse(capacity: integer) {
   emit CourseDefined { courseId: CourseNumbering(), capacity }
 
   scenarios {
@@ -305,7 +305,7 @@ handler DefineCourse(capacity: integer) {
 }
 ```
 
-```dcb excerpt="notation_numbering" show="projection CourseNumbering, handler DefineCourse"
+```dcb excerpt="notation_numbering" show="projection CourseNumbering, command DefineCourse"
 ```
 
 An untagged projection has no Tags to read it for, so its read is `CourseNumbering()`. It is written right where its value is needed, in the Event.
@@ -352,7 +352,7 @@ The DCB Playground can store a few things the notation has no spelling for (yet)
 
 ```dcb-fragment
 // Written as JSON: …
-handler Foo json { … }
+command Foo json { … }
 ```
 
 Examples on this website never contain JSON definitions, the build fails if one would be needed.
@@ -376,7 +376,7 @@ entity Student (tag studentId: StudentId) {
   courseIds = StudentCourseIds
 }
 
-handler DefineCourse(courseId: CourseId, capacity: integer) {
+command DefineCourse(courseId: CourseId, capacity: integer) {
   alias course = Course(courseId)
 
   require course.exists is false
@@ -385,7 +385,7 @@ handler DefineCourse(courseId: CourseId, capacity: integer) {
   emit CourseDefined { courseId, capacity }
 }
 
-handler ChangeCourseCapacity(courseId: CourseId, newCapacity: integer) {
+command ChangeCourseCapacity(courseId: CourseId, newCapacity: integer) {
   alias course = Course(courseId)
 
   require course.exists is true
@@ -396,7 +396,7 @@ handler ChangeCourseCapacity(courseId: CourseId, newCapacity: integer) {
   emit CourseCapacityChanged { courseId, newCapacity }
 }
 
-handler SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
+command SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
   alias course = Course(courseId)
   alias student = Student(studentId)
 
@@ -418,7 +418,7 @@ handler SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
 
 An entity declares its identifier like a projection declares its Tag, and each of its properties is a projection with exactly that Tag. A command names one instance with an `alias` and reads it like a projection, `Course(courseId)`:
 
-```dcb excerpt="notation_04" show="handler SubscribeStudentToCourse"
+```dcb excerpt="notation_04" show="command SubscribeStudentToCourse"
 ```
 
 !!! info "An entity is not a consistency boundary"
@@ -448,7 +448,7 @@ projection CourseStatus (tag courseId: CourseId): CourseStatus = NonExistent {
   on CourseArchived => set Archived
 }
 
-handler DefineCourse(courseId: CourseId, capacity: integer) {
+command DefineCourse(courseId: CourseId, capacity: integer) {
   alias course = Course(courseId)
 
   require course.status == NonExistent
@@ -457,7 +457,7 @@ handler DefineCourse(courseId: CourseId, capacity: integer) {
   emit CourseDefined { courseId, capacity }
 }
 
-handler ChangeCourseCapacity(courseId: CourseId, newCapacity: integer) {
+command ChangeCourseCapacity(courseId: CourseId, newCapacity: integer) {
   alias course = Course(courseId)
 
   require course.status == Existent
@@ -475,7 +475,7 @@ handler ChangeCourseCapacity(courseId: CourseId, newCapacity: integer) {
   }
 }
 
-handler ArchiveCourse(courseId: CourseId) {
+command ArchiveCourse(courseId: CourseId) {
   alias course = Course(courseId)
 
   require course.status == Existent
@@ -493,7 +493,7 @@ handler ArchiveCourse(courseId: CourseId) {
   }
 }
 
-handler SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
+command SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
   alias course = Course(courseId)
   alias student = Student(studentId)
 
@@ -510,7 +510,7 @@ handler SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
 }
 ```
 
-```dcb excerpt="notation_05" show="enum CourseStatus, entity Course, projection CourseStatus, handler ArchiveCourse"
+```dcb excerpt="notation_05" show="enum CourseStatus, entity Course, projection CourseStatus, command ArchiveCourse"
 ```
 
 A lifecycle is either a `boolean` (two states, e.g. `lifecycle exists`) or an `enum` (`enum CourseStatus { … }` declares one). The DCB Playground draws the state machine from it: which Event moves an instance to which state, and which conditions guard each move. For the model itself, a lifecycle is an ordinary projection.
@@ -539,7 +539,7 @@ projection CourseSlots (tag courseId: CourseId): string[] = [] {
   on CourseRescheduled => set event.data.slots
 }
 
-handler RescheduleCourse(courseId: CourseId, slots: string[]) {
+command RescheduleCourse(courseId: CourseId, slots: string[]) {
   alias course = Course(courseId)
   alias students = Student(each course.studentIds)
   alias otherCourses = Course(each students.courseIds) excluding courseId
@@ -565,7 +565,7 @@ handler RescheduleCourse(courseId: CourseId, slots: string[]) {
 }
 ```
 
-```dcb excerpt="notation_06" show="handler RescheduleCourse"
+```dcb excerpt="notation_06" show="command RescheduleCourse"
 ```
 
 `students` is one instance per element of `course.studentIds`, and a condition over it has to hold for every instance. `excluding` drops one identifier from the list.
@@ -592,7 +592,7 @@ entity Course (tag courseId: CourseId) {
 projection CourseIsFull (tag courseId: CourseId): boolean
   derived CourseSubscriptionCount(courseId) >= CourseCapacity(courseId)
 
-handler SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
+command SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
   alias course = Course(courseId)
   alias student = Student(studentId)
 
@@ -619,7 +619,7 @@ handler SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
 }
 ```
 
-```dcb excerpt="notation_07" show="handler SubscribeStudentToCourse"
+```dcb excerpt="notation_07" show="command SubscribeStudentToCourse"
 ```
 
 An Event with a `when` is only appended if its conditions hold (several are combined with `and`). Unlike a `require`, a failing `when` does not reject the command. The conditions count towards the consistency boundary just like the ones of `require`.
@@ -644,7 +644,7 @@ It declares its Tags like any projection and passes them on to the projections i
 entity Course (tag courseId: CourseId) { … }
 
 @feature("Course management")
-handler ArchiveCourse(courseId: CourseId) { … }
+command ArchiveCourse(courseId: CourseId) { … }
 
 @tagSchema("{type}={value}")
 tag type CourseId = string

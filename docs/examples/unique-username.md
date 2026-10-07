@@ -53,7 +53,7 @@ projection UsernameClaimed (tag username: Username): boolean = false {
   on AccountRegistered => set true
 }
 
-handler RegisterAccount(username: Username) {
+command RegisterAccount(username: Username) {
   alias claimed = UsernameClaimed(username)
 
   require claimed is false
@@ -96,7 +96,7 @@ projection UsernameClaimed (tag username: Username): boolean = false {
   on AccountClosed => set false
 }
 
-handler RegisterAccount(username: Username) {
+command RegisterAccount(username: Username) {
   alias claimed = UsernameClaimed(username)
 
   require claimed is false
@@ -132,7 +132,7 @@ projection UsernameClaimed (tag username: Username): boolean {
   on UsernameChanged => ```event.data.newUsername === tags.username```
 }
 
-handler RegisterAccount(username: Username) {
+command RegisterAccount(username: Username) {
   alias claimed = UsernameClaimed(username)
 
   require claimed is false
@@ -181,7 +181,7 @@ projection UsernameClaimed (tag username: Username, today: Day): boolean {
   on UsernameChanged => ```event.data.newUsername === tags.username || args.today - event.data.changedOn <= 3```
 }
 
-handler RegisterAccount(username: Username, today: Day) {
+command RegisterAccount(username: Username, today: Day) {
   alias claimed = UsernameClaimed(username, today)
 
   require claimed is false

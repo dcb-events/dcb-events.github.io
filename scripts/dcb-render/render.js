@@ -10,7 +10,7 @@
 //   { id, source, notationHtml, boundaryHtml, link, warnings } for a model,
 //   { notationHtml } for an excerpt or a fragment.
 //
-// An excerpt shows some definitions of a model rendered before it ("handler OrderProduct,
+// An excerpt shows some definitions of a model rendered before it ("command OrderProduct,
 // event ProductOrdered"), cut from its canonical source, so a snippet is checked without being
 // a complete model. A fragment is any text, only highlighted: for syntax that is not a whole
 // definition. A model's `surface: "code"` makes its link open the playground's code view, and a
@@ -18,8 +18,8 @@
 //
 // A block with `extends` holds only what changes: every definition it declares replaces the
 // parent's definition of the same kind and name in place. Scenarios merge by name: a redefined
-// handler or projection keeps the parent's scenarios, a restated one (same name) replaces the
-// parent's, and new ones are added. Everything else is inherited, except what `removes` lists ("handler OrderProduct, event
+// command or projection keeps the parent's scenarios, a restated one (same name) replaces the
+// parent's, and new ones are added. Everything else is inherited, except what `removes` lists ("command OrderProduct, event
 // ProductOrdered"). A definition that is both removed and declared again replaces the parent's
 // entirely, without inheriting its scenarios. The rendered notation is always the complete model, printed
 // canonically, with the lines that differ from the parent marked.
@@ -79,15 +79,15 @@ function seedRandom(seedText) {
 
 const KIND_OF_KEYWORD = {
   type: 'custom-type-definition', enum: 'custom-type-definition', record: 'custom-type-definition', event: 'event-definition', entity: 'entity-definition',
-  projection: 'projection-definition', handler: 'command-definition',
+  projection: 'projection-definition', command: 'command-definition',
 };
 
-// "handler OrderProduct, event ProductOrdered" → ['command-definition OrderProduct', …]
+// "command OrderProduct, event ProductOrdered" → ['command-definition OrderProduct', …]
 function definitionKeys(list, what) {
   return (list || '').split(',').map((entry) => entry.trim()).filter(Boolean).map((entry) => {
     const [keyword, name, ...rest] = entry.split(/\s+/);
     if (!KIND_OF_KEYWORD[keyword] || !name || rest.length) {
-      throw new BuildError(`${what}: cannot read "${entry}", expected e.g. "handler OrderProduct"`);
+      throw new BuildError(`${what}: cannot read "${entry}", expected e.g. "command OrderProduct"`);
     }
     return `${KIND_OF_KEYWORD[keyword]} ${name}`;
   });
@@ -159,7 +159,7 @@ function merge(parentSource, childSource, child, block) {
   const parentRanges = definitionRanges(parentLines, parent);
   const fromChild = (first, last) => childLines.slice(first - 1, last)
     .map((line, i) => ({ line, origin: `line ${first + i} of block "${block.id}"` }));
-  // A redefined handler or projection keeps the parent's scenarios it does not restate: one
+  // A redefined command or projection keeps the parent's scenarios it does not restate: one
   // with the same name replaces the parent's in place, new ones follow the inherited ones, all
   // in the one `scenarios { … }` group that ends the definition.
   const redefinition = (key, range) => {

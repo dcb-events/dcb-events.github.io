@@ -53,7 +53,7 @@ projection CourseExists (tag courseId: CourseId): boolean = false {
   on CourseDefined => set true
 }
 
-handler DefineCourse(courseId: CourseId, capacity: integer) {
+command DefineCourse(courseId: CourseId, capacity: integer) {
   require CourseExists(courseId) is false
     else reject "Course already exists"
   emit CourseDefined { courseId, capacity }
@@ -84,7 +84,7 @@ projection CourseCapacity (tag courseId: CourseId): integer = 0 {
   on CourseCapacityChanged => set event.data.newCapacity
 }
 
-handler ChangeCourseCapacity(courseId: CourseId, newCapacity: integer) {
+command ChangeCourseCapacity(courseId: CourseId, newCapacity: integer) {
   require CourseExists(courseId) is true
     else reject "Course does not exist"
   require CourseCapacity(courseId) != newCapacity
@@ -131,7 +131,7 @@ projection StudentAlreadySubscribed (tag studentId: StudentId, tag courseId: Cou
   on StudentSubscribedToCourse => set true
 }
 
-handler SubscribeStudentToCourse(studentId: StudentId, courseId: CourseId) {
+command SubscribeStudentToCourse(studentId: StudentId, courseId: CourseId) {
   require CourseExists(courseId) is true
     else reject "Course does not exist"
   require CourseSubscriptionCount(courseId) < CourseCapacity(courseId)

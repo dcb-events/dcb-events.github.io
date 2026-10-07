@@ -21,19 +21,19 @@ Examples are written in the notation of the [DCB Playground](https://github.com/
 
 ````markdown
 ```dcb id="course_subscription_02" extends="course_subscription_01"
-handler ChangeCourseCapacity(courseId: CourseId, newCapacity: integer) {
+command ChangeCourseCapacity(courseId: CourseId, newCapacity: integer) {
   ...
 }
 ```
 ````
 
-A block with `extends` only contains the definitions it adds or replaces (and can drop some with `removes="handler OrderProduct, event ProductOrdered"`). The scenarios of a replaced handler or projection are inherited unless restated under the same name, so a block only lists its new or changed scenarios. A block is rendered as the complete model with the changed lines highlighted, next to the consistency boundary of each command and a link that opens the model in the playground.
+A block with `extends` only contains the definitions it adds or replaces (and can drop some with `removes="command OrderProduct, event ProductOrdered"`). The scenarios of a replaced command or projection are inherited unless restated under the same name, so a block only lists its new or changed scenarios. A block is rendered as the complete model with the changed lines highlighted, next to the consistency boundary of each command and a link that opens the model in the playground.
 The build fails if an example cannot be parsed or one of its scenarios does not hold (see `scripts/dcb-render/render.js`).
 
 Declaring a definition again that is also listed in `removes` replaces it entirely, without inheriting its scenarios. A block with `hidden="true"` is checked but not shown, for instance to excerpt from it:
 
 ````markdown
-```dcb excerpt="course_subscription_03" show="projection CourseCapacity, handler ChangeCourseCapacity"
+```dcb excerpt="course_subscription_03" show="projection CourseCapacity, command ChangeCourseCapacity"
 ```
 ````
 

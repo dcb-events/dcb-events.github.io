@@ -46,7 +46,7 @@ projection IdempotencyTokenWasUsed (tag idempotencyToken: IdempotencyToken): boo
   on OrderPlaced => set true
 }
 
-handler PlaceOrder(orderId: OrderId, idempotencyToken: IdempotencyToken) {
+command PlaceOrder(orderId: OrderId, idempotencyToken: IdempotencyToken) {
   alias tokenUsed = IdempotencyTokenWasUsed(idempotencyToken)
 
   require tokenUsed is false

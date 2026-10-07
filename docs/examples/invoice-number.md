@@ -27,7 +27,7 @@ untagged projection NextInvoiceNumber: InvoiceNumber = 1 {
   on InvoiceCreated => set successor(event.data.invoiceNumber)
 }
 
-handler CreateInvoice(invoiceData: InvoiceData) {
+command CreateInvoice(invoiceData: InvoiceData) {
   alias next = NextInvoiceNumber()
 
   emit InvoiceCreated { invoiceNumber: next, invoiceData }

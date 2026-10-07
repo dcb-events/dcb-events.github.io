@@ -51,7 +51,7 @@ projection ProductPrice (tag productId: ProductId): Money = null {
   on ProductDefined => set event.data.price
 }
 
-handler OrderProduct(productId: ProductId, displayedPrice: Money) {
+command OrderProduct(productId: ProductId, displayedPrice: Money) {
   require ProductPrice(productId) == displayedPrice
     else reject "Price has changed"
 
@@ -100,7 +100,7 @@ projection ProductPrice (tag productId: ProductId, now: Minute): Money[] {
   on ProductPriceChanged => ```args.now - event.data.at <= 10 ? [...state, event.data.newPrice] : [event.data.newPrice]```
 }
 
-handler OrderProduct(productId: ProductId, displayedPrice: Money, now: Minute) {
+command OrderProduct(productId: ProductId, displayedPrice: Money, now: Minute) {
   require ProductPrice(productId, now) contains displayedPrice
     else reject "Price is no longer valid"
 
@@ -162,14 +162,14 @@ But with the requirement to be able to order *multiple products at once* with a 
 
 The `OrderProducts` command replaces `OrderProduct`: it reads the `ProductPrice` projection once for every item in the cart (`each items.productId`) and checks each displayed price against the valid prices of that product. The "Consistency boundary" tab shows the result: one Query Item per ordered product, and a `ProductsOrdered` Event that is tagged with the `ProductId` of every product it contains. All products are covered by a single decision – if the price of any of them changes in the meantime, the whole order fails:
 
-````dcb id="dynamic_product_price_03" extends="dynamic_product_price_02" removes="handler OrderProduct, event ProductOrdered"
+````dcb id="dynamic_product_price_03" extends="dynamic_product_price_02" removes="command OrderProduct, event ProductOrdered"
 model "Dynamic product price (shopping cart)"
 
 record Item { productId: ProductId, price: Money }
 
 event ProductsOrdered { items: Item[] tag each productId }
 
-handler OrderProducts(items: Item[], now: Minute) {
+command OrderProducts(items: Item[], now: Minute) {
   require ProductPrice(each items.productId, now) contains items.price
     else reject "Price is no longer valid"
 

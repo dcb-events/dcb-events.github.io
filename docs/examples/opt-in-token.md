@@ -46,7 +46,7 @@ projection OtpUsed (tag emailAddress: EmailAddress, tag otp: Otp): boolean = fal
   on SignUpConfirmed => set true
 }
 
-handler ConfirmSignUp(emailAddress: EmailAddress, otp: Otp) {
+command ConfirmSignUp(emailAddress: EmailAddress, otp: Otp) {
   alias pending = SignUpPending(emailAddress, otp)
   alias used = OtpUsed(emailAddress, otp)
   alias name = SignUpName(emailAddress, otp)
@@ -105,7 +105,7 @@ projection OtpExpiresAt (tag emailAddress: EmailAddress, tag otp: Otp): Minute =
   on SignUpInitiated => set event.data.expiresAt
 }
 
-handler ConfirmSignUp(emailAddress: EmailAddress, otp: Otp, now: Minute) {
+command ConfirmSignUp(emailAddress: EmailAddress, otp: Otp, now: Minute) {
   alias pending = SignUpPending(emailAddress, otp)
   alias used = OtpUsed(emailAddress, otp)
   alias expiresAt = OtpExpiresAt(emailAddress, otp)

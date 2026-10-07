@@ -98,14 +98,14 @@ projection CoursePeakSubscriptions (tag courseId: CourseId): integer {
   on StudentSubscribedToCourse => ```({ current: state.current + 1, peak: Math.max(state.peak, state.current + 1) })```
 }
 
-// Command handlers
+// Commands
 @feature("Course management")
-handler DefineCourse(capacity: Capacity) {
+command DefineCourse(capacity: Capacity) {
   emit CourseDefined { courseId: CourseNumbering(), capacity }
 }
 
 @feature("Course management")
-handler ChangeCourseCapacity(courseId: CourseId, newCapacity: Capacity) {
+command ChangeCourseCapacity(courseId: CourseId, newCapacity: Capacity) {
   require CourseStatus(courseId) == Existent
     else reject "Course is not active"
   require CourseSubscriptionCount(courseId) <= newCapacity
@@ -115,7 +115,7 @@ handler ChangeCourseCapacity(courseId: CourseId, newCapacity: Capacity) {
 }
 
 @feature("Course management")
-handler ArchiveCourse(courseId: CourseId) {
+command ArchiveCourse(courseId: CourseId) {
   require CourseStatus(courseId) == Existent
     else reject "Course is not active"
 
@@ -138,7 +138,7 @@ handler ArchiveCourse(courseId: CourseId) {
 }
 
 @feature("Course management")
-handler RescheduleCourse(courseId: CourseId, slots: TimeSlot[]) {
+command RescheduleCourse(courseId: CourseId, slots: TimeSlot[]) {
   alias course = Course(courseId)
   alias students = Student(each course.subscribedStudentIds)
   alias theirs = Course(each students.subscribedCourseIds) excluding courseId
@@ -152,7 +152,7 @@ handler RescheduleCourse(courseId: CourseId, slots: TimeSlot[]) {
 }
 
 @feature("Students")
-handler RegisterStudent(studentId: StudentId, name: PersonName, email?: string) {
+command RegisterStudent(studentId: StudentId, name: PersonName, email?: string) {
   alias student = Student(studentId)
 
   require student.exists is false
@@ -162,7 +162,7 @@ handler RegisterStudent(studentId: StudentId, name: PersonName, email?: string) 
 }
 
 @feature("Enrolment")
-handler SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
+command SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
   alias subscribedCourseIds = StudentSubscribedCourseIds(studentId)
 
   require CourseStatus(courseId) == Existent
@@ -280,12 +280,12 @@ A property of the Event being handled. Besides that, a handler's value is a [lit
 
 ## Behaviour
 
-### `handler` { #command }
+### `command` { #command }
 
-```dcb excerpt="notation_reference" show="handler ChangeCourseCapacity"
+```dcb excerpt="notation_reference" show="command ChangeCourseCapacity"
 ```
 
-A command and how it is decided. The header is the command: its name and its properties (`?` optional, `[]` a list). The body has its [aliases](#alias), [conditions](#require) and [Events](#emit), in this order.
+What can be done and how it is decided: the command's name and properties (`?` optional, `[]` a list), then its [aliases](#alias), [conditions](#require) and [Events](#emit), in this order.
 
 ### Reads { #read }
 
@@ -309,7 +309,7 @@ A name for a [read](#read), for conditions and Events that use it more than once
 
 ### `require` { #require }
 
-```dcb excerpt="notation_reference" show="handler SubscribeStudentToCourse"
+```dcb excerpt="notation_reference" show="command SubscribeStudentToCourse"
 ```
 
 A condition that has to hold, otherwise the command is rejected with the message after `else reject`. The message is required, on the same line or the next. It is static text, one line, by convention in sentence case without a full stop. Several conditions may share a message: the messages are the complete set of reasons a command can be rejected for, and a scenario names a rejection by its message.
@@ -329,7 +329,7 @@ Operands are properties of the command (`studentId`), reads, aliases and their p
 
 ### `emit` { #emit }
 
-```dcb excerpt="notation_reference" show="handler DefineCourse"
+```dcb excerpt="notation_reference" show="command DefineCourse"
 ```
 
 Appends an Event if all conditions hold. Each property is taken from a property of the command, a read, an alias or a literal. `capacity` is short for `capacity: capacity`.
@@ -342,10 +342,10 @@ Never written. Each read contributes the Event types of the projection it reads,
 
 ### `scenario` { #scenario }
 
-```dcb excerpt="notation_reference" show="handler ArchiveCourse"
+```dcb excerpt="notation_reference" show="command ArchiveCourse"
 ```
 
-An example that pins behaviour down. The scenarios of a handler or projection sit in one `scenarios { … }` group at its end. The name is optional.
+An example that pins behaviour down. The scenarios of a command or projection sit in one `scenarios { … }` group at its end. The name is optional.
 
 | Line | Meaning |
 |---|---|
@@ -372,7 +372,7 @@ The constructs below are not needed to read most examples. They are listed in th
 
 ```dcb-fragment
 // Written as JSON: …
-handler Foo json { … }
+command Foo json { … }
 ```
 
 A definition the notation cannot express is written as the JSON the DCB Playground stores, under a comment explaining why. Examples on this website never contain one. See [the guide](index.md#json-fallback).
@@ -440,11 +440,11 @@ The constructs below are still being tried out. The DCB Playground only offers t
 
 | Annotation | On | Effect |
 |---|---|---|
-| `@icon("📚")` | entities, events, handlers | the symbol the playground shows it with |
-| `@feature("Enrolment")` | handlers | the feature the playground lists it under |
+| `@icon("📚")` | entities, events, commands | the symbol the playground shows it with |
+| `@feature("Enrolment")` | commands | the feature the playground lists it under |
 | `@tagSchema("{type}={value}")` | tag types | how a Tag of the type is written, see [`tag type`](#tag-type) |
 
-```dcb excerpt="notation_reference" show="entity Student, handler RegisterStudent"
+```dcb excerpt="notation_reference" show="entity Student, command RegisterStudent"
 ```
 
 ### `currentValue` <span class="dcb-badge dcb-badge--experimental">experimental</span> { #current-value data-toc-label="currentValue" }
@@ -480,7 +480,7 @@ A boolean defined by one condition over other projections, written like a [`requ
 
 ### Reading an entity <span class="dcb-badge dcb-badge--experimental">experimental</span> { #read-entity data-toc-label="Reading an entity" }
 
-```dcb excerpt="notation_reference" show="handler RescheduleCourse"
+```dcb excerpt="notation_reference" show="command RescheduleCourse"
 ```
 
 | Read | Meaning |
