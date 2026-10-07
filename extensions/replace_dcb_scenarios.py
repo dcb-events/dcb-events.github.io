@@ -25,7 +25,7 @@ class DCBScenarioReplacer(markdown.preprocessors.Preprocessor):
                             capture_output=True,
                             check=True
                         )
-                        updated_lines.append(result.stdout.strip())
+                        updated_lines.extend(result.stdout.strip().splitlines())
                     except subprocess.CalledProcessError as e:
                         print('Error executing PHP script:', e, e.stderr)
                         updated_lines.extend(script_content)

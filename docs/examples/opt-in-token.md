@@ -29,7 +29,19 @@ With that, a dedicated Decision Model can be created that verifies the token. Th
 {
     "meta": {
         "version": "1.0",
-        "id": "opt_in_token_01"
+        "id": "opt_in_token_01",
+        "implementations": [
+            {
+                "id": "factos",
+                "label": "Gleam",
+                "language": "gleam",
+                "source": "libraries/factos/opt_in_token.gleam",
+                "sourceLines": "21:49,51:116,130:140,282:322",
+                "projectName": "factos",
+                "projectUrl": "https://tangled.org/renatillas.dev/factos",
+                "packageUrl": "https://tangled.org/renatillas.dev/factos/tree/main/examples/opt_in_token"
+            }
+        ]
     },
     "eventDefinitions": [
         {
@@ -271,7 +283,14 @@ A requirement might be to _expire_ tokens after a given time (for example: 60 mi
     "meta": {
         "version": "1.0",
         "id": "opt_in_token_02",
-        "extends": "opt_in_token_01"
+        "extends": "opt_in_token_01",
+        "implementations": [
+            {
+                "id": "factos",
+                "sourceLines": "17:140,173:189,196:198,227:251,261:322",
+                "highlightLines": "1-4 34 101-113 125-190"
+            }
+        ]
     },
     "projections": [
         {

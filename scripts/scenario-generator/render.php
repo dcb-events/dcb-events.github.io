@@ -70,6 +70,43 @@ $tsDef = $codeDefinition('typescript', $tsOutput->highlightedLineNumbers);
 
 $normalized = (new ExampleNormalizer())->normalize($example);
 $eventDefinitions = htmlentities(json_encode($normalized['eventDefinitions']));
+
+$implementationTabs = '';
+if ($example->meta->implementations !== null) {
+    foreach ($example->meta->implementations as $implementation) {
+        $label = $implementation->label;
+        $language = $implementation->language;
+        $source = $implementation->source;
+        $projectName = $implementation->projectName;
+        $projectUrl = $implementation->projectUrl;
+        $packageUrl = $implementation->packageUrl;
+        if ($label === null || $language === null || $source === null || $projectName === null || $projectUrl === null || $packageUrl === null) {
+            throw new RuntimeException(sprintf('Source implementation "%s" is incomplete', $implementation->id));
+        }
+
+        $snippet = $source;
+        if ($implementation->sourceLines !== null) {
+            $snippet .= ':' . $implementation->sourceLines;
+        }
+        $definition = $language;
+        if ($implementation->highlightLines !== null && $implementation->highlightLines !== '') {
+            $definition = '{.' . $language . ' .partial hl_lines="' . $implementation->highlightLines . '"}';
+        }
+        $implementationTabs .= <<<MD
+=== "$label"
+    ??? info
+        The code below is the part of the [`$projectName`]($projectUrl){:target="_blank" .small} implementation relevant to this feature
+
+    ```$definition
+    --8<-- "$snippet"
+    ```
+
+    [Open the runnable $label package]($packageUrl){:target="_blank" .small} for its tests and run instructions.
+
+
+MD;
+    }
+}
 $testCases = htmlentities(json_encode($normalized['testCases']));
 
 //$url = '/playground?data=' . (new ExampleNormalizer())->toQueryParam($example);
@@ -89,6 +126,8 @@ echo <<<MD
     ```$tsDef
     $ts
     ```
+
+{$implementationTabs}
 
 === "GWT (WIP)"
     ??? example "Experimental: 3rd party library"
