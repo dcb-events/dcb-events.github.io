@@ -314,6 +314,16 @@
     background-color: var(--md-default-fg-color--lightest);
 }
 
+/* ...and the parts the DCB Playground keeps behind its experimental flag */
+.md-typeset .dcb-badge--experimental {
+    color: #b45f06;
+    background-color: rgba(255, 145, 0, .15);
+}
+
+[data-md-color-scheme="slate"] .md-typeset .dcb-badge--experimental {
+    color: #ffb74d;
+}
+
 /* Excerpts and fragments of the DCB notation (extensions/dcb_notation.py) */
 .md-typeset .dcb-snippet pre.dcb-notation > code {
     max-height: none;

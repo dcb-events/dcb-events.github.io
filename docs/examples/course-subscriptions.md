@@ -47,31 +47,27 @@ model "Course subscriptions"
 
 tag type CourseId = string
 
-event CourseDefined { courseId: CourseId, capacity: integer }
+event CourseDefined { tag courseId: CourseId, capacity: integer }
 
-entity Course {
-  lifecycle exists
-  exists = CourseExists
-}
-
-projection CourseExists(courseId: CourseId): boolean = false {
+projection CourseExists (tag courseId: CourseId): boolean = false {
   on CourseDefined => set true
 }
 
-command DefineCourse(courseId: CourseId, capacity: integer) {
-  read course = Course[courseId]
-  require course.exists is false
+handler DefineCourse(courseId: CourseId, capacity: integer) {
+  require CourseExists(courseId) is false
     else reject "Course already exists"
   emit CourseDefined { courseId, capacity }
 
-  scenario "Define course with existing id" {
-    given CourseDefined { courseId: "c1", capacity: 10 }
-    when DefineCourse { courseId: "c1", capacity: 15 }
-    then rejected "Course already exists"
-  }
-  scenario "Define course with new id" {
-    when DefineCourse { courseId: "c1", capacity: 15 }
-    then CourseDefined { courseId: "c1", capacity: 15 }
+  scenarios {
+    scenario "Define course with existing id" {
+      given CourseDefined { courseId: "c1", capacity: 10 }
+      when DefineCourse { courseId: "c1", capacity: 15 }
+      then rejected "Course already exists"
+    }
+    scenario "Define course with new id" {
+      when DefineCourse { courseId: "c1", capacity: 15 }
+      then CourseDefined { courseId: "c1", capacity: 15 }
+    }
   }
 }
 ```
@@ -81,35 +77,30 @@ command DefineCourse(courseId: CourseId, capacity: integer) {
 The second implementation extends the first by a `ChangeCourseCapacity` command that allows to change the maximum number of seats for a given course:
 
 ```dcb id="course_subscription_02" extends="course_subscription_01"
-event CourseCapacityChanged { courseId: CourseId, newCapacity: integer }
+event CourseCapacityChanged { tag courseId: CourseId, newCapacity: integer }
 
-entity Course {
-  lifecycle exists
-  exists = CourseExists
-  capacity = CourseCapacity
-}
-
-projection CourseCapacity(courseId: CourseId): integer = 0 {
+projection CourseCapacity (tag courseId: CourseId): integer = 0 {
   on CourseDefined => set event.data.capacity
   on CourseCapacityChanged => set event.data.newCapacity
 }
 
-command ChangeCourseCapacity(courseId: CourseId, newCapacity: integer) {
-  read course = Course[courseId]
-  require course.exists is true
+handler ChangeCourseCapacity(courseId: CourseId, newCapacity: integer) {
+  require CourseExists(courseId) is true
     else reject "Course does not exist"
-  require course.capacity != newCapacity
+  require CourseCapacity(courseId) != newCapacity
     else reject "Capacity is unchanged"
   emit CourseCapacityChanged { courseId, newCapacity }
 
-  scenario "Change capacity of a non-existing course" {
-    when ChangeCourseCapacity { courseId: "c0", newCapacity: 15 }
-    then rejected "Course does not exist"
-  }
-  scenario "Change capacity of a course to a new value" {
-    given CourseDefined { courseId: "c1", capacity: 12 }
-    when ChangeCourseCapacity { courseId: "c1", newCapacity: 15 }
-    then CourseCapacityChanged { courseId: "c1", newCapacity: 15 }
+  scenarios {
+    scenario "Change capacity of a non-existing course" {
+      when ChangeCourseCapacity { courseId: "c0", newCapacity: 15 }
+      then rejected "Course does not exist"
+    }
+    scenario "Change capacity of a course to a new value" {
+      given CourseDefined { courseId: "c1", capacity: 12 }
+      when ChangeCourseCapacity { courseId: "c1", newCapacity: 15 }
+      then CourseCapacityChanged { courseId: "c1", newCapacity: 15 }
+    }
   }
 }
 ```
@@ -128,77 +119,64 @@ The "Consistency boundary" tab shows the resulting Query: it combines Query Item
 ```dcb id="course_subscription_03" extends="course_subscription_02"
 tag type StudentId = string
 
-event StudentSubscribedToCourse { studentId: StudentId, courseId: CourseId }
+event StudentSubscribedToCourse { tag studentId: StudentId, tag courseId: CourseId }
 
-entity Course {
-  lifecycle exists
-  exists = CourseExists
-  capacity = CourseCapacity
-  subscriptionCount = CourseSubscriptionCount
-}
-
-entity Student {
-  subscriptionCount = StudentSubscriptionCount
-}
-
-projection CourseSubscriptionCount(courseId: CourseId): integer = 0 {
+projection CourseSubscriptionCount (tag courseId: CourseId): integer = 0 {
   on StudentSubscribedToCourse => increment 1
 }
-projection StudentSubscriptionCount(studentId: StudentId): integer = 0 {
+projection StudentSubscriptionCount (tag studentId: StudentId): integer = 0 {
   on StudentSubscribedToCourse => increment 1
 }
-projection StudentAlreadySubscribed(studentId: StudentId, courseId: CourseId): boolean = false {
+projection StudentAlreadySubscribed (tag studentId: StudentId, tag courseId: CourseId): boolean = false {
   on StudentSubscribedToCourse => set true
 }
 
-command SubscribeStudentToCourse(studentId: StudentId, courseId: CourseId) {
-  read course = Course[courseId]
-  read student = Student[studentId]
-  read alreadySubscribed = StudentAlreadySubscribed(studentId, courseId)
-
-  require course.exists is true
+handler SubscribeStudentToCourse(studentId: StudentId, courseId: CourseId) {
+  require CourseExists(courseId) is true
     else reject "Course does not exist"
-  require course.subscriptionCount < course.capacity
+  require CourseSubscriptionCount(courseId) < CourseCapacity(courseId)
     else reject "Course is full"
-  require alreadySubscribed is false
+  require StudentAlreadySubscribed(studentId, courseId) is false
     else reject "Student is already subscribed"
-  require student.subscriptionCount < 5
+  require StudentSubscriptionCount(studentId) < 5
     else reject "Student is subscribed to too many courses"
 
   emit StudentSubscribedToCourse { studentId, courseId }
 
-  scenario "Subscribe student to non-existing course" {
-    when SubscribeStudentToCourse { studentId: "s1", courseId: "c0" }
-    then rejected "Course does not exist"
-  }
-  scenario "Subscribe student to fully booked course" {
-    given CourseDefined { courseId: "c1", capacity: 3 }
-    given StudentSubscribedToCourse { studentId: "s1", courseId: "c1" }
-    given StudentSubscribedToCourse { studentId: "s2", courseId: "c1" }
-    given StudentSubscribedToCourse { studentId: "s3", courseId: "c1" }
-    when SubscribeStudentToCourse { studentId: "s4", courseId: "c1" }
-    then rejected "Course is full"
-  }
-  scenario "Subscribe student to the same course twice" {
-    given CourseDefined { courseId: "c1", capacity: 10 }
-    given StudentSubscribedToCourse { studentId: "s1", courseId: "c1" }
-    when SubscribeStudentToCourse { studentId: "s1", courseId: "c1" }
-    then rejected "Student is already subscribed"
-  }
-  scenario "Subscribe student to more than 5 courses" {
-    given CourseDefined { courseId: "c6", capacity: 10 }
-    given StudentSubscribedToCourse { studentId: "s1", courseId: "c1" }
-    given StudentSubscribedToCourse { studentId: "s1", courseId: "c2" }
-    given StudentSubscribedToCourse { studentId: "s1", courseId: "c3" }
-    given StudentSubscribedToCourse { studentId: "s1", courseId: "c4" }
-    given StudentSubscribedToCourse { studentId: "s1", courseId: "c5" }
-    when SubscribeStudentToCourse { studentId: "s1", courseId: "c6" }
-    then rejected "Student is subscribed to too many courses"
-  }
-  scenario "Subscribe student to course with capacity" {
-    given CourseDefined { courseId: "c1", capacity: 10 }
-    when SubscribeStudentToCourse { studentId: "s1", courseId: "c1" }
-    then StudentSubscribedToCourse { studentId: "s1", courseId: "c1" }
+  scenarios {
+    scenario "Subscribe student to non-existing course" {
+      when SubscribeStudentToCourse { studentId: "s1", courseId: "c0" }
+      then rejected "Course does not exist"
+    }
+    scenario "Subscribe student to fully booked course" {
+      given CourseDefined { courseId: "c1", capacity: 3 }
+      given StudentSubscribedToCourse { studentId: "s1", courseId: "c1" }
+      given StudentSubscribedToCourse { studentId: "s2", courseId: "c1" }
+      given StudentSubscribedToCourse { studentId: "s3", courseId: "c1" }
+      when SubscribeStudentToCourse { studentId: "s4", courseId: "c1" }
+      then rejected "Course is full"
+    }
+    scenario "Subscribe student to the same course twice" {
+      given CourseDefined { courseId: "c1", capacity: 10 }
+      given StudentSubscribedToCourse { studentId: "s1", courseId: "c1" }
+      when SubscribeStudentToCourse { studentId: "s1", courseId: "c1" }
+      then rejected "Student is already subscribed"
+    }
+    scenario "Subscribe student to more than 5 courses" {
+      given CourseDefined { courseId: "c6", capacity: 10 }
+      given StudentSubscribedToCourse { studentId: "s1", courseId: "c1" }
+      given StudentSubscribedToCourse { studentId: "s1", courseId: "c2" }
+      given StudentSubscribedToCourse { studentId: "s1", courseId: "c3" }
+      given StudentSubscribedToCourse { studentId: "s1", courseId: "c4" }
+      given StudentSubscribedToCourse { studentId: "s1", courseId: "c5" }
+      when SubscribeStudentToCourse { studentId: "s1", courseId: "c6" }
+      then rejected "Student is subscribed to too many courses"
+    }
+    scenario "Subscribe student to course with capacity" {
+      given CourseDefined { courseId: "c1", capacity: 10 }
+      when SubscribeStudentToCourse { studentId: "s1", courseId: "c1" }
+      then StudentSubscribedToCourse { studentId: "s1", courseId: "c1" }
+    }
   }
 }
 ```

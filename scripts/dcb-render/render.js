@@ -10,15 +10,16 @@
 //   { id, source, notationHtml, boundaryHtml, link, warnings } for a model,
 //   { notationHtml } for an excerpt or a fragment.
 //
-// An excerpt shows some definitions of a model rendered before it ("command OrderProduct,
+// An excerpt shows some definitions of a model rendered before it ("handler OrderProduct,
 // event ProductOrdered"), cut from its canonical source, so a snippet is checked without being
 // a complete model. A fragment is any text, only highlighted: for syntax that is not a whole
-// definition. A model's `surface: "code"` makes its link open the playground's code view.
+// definition. A model's `surface: "code"` makes its link open the playground's code view, and a
+// model using what the playground keeps behind its experimental flag opens with the flag on.
 //
 // A block with `extends` holds only what changes: every definition it declares replaces the
 // parent's definition of the same kind and name in place. Scenarios merge by name: a redefined
-// command or projection keeps the parent's scenarios, a restated one (same name) replaces the
-// parent's, and new ones are added. Everything else is inherited, except what `removes` lists ("command OrderProduct, event
+// handler or projection keeps the parent's scenarios, a restated one (same name) replaces the
+// parent's, and new ones are added. Everything else is inherited, except what `removes` lists ("handler OrderProduct, event
 // ProductOrdered"). A definition that is both removed and declared again replaces the parent's
 // entirely, without inheriting its scenarios. The rendered notation is always the complete model, printed
 // canonically, with the lines that differ from the parent marked.
@@ -78,15 +79,15 @@ function seedRandom(seedText) {
 
 const KIND_OF_KEYWORD = {
   type: 'custom-type-definition', enum: 'custom-type-definition', record: 'custom-type-definition', event: 'event-definition', entity: 'entity-definition',
-  projection: 'projection-definition', command: 'command-definition',
+  projection: 'projection-definition', handler: 'command-definition',
 };
 
-// "command OrderProduct, event ProductOrdered" → ['command-definition OrderProduct', …]
+// "handler OrderProduct, event ProductOrdered" → ['command-definition OrderProduct', …]
 function definitionKeys(list, what) {
   return (list || '').split(',').map((entry) => entry.trim()).filter(Boolean).map((entry) => {
     const [keyword, name, ...rest] = entry.split(/\s+/);
     if (!KIND_OF_KEYWORD[keyword] || !name || rest.length) {
-      throw new BuildError(`${what}: cannot read "${entry}", expected e.g. "command OrderProduct"`);
+      throw new BuildError(`${what}: cannot read "${entry}", expected e.g. "handler OrderProduct"`);
     }
     return `${KIND_OF_KEYWORD[keyword]} ${name}`;
   });
@@ -158,8 +159,9 @@ function merge(parentSource, childSource, child, block) {
   const parentRanges = definitionRanges(parentLines, parent);
   const fromChild = (first, last) => childLines.slice(first - 1, last)
     .map((line, i) => ({ line, origin: `line ${first + i} of block "${block.id}"` }));
-  // A redefined command or projection keeps the parent's scenarios it does not restate: one
-  // with the same name replaces the parent's in place, new ones follow the inherited ones.
+  // A redefined handler or projection keeps the parent's scenarios it does not restate: one
+  // with the same name replaces the parent's in place, new ones follow the inherited ones, all
+  // in the one `scenarios { … }` group that ends the definition.
   const redefinition = (key, range) => {
     const inherited = scenariosOf(parentLines, parent, key);
     if (!inherited.length) return fromChild(range.first, range.last);
@@ -175,9 +177,12 @@ function merge(parentSource, childSource, child, block) {
       ...own.filter((s) => s.name === null || !inherited.some((p) => p.name === s.name))
         .map((s) => fromChild(s.first, s.last)),
     ];
-    const lines = fromChild(range.first, own.length ? own[0].first - 1 : range.last - 1);
+    const group = child.groups.find((g) => g.block && `${g.block.kind} ${g.block.name}` === key);
+    const lines = fromChild(range.first, group ? group.head.line - 1 : range.last - 1);
     while (lines.length && lines[lines.length - 1].line.trim() === '') lines.pop();
-    for (const scenario of scenarios) lines.push({ line: '', origin: '' }, ...scenario);
+    lines.push({ line: '', origin: '' }, { line: '  scenarios {', origin: '' });
+    scenarios.forEach((scenario, i) => lines.push(...(i ? [{ line: '', origin: '' }] : []), ...scenario));
+    lines.push({ line: '  }', origin: '' });
     return [...lines, ...fromChild(range.last, range.last)];
   };
   const removed = removedKeys(block);
@@ -260,9 +265,60 @@ function changedLines(base, lines) {
   return changed;
 }
 
+// The colours of the playground's code view for a text that is only shown: the playground's
+// own lexer, its tokens classed by the keyword lists its editor highlights with, so a word is
+// never read differently from the parser. The comments the lexer skips are the gaps between
+// tokens. Returns `[class, text]` runs that concatenate back to `text`; class is null for
+// what the editor leaves uncoloured.
+const [lexSource, KEYWORDS, STATEMENTS, BASE_TYPES] = vm.runInContext(
+  '[lexSource, SOURCE_KEYWORDS, SOURCE_STATEMENTS, SOURCE_BASE_TYPES]', playground);
+
+function highlight(text) {
+  const starts = [0];
+  for (let i = 0; i < text.length; i++) if (text[i] === '\n') starts.push(i + 1);
+  const offset = (line, col) => starts[line - 1] + col - 1;
+  const tokens = lexSource(text).tokens.filter((token) => token.t !== 'eof');
+  const runs = [];
+  const gap = (from, to) => {
+    const between = text.slice(from, to);
+    let at = 0;
+    for (const match of between.matchAll(/\/\/[^\n]*|\/\*[\s\S]*?(?:\*\/|$)/g)) {
+      if (match.index > at) runs.push([null, between.slice(at, match.index)]);
+      runs.push(['comment', match[0]]);
+      at = match.index + match[0].length;
+    }
+    if (at < between.length) runs.push([null, between.slice(at)]);
+  };
+  let at = 0;
+  tokens.forEach((token, i) => {
+    const from = offset(token.line, token.col);
+    const to = offset(token.endLine, token.endCol);
+    gap(at, from);
+    const following = tokens[i + 1];
+    let cls = null;
+    if (token.t === 'string') cls = 'string';
+    else if (token.t === 'number') cls = 'number';
+    else if (token.t === 'code') cls = 'code';
+    else if (token.t === 'punct' && token.v === '@' && following && following.t === 'ident') cls = 'annotation';
+    else if (token.t === 'ident') {
+      const previous = tokens[i - 1];
+      if (previous && previous.t === 'punct' && previous.v === '@') cls = 'annotation';
+      else if (token.v === 'event' && following && following.v === '.') cls = 'keyword';
+      else if (/^[A-Z]/.test(token.v)) cls = 'type';
+      else if (STATEMENTS.includes(token.v)) cls = 'flow';
+      else if (KEYWORDS.includes(token.v)) cls = 'keyword';
+      else if (BASE_TYPES.includes(token.v)) cls = 'type';
+    }
+    runs.push([cls, text.slice(from, to)]);
+    at = to;
+  });
+  gap(at, text.length);
+  return runs;
+}
+
 function notationHtml(source, parentSource = null) {
   const lines = [[]];
-  for (const [cls, text] of playground.sourceHighlight(source)) {
+  for (const [cls, text] of highlight(source)) {
     text.split('\n').forEach((part, i) => {
       if (i > 0) lines.push([]);
       if (part) lines[lines.length - 1].push(cls ? `<span class="dcb-hl-${cls}">${escapeHtml(part)}</span>` : escapeHtml(part));
@@ -286,6 +342,10 @@ const tagHtml = (tag) => {
 };
 const listHtml = (values, render, empty) => (values.length ? values.map(render).join(', ') : empty);
 
+// A Query Item is named by its alias, or, for a read written in place, by the read as written:
+// CourseStatus(courseId).
+const readLabel = (item) => item.alias || playground.operandText(JSON.parse(item.inline));
+
 function boundaryHtml(model) {
   const sections = Object.entries(model['command-definitions']).map(([name, body]) => {
     const summary = playground.boundarySummary(model, body);
@@ -301,7 +361,7 @@ function boundaryHtml(model) {
     const several = summary.queries.length > 1;
     const rows = summary.items.map((item) => '<tr>'
       + (several ? `<td>${queryOf.get(item) || ''}</td>` : '')
-      + `<td><code>${escapeHtml(item.alias)}</code>${item.fannedOut ? ' (one per element)' : ''}</td>`
+      + `<td><code>${escapeHtml(readLabel(item))}</code>${item.fannedOut ? ' (one per element)' : ''}</td>`
       + `<td>${listHtml(item.types, (t) => `<code>${escapeHtml(t)}</code>`, 'any type')}</td>`
       + `<td>${listHtml(item.tags, tagHtml, 'none')}</td>`
       + '</tr>').join('');
@@ -319,7 +379,8 @@ function boundaryHtml(model) {
 function shareLink(model, surface) {
   const envelope = playground.buildShareEnvelope(model, []);
   return PLAYGROUND_URL + '#model=' + zlib.gzipSync(JSON.stringify(envelope)).toString('base64url')
-    + (surface ? `&surface=${surface}` : '');
+    + (surface ? `&surface=${surface}` : '')
+    + (playground.experimentalFeatures(model).length ? '&experimental' : '');
 }
 
 // The definitions `show` names, in that order, each with the annotations above it and the
@@ -359,9 +420,17 @@ function renderBlock(block, parents) {
     if (parentSource === undefined) {
       throw new BuildError(`block "${block.id}" extends "${block.extends}", which is not defined before it`);
     }
-    const childErrors = child.diagnostics.filter((d) => d.severity === 'error');
-    if (childErrors.length) throw new BuildError(childErrors.map((e) => `${where(e.line)}: ${e.message}`).join('\n'));
-    const merged = merge(parentSource, block.source, child, block);
+    // A block on its own may read projections only its parent declares, so it is checked as
+    // part of the merged model, whose messages point back to the block's lines. Its own errors
+    // are reported only if it cannot even be merged.
+    let merged;
+    try {
+      merged = merge(parentSource, block.source, child, block);
+    } catch (error) {
+      const childErrors = child.diagnostics.filter((d) => d.severity === 'error');
+      if (!childErrors.length) throw error;
+      throw new BuildError(childErrors.map((e) => `${where(e.line)}: ${e.message}`).join('\n'));
+    }
     text = merged.text;
     where = (line) => merged.origin[line - 1] || `line ${line} of the merged model "${block.id}"`;
   }

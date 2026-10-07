@@ -31,25 +31,25 @@ model "Opt-in token"
 tag type EmailAddress = string
 tag type Otp = string
 
-event SignUpInitiated { emailAddress: EmailAddress, otp: Otp, name: string }
-event SignUpConfirmed { emailAddress: EmailAddress, otp: Otp, name: string }
+event SignUpInitiated { tag emailAddress: EmailAddress, tag otp: Otp, name: string }
+event SignUpConfirmed { tag emailAddress: EmailAddress, tag otp: Otp, name: string }
 
-projection SignUpPending(emailAddress: EmailAddress, otp: Otp): boolean = false {
+projection SignUpPending (tag emailAddress: EmailAddress, tag otp: Otp): boolean = false {
   on SignUpInitiated => set true
 }
 
-projection SignUpName(emailAddress: EmailAddress, otp: Otp): string = null {
+projection SignUpName (tag emailAddress: EmailAddress, tag otp: Otp): string = null {
   on SignUpInitiated => set event.data.name
 }
 
-projection OtpUsed(emailAddress: EmailAddress, otp: Otp): boolean = false {
+projection OtpUsed (tag emailAddress: EmailAddress, tag otp: Otp): boolean = false {
   on SignUpConfirmed => set true
 }
 
-command ConfirmSignUp(emailAddress: EmailAddress, otp: Otp) {
-  read pending = SignUpPending(emailAddress, otp)
-  read used = OtpUsed(emailAddress, otp)
-  read name = SignUpName(emailAddress, otp)
+handler ConfirmSignUp(emailAddress: EmailAddress, otp: Otp) {
+  alias pending = SignUpPending(emailAddress, otp)
+  alias used = OtpUsed(emailAddress, otp)
+  alias name = SignUpName(emailAddress, otp)
 
   require pending is true
     else reject "No sign-up is pending for this code"
@@ -58,28 +58,30 @@ command ConfirmSignUp(emailAddress: EmailAddress, otp: Otp) {
 
   emit SignUpConfirmed { emailAddress, otp, name }
 
-  scenario "Confirm SignUp for non-existing OTP" {
-    when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "000000" }
-    then rejected "No sign-up is pending for this code"
-  }
+  scenarios {
+    scenario "Confirm SignUp for non-existing OTP" {
+      when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "000000" }
+      then rejected "No sign-up is pending for this code"
+    }
 
-  scenario "Confirm SignUp for OTP assigned to different email address" {
-    given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "111111", name: "John Doe" }
-    when ConfirmSignUp { emailAddress: "jane.doe@example.com", otp: "111111" }
-    then rejected "No sign-up is pending for this code"
-  }
+    scenario "Confirm SignUp for OTP assigned to different email address" {
+      given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "111111", name: "John Doe" }
+      when ConfirmSignUp { emailAddress: "jane.doe@example.com", otp: "111111" }
+      then rejected "No sign-up is pending for this code"
+    }
 
-  scenario "Confirm SignUp for already used OTP" {
-    given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "222222", name: "John Doe" }
-    given SignUpConfirmed { emailAddress: "john.doe@example.com", otp: "222222", name: "John Doe" }
-    when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "222222" }
-    then rejected "Code was already used"
-  }
+    scenario "Confirm SignUp for already used OTP" {
+      given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "222222", name: "John Doe" }
+      given SignUpConfirmed { emailAddress: "john.doe@example.com", otp: "222222", name: "John Doe" }
+      when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "222222" }
+      then rejected "Code was already used"
+    }
 
-  scenario "Confirm SignUp for valid OTP" {
-    given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "444444", name: "John Doe" }
-    when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "444444" }
-    then SignUpConfirmed { emailAddress: "john.doe@example.com", otp: "444444", name: "John Doe" }
+    scenario "Confirm SignUp for valid OTP" {
+      given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "444444", name: "John Doe" }
+      when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "444444" }
+      then SignUpConfirmed { emailAddress: "john.doe@example.com", otp: "444444", name: "John Doe" }
+    }
   }
 }
 ```
@@ -97,17 +99,17 @@ model "Opt-in token (expiring)"
 
 type Minute = integer
 
-event SignUpInitiated { emailAddress: EmailAddress, otp: Otp, name: string, expiresAt: Minute }
+event SignUpInitiated { tag emailAddress: EmailAddress, tag otp: Otp, name: string, expiresAt: Minute }
 
-projection OtpExpiresAt(emailAddress: EmailAddress, otp: Otp): Minute = 0 {
+projection OtpExpiresAt (tag emailAddress: EmailAddress, tag otp: Otp): Minute = 0 {
   on SignUpInitiated => set event.data.expiresAt
 }
 
-command ConfirmSignUp(emailAddress: EmailAddress, otp: Otp, now: Minute) {
-  read pending = SignUpPending(emailAddress, otp)
-  read used = OtpUsed(emailAddress, otp)
-  read expiresAt = OtpExpiresAt(emailAddress, otp)
-  read name = SignUpName(emailAddress, otp)
+handler ConfirmSignUp(emailAddress: EmailAddress, otp: Otp, now: Minute) {
+  alias pending = SignUpPending(emailAddress, otp)
+  alias used = OtpUsed(emailAddress, otp)
+  alias expiresAt = OtpExpiresAt(emailAddress, otp)
+  alias name = SignUpName(emailAddress, otp)
 
   require pending is true
     else reject "No sign-up is pending for this code"
@@ -118,34 +120,36 @@ command ConfirmSignUp(emailAddress: EmailAddress, otp: Otp, now: Minute) {
 
   emit SignUpConfirmed { emailAddress, otp, name }
 
-  scenario "Confirm SignUp for non-existing OTP" {
-    when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "000000", now: 100 }
-    then rejected "No sign-up is pending for this code"
-  }
+  scenarios {
+    scenario "Confirm SignUp for non-existing OTP" {
+      when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "000000", now: 100 }
+      then rejected "No sign-up is pending for this code"
+    }
 
-  scenario "Confirm SignUp for OTP assigned to different email address" {
-    given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "111111", name: "John Doe", expiresAt: 160 }
-    when ConfirmSignUp { emailAddress: "jane.doe@example.com", otp: "111111", now: 100 }
-    then rejected "No sign-up is pending for this code"
-  }
+    scenario "Confirm SignUp for OTP assigned to different email address" {
+      given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "111111", name: "John Doe", expiresAt: 160 }
+      when ConfirmSignUp { emailAddress: "jane.doe@example.com", otp: "111111", now: 100 }
+      then rejected "No sign-up is pending for this code"
+    }
 
-  scenario "Confirm SignUp for already used OTP" {
-    given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "222222", name: "John Doe", expiresAt: 160 }
-    given SignUpConfirmed { emailAddress: "john.doe@example.com", otp: "222222", name: "John Doe" }
-    when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "222222", now: 100 }
-    then rejected "Code was already used"
-  }
+    scenario "Confirm SignUp for already used OTP" {
+      given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "222222", name: "John Doe", expiresAt: 160 }
+      given SignUpConfirmed { emailAddress: "john.doe@example.com", otp: "222222", name: "John Doe" }
+      when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "222222", now: 100 }
+      then rejected "Code was already used"
+    }
 
-  scenario "Confirm SignUp for expired OTP" {
-    given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "333333", name: "John Doe", expiresAt: 99 }
-    when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "333333", now: 100 }
-    then rejected "Code has expired"
-  }
+    scenario "Confirm SignUp for expired OTP" {
+      given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "333333", name: "John Doe", expiresAt: 99 }
+      when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "333333", now: 100 }
+      then rejected "Code has expired"
+    }
 
-  scenario "Confirm SignUp for valid OTP" {
-    given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "444444", name: "John Doe", expiresAt: 160 }
-    when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "444444", now: 100 }
-    then SignUpConfirmed { emailAddress: "john.doe@example.com", otp: "444444", name: "John Doe" }
+    scenario "Confirm SignUp for valid OTP" {
+      given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "444444", name: "John Doe", expiresAt: 160 }
+      when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "444444", now: 100 }
+      then SignUpConfirmed { emailAddress: "john.doe@example.com", otp: "444444", name: "John Doe" }
+    }
   }
 }
 ```

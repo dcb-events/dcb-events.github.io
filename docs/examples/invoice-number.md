@@ -13,7 +13,7 @@ As this challenge is similar to the [Unique username example](unique-username.md
 
 ## DCB approach
 
-This requirement could be solved with an in-memory [Projection](../topics/projections.md) `NextInvoiceNumber` that calculates the next number from the `InvoiceCreated` events. Since it has no parameters, the Query only filters by Event Type, and the resulting `AppendCondition` fails if _any_ invoice was created in the meantime:
+This requirement could be solved with an in-memory [Projection](../topics/projections.md) `NextInvoiceNumber` that calculates the next number from the `InvoiceCreated` events. Since it is `untagged`, the Query only filters by Event Type, and the resulting `AppendCondition` fails if _any_ invoice was created in the meantime:
 
 ```dcb id="invoice_number_01"
 model "Invoice number"
@@ -21,26 +21,28 @@ model "Invoice number"
 tag type InvoiceNumber = integer
 type InvoiceData = object
 
-event InvoiceCreated { invoiceNumber: InvoiceNumber, invoiceData: InvoiceData }
+event InvoiceCreated { tag invoiceNumber: InvoiceNumber, invoiceData: InvoiceData }
 
-projection NextInvoiceNumber: InvoiceNumber = 1 {
+untagged projection NextInvoiceNumber: InvoiceNumber = 1 {
   on InvoiceCreated => set successor(event.data.invoiceNumber)
 }
 
-command CreateInvoice(invoiceData: InvoiceData) {
-  read next = NextInvoiceNumber()
+handler CreateInvoice(invoiceData: InvoiceData) {
+  alias next = NextInvoiceNumber()
 
   emit InvoiceCreated { invoiceNumber: next, invoiceData }
 
-  scenario "Create first invoice" {
-    when CreateInvoice { invoiceData: { foo: "bar" } }
-    then InvoiceCreated { invoiceNumber: 1, invoiceData: { foo: "bar" } }
-  }
+  scenarios {
+    scenario "Create first invoice" {
+      when CreateInvoice { invoiceData: { foo: "bar" } }
+      then InvoiceCreated { invoiceNumber: 1, invoiceData: { foo: "bar" } }
+    }
 
-  scenario "Create second invoice" {
-    given InvoiceCreated { invoiceNumber: 1, invoiceData: { foo: "bar" } }
-    when CreateInvoice { invoiceData: { bar: "baz" } }
-    then InvoiceCreated { invoiceNumber: 2, invoiceData: { bar: "baz" } }
+    scenario "Create second invoice" {
+      given InvoiceCreated { invoiceNumber: 1, invoiceData: { foo: "bar" } }
+      when CreateInvoice { invoiceData: { bar: "baz" } }
+      then InvoiceCreated { invoiceNumber: 2, invoiceData: { bar: "baz" } }
+    }
   }
 }
 ```

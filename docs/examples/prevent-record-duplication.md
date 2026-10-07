@@ -40,30 +40,32 @@ model "Prevent record duplication"
 tag type OrderId = string
 tag type IdempotencyToken = string
 
-event OrderPlaced { orderId: OrderId, idempotencyToken: IdempotencyToken }
+event OrderPlaced { tag orderId: OrderId, tag idempotencyToken: IdempotencyToken }
 
-projection IdempotencyTokenWasUsed(idempotencyToken: IdempotencyToken): boolean = false {
+projection IdempotencyTokenWasUsed (tag idempotencyToken: IdempotencyToken): boolean = false {
   on OrderPlaced => set true
 }
 
-command PlaceOrder(orderId: OrderId, idempotencyToken: IdempotencyToken) {
-  read tokenUsed = IdempotencyTokenWasUsed(idempotencyToken)
+handler PlaceOrder(orderId: OrderId, idempotencyToken: IdempotencyToken) {
+  alias tokenUsed = IdempotencyTokenWasUsed(idempotencyToken)
 
   require tokenUsed is false
     else reject "Order was already placed"
 
   emit OrderPlaced { orderId, idempotencyToken }
 
-  scenario "Place order with previously used idempotency token" {
-    given OrderPlaced { orderId: "o12345", idempotencyToken: "11111" }
-    when PlaceOrder { orderId: "o54321", idempotencyToken: "11111" }
-    then rejected "Order was already placed"
-  }
+  scenarios {
+    scenario "Place order with previously used idempotency token" {
+      given OrderPlaced { orderId: "o12345", idempotencyToken: "11111" }
+      when PlaceOrder { orderId: "o54321", idempotencyToken: "11111" }
+      then rejected "Order was already placed"
+    }
 
-  scenario "Place order with new idempotency token" {
-    given OrderPlaced { orderId: "o12345", idempotencyToken: "11111" }
-    when PlaceOrder { orderId: "o54321", idempotencyToken: "22222" }
-    then OrderPlaced { orderId: "o54321", idempotencyToken: "22222" }
+    scenario "Place order with new idempotency token" {
+      given OrderPlaced { orderId: "o12345", idempotencyToken: "11111" }
+      when PlaceOrder { orderId: "o54321", idempotencyToken: "22222" }
+      then OrderPlaced { orderId: "o54321", idempotencyToken: "22222" }
+    }
   }
 }
 ```

@@ -4,7 +4,7 @@ icon: material/book-alphabet
 
 # DCB notation reference
 
-Every construct of the [DCB notation](index.md), grouped like the help of the [:material-play-box-outline: DCB Playground](/playground/). The [advanced](#advanced) constructs, which are not needed to read most examples, are listed at the end. The [guide](index.md) introduces the notation step by step.
+Every construct of the [DCB notation](index.md), grouped like the help of the [:material-play-box-outline: DCB Playground](/playground/). The [advanced](#advanced) constructs, which are not needed to read most examples, and the [experimental](#experimental) ones are listed at the end. The [guide](index.md) introduces the notation step by step.
 
 The snippets are taken from one model about courses and students, which the build of this website checks like every example.
 
@@ -20,17 +20,16 @@ enum CourseStatus { NonExistent, Existent, Archived }
 record PersonName { given: string, family: string }
 
 // Events
-event CourseDefined { courseId: CourseId, capacity: Capacity }
-event CourseCapacityChanged { courseId: CourseId, newCapacity: Capacity }
-event CourseArchived { courseId: CourseId }
-event CourseRescheduled { courseId: CourseId, slots: TimeSlot[] }
-event StudentRegistered { studentId: StudentId, name: PersonName, email?: string }
-event StudentSubscribedToCourse { courseId: CourseId, studentId: StudentId }
-event StudentWaitlistedForCourse { courseId: CourseId, studentId: StudentId }
+event CourseDefined { tag courseId: CourseId, capacity: Capacity }
+event CourseCapacityChanged { tag courseId: CourseId, newCapacity: Capacity }
+event CourseArchived { tag courseId: CourseId }
+event CourseRescheduled { tag courseId: CourseId, slots: TimeSlot[] }
+event StudentRegistered { tag studentId: StudentId, name: PersonName, email?: string }
+event StudentSubscribedToCourse { tag courseId: CourseId, tag studentId: StudentId }
 
 // Entities
 @icon("📚")
-entity Course {
+entity Course (tag courseId: CourseId) {
   lifecycle status
   status = CourseStatus
   capacity = CourseCapacity
@@ -41,111 +40,108 @@ entity Course {
 }
 
 @icon("🧑‍🎓")
-entity Student {
+entity Student (tag studentId: StudentId) {
   lifecycle exists
   exists = StudentExists
   subscribedCourseIds = StudentSubscribedCourseIds
 }
 
 // Projections
-projection CourseStatus(courseId: CourseId): CourseStatus = NonExistent {
+projection CourseStatus (tag courseId: CourseId): CourseStatus = NonExistent {
   on CourseDefined => set Existent
   on CourseArchived => set Archived
 
-  scenario "a defined course exists" {
-    given CourseDefined { courseId: "c1", capacity: 10 }
-    then CourseStatus("c1") == Existent
+  scenarios {
+    scenario "a defined course exists" {
+      given CourseDefined { courseId: "c1", capacity: 10 }
+      then CourseStatus(CourseId("c1")) == Existent
+    }
   }
 }
 
-projection StudentExists(studentId: StudentId): boolean = false {
+projection StudentExists (tag studentId: StudentId): boolean = false {
   on StudentRegistered => set true
 }
 
-projection CourseCapacity(courseId: CourseId): integer = 0 {
+projection CourseCapacity (tag courseId: CourseId): integer = 0 {
   on CourseDefined => set event.data.capacity
   on CourseCapacityChanged => set event.data.newCapacity
 }
 
-projection CourseSubscriptionCount(courseId: CourseId): integer = 0 {
+projection CourseSubscriptionCount (tag courseId: CourseId): integer = 0 {
   on StudentSubscribedToCourse => increment 1
 }
 
-projection CourseSubscribedStudentIds(courseId: CourseId): StudentId[] = [] {
+projection CourseSubscribedStudentIds (tag courseId: CourseId): StudentId[] = [] {
   on StudentSubscribedToCourse => append event.data.studentId
 }
 
-projection StudentSubscribedCourseIds(studentId: StudentId): CourseId[] = [] {
+projection StudentSubscribedCourseIds (tag studentId: StudentId): CourseId[] = [] {
   on StudentSubscribedToCourse => append event.data.courseId
 }
 
-projection CourseSlots(courseId: CourseId): TimeSlot[] = [] {
+projection CourseSlots (tag courseId: CourseId): TimeSlot[] = [] {
   on CourseRescheduled => set event.data.slots
 }
 
-projection CourseNumbering: CourseId = "c1" {
+untagged projection CourseNumbering: CourseId = "c1" {
   on CourseDefined => set successor(event.data.courseId)
 }
 
-projection CourseIsFull(courseId: CourseId): boolean
+projection CourseIsFull (tag courseId: CourseId): boolean
   derived CourseSubscriptionCount(courseId) >= CourseCapacity(courseId)
 
-projection CoursePeakSubscriptions: integer {
-  script(courseId: CourseId)
-  tagFilter ["CourseId:{courseId}"]
+projection CoursePeakSubscriptions (tag courseId: CourseId): integer {
+  script
   initialState { current: 0, peak: 0 }
   exposes peak
   on StudentSubscribedToCourse => ```({ current: state.current + 1, peak: Math.max(state.peak, state.current + 1) })```
 }
 
-// Commands
+// Command handlers
 @feature("Course management")
-command DefineCourse(capacity: Capacity) {
-  read numbering = CourseNumbering()
-
-  emit CourseDefined { courseId: numbering, capacity }
+handler DefineCourse(capacity: Capacity) {
+  emit CourseDefined { courseId: CourseNumbering(), capacity }
 }
 
 @feature("Course management")
-command ChangeCourseCapacity(courseId: CourseId, newCapacity: Capacity) {
-  read course = Course[courseId]
-
-  require course.status == Existent
+handler ChangeCourseCapacity(courseId: CourseId, newCapacity: Capacity) {
+  require CourseStatus(courseId) == Existent
     else reject "Course is not active"
-  require course.subscriptionCount <= newCapacity
+  require CourseSubscriptionCount(courseId) <= newCapacity
     else reject "Course has more subscriptions than that"
 
   emit CourseCapacityChanged { courseId, newCapacity }
 }
 
 @feature("Course management")
-command ArchiveCourse(courseId: CourseId) {
-  read course = Course[courseId]
-
-  require course.status == Existent
+handler ArchiveCourse(courseId: CourseId) {
+  require CourseStatus(courseId) == Existent
     else reject "Course is not active"
 
   emit CourseArchived { courseId }
 
-  scenario "an archived course cannot be archived again" {
-    given CourseDefined { courseId: "c1", capacity: 10 }
-    given CourseArchived { courseId: "c1" }
-    when ArchiveCourse { courseId: "c1" }
-    then rejected "Course is not active"
-  }
+  scenarios {
+    scenario "an archived course cannot be archived again" {
+      given CourseDefined { courseId: "c1", capacity: 10 }
+      given CourseArchived { courseId: "c1" }
+      when ArchiveCourse { courseId: "c1" }
+      then rejected "Course is not active"
+    }
 
-  scenario "an existing course is archived" {
-    given CourseDefined { courseId: "c1", capacity: 10 }
-    when ArchiveCourse { courseId: "c1" }
-    then CourseArchived { courseId: "c1" }
+    scenario "an existing course is archived" {
+      given CourseDefined { courseId: "c1", capacity: 10 }
+      when ArchiveCourse { courseId: "c1" }
+      then CourseArchived { courseId: "c1" }
+    }
   }
 }
 
 @feature("Course management")
-command RescheduleCourse(courseId: CourseId, slots: TimeSlot[]) {
-  read course = Course[courseId]
-  read students = Student[course.subscribedStudentIds]
-  read theirs = Course[students.subscribedCourseIds] excluding courseId
+handler RescheduleCourse(courseId: CourseId, slots: TimeSlot[]) {
+  alias course = Course(courseId)
+  alias students = Student(each course.subscribedStudentIds)
+  alias theirs = Course(each students.subscribedCourseIds) excluding courseId
 
   require course.status == Existent
     else reject "Course is not active"
@@ -156,8 +152,8 @@ command RescheduleCourse(courseId: CourseId, slots: TimeSlot[]) {
 }
 
 @feature("Students")
-command RegisterStudent(studentId: StudentId, name: PersonName, email?: string) {
-  read student = Student[studentId]
+handler RegisterStudent(studentId: StudentId, name: PersonName, email?: string) {
+  alias student = Student(studentId)
 
   require student.exists is false
     else reject "Student is already registered"
@@ -166,23 +162,19 @@ command RegisterStudent(studentId: StudentId, name: PersonName, email?: string) 
 }
 
 @feature("Enrolment")
-command SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
-  read course = Course[courseId]
-  read student = Student[studentId]
+handler SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
+  alias subscribedCourseIds = StudentSubscribedCourseIds(studentId)
 
-  require course.status == Existent
+  require CourseStatus(courseId) == Existent
     else reject "Course is not active"
-  require student.exists is true
+  require StudentExists(studentId) is true
     else reject "Student is not registered"
-  require course.subscribedStudentIds not contains studentId
+  require CourseSubscribedStudentIds(courseId) not contains studentId
     else reject "Student is already subscribed"
-  require count(student.subscribedCourseIds) < 10
+  require count(subscribedCourseIds) < 10
     else reject "Student is subscribed to too many courses"
 
   emit StudentSubscribedToCourse { courseId, studentId }
-    when course.isFull is false
-  emit StudentWaitlistedForCourse { courseId, studentId }
-    when course.isFull is true
 }
 ````
 
@@ -211,7 +203,7 @@ Comments are for the reader only. The DCB Playground does not store them, so the
 "text"  42  1.5  true  false  null  ["c1", "c2"]  { given: "Ada", family: "Lovelace" }
 ```
 
-Values are written as JSON. Keys of objects may be written without quotes. Members of an [`enum`](#enum) are written without quotes wherever the type is known.
+Values are written as JSON. Keys of objects may be written without quotes. Members of an [`enum`](#enum) are written without quotes wherever the type is known. A value of a [tag type](#tag-type) may be written with its type, `CourseId("c1")`, and has to be where a [read](#read) is given one.
 
 ## Data
 
@@ -220,7 +212,7 @@ Values are written as JSON. Keys of objects may be written without quotes. Membe
 ```dcb excerpt="notation_reference" show="type CourseId, type StudentId"
 ```
 
-An identifier. Every Event with a property of this type is [tagged](../specification.md#tag) with its value: `CourseId:c1`. The Tags of an Event are never declared, they follow from the types of its properties.
+An identifier that can be a [Tag](../specification.md#tag). The type's name is the key of the Tag: the value `"c1"` is the Tag `CourseId:c1`. Only a value of a tag type can be a Tag.
 
 The constraints after the base type are optional, see [`type`](#type). With `@tagSchema("{type}={value}")` a Tag is written differently, `{type}:{value}` is the default.
 
@@ -233,9 +225,22 @@ An [Event](../specification.md#event), named in the past tense, with its propert
 
 | Property | Meaning |
 |---|---|
-| `courseId: CourseId` | a property, typed with a declared type or a basic one (`string`, `number`, `integer`, `boolean`) |
+| `capacity: Capacity` | a property, typed with a declared type or a basic one (`string`, `number`, `integer`, `boolean`) |
 | `email?: string` | optional: `null` when not set |
 | `slots: TimeSlot[]` | a list |
+| `tag courseId: CourseId` | a Tag of the Event, see [`tag`](#tag) |
+
+### `tag` { #tag }
+
+```dcb excerpt="notation_reference" show="event StudentSubscribedToCourse"
+```
+
+Marks a property of an Event as one of its Tags. The property has to be of a [tag type](#tag-type). An Event has no other Tags than the ones it marks.
+
+| Mark | Meaning |
+|---|---|
+| `tag courseId: CourseId` | the value is a Tag |
+| `items: Item[] tag each productId` | every element of the list is a Tag, by the field of the [record](#record) it holds |
 
 ## State
 
@@ -244,12 +249,16 @@ An [Event](../specification.md#event), named in the past tense, with its propert
 ```dcb excerpt="notation_reference" show="projection CourseCapacity, projection CourseSubscribedStudentIds"
 ```
 
-A fold over Events: parameters, the value's type, the initial value, and one handler per Event type. The parameters are tag types: `CourseCapacity("c1")` only sees Events tagged `CourseId:c1`. A projection without parameters sees all Events of the types it handles:
+A fold over Events: the Tags it is kept by, the value's type, the initial value, and one handler per Event type. `CourseCapacity` is kept per course: read for `"c1"`, it only sees Events tagged `CourseId:c1`. A projection with several Tags, `(tag courseId: CourseId, tag studentId: StudentId)`, only sees Events with all of them.
+
+See [projections](../topics/projections.md) for the concept.
+
+### `untagged` { #untagged }
 
 ```dcb excerpt="notation_reference" show="projection CourseNumbering"
 ```
 
-See [projections](../topics/projections.md) for the concept.
+A projection without Tags, which sees all Events of the types it handles. A projection either names its Tags or says it has none.
 
 ### `on` { #on }
 
@@ -271,30 +280,41 @@ A property of the Event being handled. Besides that, a handler's value is a [lit
 
 ## Behaviour
 
-### `command` { #command }
+### `handler` { #command }
 
-```dcb excerpt="notation_reference" show="command ChangeCourseCapacity"
+```dcb excerpt="notation_reference" show="handler ChangeCourseCapacity"
 ```
 
-What can be done: the command's properties (`?` optional, `[]` a list), then its [reads](#read), [conditions](#require) and [Events](#emit), in this order.
+A command and how it is decided. The header is the command: its name and its properties (`?` optional, `[]` a list). The body has its [aliases](#alias), [conditions](#require) and [Events](#emit), in this order.
 
-### `read` { #read }
+### Reads { #read }
 
 ```dcb-fragment
-read numbering = CourseNumbering()
-read count = CourseSubscriptionCount(courseId)
+CourseStatus(courseId)
+CourseNumbering()
+CourseStatus(CourseId("c1"))
 ```
 
-Binds the value of a projection to a name that conditions and Events refer to. There is one argument per parameter of the projection, `StudentExists(studentId: tutorId)`, and `(courseId)` is short for `(courseId: courseId)`. The arguments are properties of the command, earlier reads or literals.
+The value of a projection, for a value of each of its Tags, in the order the projection declares them. An [untagged](#untagged) projection is read with `()`. A value is a property of the command, an alias, another read or a literal of the [tag type](#literals).
+
+A read can be written wherever a value is: in a condition, in an Event's property, or as the value of another read. The same read written twice is read once.
+
+### `alias` { #alias }
+
+```dcb-fragment
+alias subscribedCourseIds = StudentSubscribedCourseIds(studentId)
+```
+
+A name for a [read](#read), for conditions and Events that use it more than once. It does not read anything where it is written: which Events a command reads follows from what its conditions and Events use.
 
 ### `require` { #require }
 
-```dcb excerpt="notation_reference" show="command SubscribeStudentToCourse"
+```dcb excerpt="notation_reference" show="handler SubscribeStudentToCourse"
 ```
 
 A condition that has to hold, otherwise the command is rejected with the message after `else reject`. The message is required, on the same line or the next. It is static text, one line, by convention in sentence case without a full stop. Several conditions may share a message: the messages are the complete set of reasons a command can be rejected for, and a scenario names a rejection by its message.
 
-Operands are properties of the command (`studentId`), reads and their properties (`course.status`), literals and enum members.
+Operands are properties of the command (`studentId`), reads, aliases and their properties (`course.status`), literals and enum members.
 
 | Condition | Meaning |
 |---|---|
@@ -309,24 +329,23 @@ Operands are properties of the command (`studentId`), reads and their properties
 
 ### `emit` { #emit }
 
-```dcb-fragment
-emit CourseDefined { courseId: numbering, capacity }
+```dcb excerpt="notation_reference" show="handler DefineCourse"
 ```
 
-Appends an Event if all conditions hold. Each property is taken from a property of the command, a read or a literal. `capacity` is short for `capacity: capacity`.
+Appends an Event if all conditions hold. Each property is taken from a property of the command, a read, an alias or a literal. `capacity` is short for `capacity: capacity`.
 
 ### Consistency boundary { #consistency-boundary }
 
-Never written. Each read contributes the Event types of the projections it uses, with the Tags of their arguments. The Events are appended with an [Append Condition](../specification.md#append-condition) that fails if an Event matching that Query was appended since the command read. See [from notation to DCB](index.md#from-notation-to-dcb) in the guide.
+Never written. Each read contributes the Event types of the projection it reads, with the Tags it is read for. The Events are appended with an [Append Condition](../specification.md#append-condition) that fails if an Event matching that Query was appended since the command read. See [from notation to DCB](index.md#from-notation-to-dcb) in the guide.
 
 ## Scenarios
 
 ### `scenario` { #scenario }
 
-```dcb excerpt="notation_reference" show="command ArchiveCourse"
+```dcb excerpt="notation_reference" show="handler ArchiveCourse"
 ```
 
-An example that pins behaviour down, inside the command or projection it is about. The name is optional.
+An example that pins behaviour down. The scenarios of a handler or projection sit in one `scenarios { … }` group at its end. The name is optional.
 
 | Line | Meaning |
 |---|---|
@@ -338,26 +357,22 @@ An example that pins behaviour down, inside the command or projection it is abou
 
 In the DCB Playground the `then` is optional, applying a text without one records what the model does. On this website every scenario has to state it.
 
+### Projection scenarios { #projection-scenario }
+
+```dcb excerpt="notation_reference" show="projection CourseStatus"
+```
+
+A scenario of a projection asserts the value the `given` Events fold to, [read](#read) for the Tags it names.
+
 ## Advanced
 
 The constructs below are not needed to read most examples. They are listed in the same order as the ones above.
-
-### Annotations <span class="dcb-badge">advanced</span> { #annotations data-toc-label="Annotations" }
-
-| Annotation | On | Effect |
-|---|---|---|
-| `@icon("📚")` | entities, events, commands | the symbol the playground shows it with |
-| `@feature("Enrolment")` | commands | the feature the playground lists it under |
-| `@tagSchema("{type}={value}")` | tag types | how a Tag of the type is written, see [`tag type`](#tag-type) |
-
-```dcb excerpt="notation_reference" show="entity Student, command RegisterStudent"
-```
 
 ### `json` <span class="dcb-badge">advanced</span> { #json data-toc-label="json" }
 
 ```dcb-fragment
 // Written as JSON: …
-command Foo json { … }
+handler Foo json { … }
 ```
 
 A definition the notation cannot express is written as the JSON the DCB Playground stores, under a comment explaining why. Examples on this website never contain one. See [the guide](index.md#json-fallback).
@@ -374,14 +389,14 @@ A named type based on `string`, `number`, `integer`, `boolean`, `object`, `array
 ```dcb excerpt="notation_reference" show="enum CourseStatus"
 ```
 
-A fixed set of values. The members are strings and are written without quotes wherever the type is known: `set Existent`, `course.status == Existent`.
+A fixed set of values. The members are strings and are written without quotes wherever the type is known: `set Existent`, `CourseStatus(courseId) == Existent`.
 
 ### `record` <span class="dcb-badge">advanced</span> { #record data-toc-label="record" }
 
 ```dcb excerpt="notation_reference" show="record PersonName"
 ```
 
-A value with fields, each typed with a basic or declared type. A record has no identity and no Tag of its own.
+A value with fields, each typed with a basic or declared type. A record has no identity of its own. A list of records can tag an Event by one of its fields, see [`tag`](#tag).
 
 ### `successor` <span class="dcb-badge">advanced</span> { #successor data-toc-label="successor" }
 
@@ -391,7 +406,48 @@ on CourseDefined => set successor(event.data.courseId)
 
 The value following another one: `7` → `8`, `c1` → `c2`, `inv-009` → `inv-010`. See [numbering](index.md#numbering) in the guide.
 
-### `currentValue` <span class="dcb-badge">advanced</span> { #current-value data-toc-label="currentValue" }
+### `script` <span class="dcb-badge">advanced</span> { #script data-toc-label="script" }
+
+```dcb excerpt="notation_reference" show="projection CoursePeakSubscriptions"
+```
+
+A projection written in JavaScript. Its Tags are declared like for any projection, so its Query is derived the same way.
+
+| Field | Meaning |
+|---|---|
+| `(tag courseId: CourseId, days: integer)` | the Tags, then further values the script takes. A [read](#read) gives them in that order: `CourseActivity(courseId, 14)` |
+| `script` | marks the projection as scripted |
+| `initialState { … }` | the state before the first Event |
+| `exposes peak` | the field of the state commands read. Without it, the whole state is the value |
+| ``on E => ```expr``` `` | a handler: an expression over `state`, `event`, `tags` (`tags.courseId`) and `args` (`args.days`) that returns the next state |
+
+The DCB Playground asks for confirmation before it opens a model containing scripts, and `?safe` in its address disables them.
+
+### Fan-out <span class="dcb-badge">advanced</span> { #fan-out data-toc-label="Fan-out" }
+
+```dcb-fragment
+require ProductExists(each items.productId) is true
+  else reject "Product does not exist"
+```
+
+`each` in front of a list reads once per element. A condition over the read has to hold for every element, and the Query contains one Query Item per element. See [fan-out reads](index.md#fan-out-reads) in the guide.
+
+## Experimental
+
+The constructs below are still being tried out. The DCB Playground only offers them once experimental features are switched on in its settings.
+
+### Annotations <span class="dcb-badge dcb-badge--experimental">experimental</span> { #annotations data-toc-label="Annotations" }
+
+| Annotation | On | Effect |
+|---|---|---|
+| `@icon("📚")` | entities, events, handlers | the symbol the playground shows it with |
+| `@feature("Enrolment")` | handlers | the feature the playground lists it under |
+| `@tagSchema("{type}={value}")` | tag types | how a Tag of the type is written, see [`tag type`](#tag-type) |
+
+```dcb excerpt="notation_reference" show="entity Student, handler RegisterStudent"
+```
+
+### `currentValue` <span class="dcb-badge dcb-badge--experimental">experimental</span> { #current-value data-toc-label="currentValue" }
 
 ```dcb-fragment
 on CourseDefined => set successor(currentValue)
@@ -399,96 +455,65 @@ on CourseDefined => set successor(currentValue)
 
 The projection's own value, before the handler is applied.
 
-### `entity` <span class="dcb-badge">advanced</span> { #entity data-toc-label="entity" }
+### `entity` <span class="dcb-badge dcb-badge--experimental">experimental</span> { #entity data-toc-label="entity" }
 
 ```dcb excerpt="notation_reference" show="entity Course"
 ```
 
-A name for projections that share an identity. Each property is a projection with the entity's identifier as its only parameter. The identifier's type is the entity's name with `Id` appended (`CourseId`). `entity Course[CourseKey] { … }` names a different one.
+A name for projections that share an identity. The entity declares its identifier like a projection declares a Tag, and each property is a projection with exactly that Tag.
 
 An entity is not stored, and it is not a consistency boundary: a command's Query contains only the Events of the properties it uses. See [entities](index.md#entities) in the guide.
 
-### `lifecycle` <span class="dcb-badge">advanced</span> { #lifecycle data-toc-label="lifecycle" }
+### `lifecycle` <span class="dcb-badge dcb-badge--experimental">experimental</span> { #lifecycle data-toc-label="lifecycle" }
 
 ```dcb excerpt="notation_reference" show="entity Student, projection StudentExists"
 ```
 
 Marks the property of an entity that holds the state an instance is in, a `boolean` (two states) or an [`enum`](#enum). The DCB Playground draws the state machine from its handlers and the conditions that guard them. An entity doesn't need a lifecycle.
 
-### `derived` <span class="dcb-badge">advanced</span> { #derived data-toc-label="derived" }
+### `derived` <span class="dcb-badge dcb-badge--experimental">experimental</span> { #derived data-toc-label="derived" }
 
 ```dcb excerpt="notation_reference" show="projection CourseIsFull"
 ```
 
-A boolean defined by one condition over other projections, written like a [`require`](#require), without handlers or initial value. Reading it reads its operands, so their Events are part of the Query.
+A boolean defined by one condition over other projections, written like a [`require`](#require), without handlers or initial value. It declares its Tags and passes them on to the projections it reads. Reading it reads its operands, so their Events are part of the Query.
 
-### `script` <span class="dcb-badge">advanced</span> { #script data-toc-label="script" }
+### Reading an entity <span class="dcb-badge dcb-badge--experimental">experimental</span> { #read-entity data-toc-label="Reading an entity" }
 
-```dcb excerpt="notation_reference" show="projection CoursePeakSubscriptions"
-```
-
-A projection written in JavaScript:
-
-| Field | Meaning |
-|---|---|
-| `script(courseId: CourseId)` | the arguments a command passes, available as `args` |
-| `tagFilter ["CourseId:{courseId}"]` | the Tags of its Query, all of which an Event must have. `{courseId}` is replaced by the argument, `[]` means all Events of the handled types |
-| `initialState { … }` | the state before the first Event |
-| `exposes peak` | the field of the state commands read. Without it, the whole state is the value |
-| ``on E => ```expr``` `` | a handler: an expression over `state`, `event` and `args` that returns the next state |
-
-The DCB Playground asks for confirmation before it opens a model containing scripts, and `?safe` in its address disables them.
-
-### `read` an entity <span class="dcb-badge">advanced</span> { #read-entity data-toc-label="read an entity" }
-
-```dcb-fragment
-read course = Course[courseId]
-```
-
-One instance of an [entity](#entity), by its identifier. Only the properties that are used contribute to the Query.
-
-### Fan-out <span class="dcb-badge">advanced</span> { #fan-out data-toc-label="Fan-out" }
-
-```dcb excerpt="notation_reference" show="command RescheduleCourse"
+```dcb excerpt="notation_reference" show="handler RescheduleCourse"
 ```
 
 | Read | Meaning |
 |---|---|
-| `read students = Student[course.subscribedStudentIds]` | one instance per element of a list. A condition over it has to hold for every instance |
+| `alias course = Course(courseId)` | one instance of an [entity](#entity), by its identifier. Only the properties that are used contribute to the Query |
+| `alias students = Student(each course.subscribedStudentIds)` | one instance per element of a list, see [fan-out](#fan-out) |
 | `… excluding courseId` | drops one identifier from the list |
 
-Reads can build on earlier ones, and the Query is then as deep as the chain. See [fan-out reads](index.md#fan-out-reads) in the guide.
+Reads can build on earlier ones, and the Query is then as deep as the chain. See [chained reads](index.md#chained-reads) in the guide.
 
-### Optional reads <span class="dcb-badge">advanced</span> { #optional-read data-toc-label="Optional reads" }
-
-```dcb-fragment
-read tutor? = Student[tutorId]
-```
-
-The identifier may be `null`. Then nothing is read, and conditions over the read hold.
-
-### `with` <span class="dcb-badge">advanced</span> { #with data-toc-label="with" }
+### Arguments of an entity <span class="dcb-badge dcb-badge--experimental">experimental</span> { #with data-toc-label="Arguments of an entity" }
 
 ```dcb-fragment
-read course = Course[courseId] with (since: today)
+alias course = Course(courseId, since: today)
 ```
 
-Arguments for the [scripted projections](#script) among the entity's properties.
+Values for the further arguments of the [scripted projections](#script) among the entity's properties, by name after the identifier.
 
-### `emit … when` <span class="dcb-badge">advanced</span> { #emit-when data-toc-label="emit … when" }
+### Optional reads <span class="dcb-badge dcb-badge--experimental">experimental</span> { #optional-read data-toc-label="Optional reads" }
+
+```dcb-fragment
+alias tutor? = Student(tutorId)
+```
+
+The value may be `null`. Then nothing is read, and conditions over the alias hold.
+
+### `emit … when` <span class="dcb-badge dcb-badge--experimental">experimental</span> { #emit-when data-toc-label="emit … when" }
 
 ```dcb-fragment
 emit StudentSubscribedToCourse { courseId, studentId }
-  when course.isFull is false
+  when CourseIsFull(courseId) is false
 emit StudentWaitlistedForCourse { courseId, studentId }
-  when course.isFull is true
+  when CourseIsFull(courseId) is true
 ```
 
 The Event is only appended if its conditions hold, combined with `and`. A failing `when` does not reject the command. If no Event is appended, the command still succeeds. The conditions count towards the Query like the ones of `require`.
-
-### Projection scenarios <span class="dcb-badge">advanced</span> { #projection-scenario data-toc-label="Projection scenarios" }
-
-```dcb excerpt="notation_reference" show="projection CourseStatus"
-```
-
-A scenario inside a projection asserts the value the `given` Events fold to, at the projection's arguments in declared order.

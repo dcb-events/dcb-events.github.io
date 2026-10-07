@@ -44,35 +44,31 @@ model "Dynamic product price"
 tag type ProductId = string
 type Money = number { minimum: 0 }
 
-event ProductDefined { productId: ProductId, price: Money }
-event ProductOrdered { productId: ProductId, price: Money }
+event ProductDefined { tag productId: ProductId, price: Money }
+event ProductOrdered { tag productId: ProductId, price: Money }
 
-entity Product {
-  price = ProductPrice
-}
-
-projection ProductPrice(productId: ProductId): Money = null {
+projection ProductPrice (tag productId: ProductId): Money = null {
   on ProductDefined => set event.data.price
 }
 
-command OrderProduct(productId: ProductId, displayedPrice: Money) {
-  read product = Product[productId]
-
-  require product.price == displayedPrice
+handler OrderProduct(productId: ProductId, displayedPrice: Money) {
+  require ProductPrice(productId) == displayedPrice
     else reject "Price has changed"
 
   emit ProductOrdered { productId, price: displayedPrice }
 
-  scenario "Order product with invalid displayed price" {
-    given ProductDefined { productId: "p1", price: 123 }
-    when OrderProduct { productId: "p1", displayedPrice: 100 }
-    then rejected "Price has changed"
-  }
+  scenarios {
+    scenario "Order product with invalid displayed price" {
+      given ProductDefined { productId: "p1", price: 123 }
+      when OrderProduct { productId: "p1", displayedPrice: 100 }
+      then rejected "Price has changed"
+    }
 
-  scenario "Order product with valid displayed price" {
-    given ProductDefined { productId: "p1", price: 123 }
-    when OrderProduct { productId: "p1", displayedPrice: 123 }
-    then ProductOrdered { productId: "p1", price: 123 }
+    scenario "Order product with valid displayed price" {
+      given ProductDefined { productId: "p1", price: 123 }
+      when OrderProduct { productId: "p1", displayedPrice: 123 }
+      then ProductOrdered { productId: "p1", price: 123 }
+    }
   }
 }
 ```
@@ -83,7 +79,7 @@ Complexity increases if the product price can be changed and previous prices sha
 
 ![dynamic product price example 2](img/dynamic-product-price-02.png)
 
-The `ProductPrice` projection now determines all prices that are valid at the time of the order: the price that was in effect 10 minutes ago, and every price that was set since then. Because that depends on the age of each Event, it is written as a scripted projection that receives the current time as an argument. The Query now covers `ProductPriceChanged` Events, too – so a price change that happens in the meantime makes the order fail.
+The `ProductPrice` projection now determines all prices that are valid at the time of the order: the price that was in effect 10 minutes ago, and every price that was set since then. Because that depends on the age of each Event, it is written as a scripted projection that takes the current time (`now`) after its Tag. The Query now covers `ProductPriceChanged` Events, too – so a price change that happens in the meantime makes the order fail.
 
 !!! note
 
@@ -94,72 +90,67 @@ model "Dynamic product price (grace period)"
 
 type Minute = integer
 
-event ProductDefined { productId: ProductId, price: Money, at: Minute }
-event ProductPriceChanged { productId: ProductId, newPrice: Money, at: Minute }
+event ProductDefined { tag productId: ProductId, price: Money, at: Minute }
+event ProductPriceChanged { tag productId: ProductId, newPrice: Money, at: Minute }
 
-entity Product {
-  validPrices = ProductPrice
-}
-
-projection ProductPrice: Money[] {
-  script(productId: ProductId, now: Minute)
-  tagFilter ["ProductId:{productId}"]
+projection ProductPrice (tag productId: ProductId, now: Minute): Money[] {
+  script
   initialState []
   on ProductDefined => ```[event.data.price]```
   on ProductPriceChanged => ```args.now - event.data.at <= 10 ? [...state, event.data.newPrice] : [event.data.newPrice]```
 }
 
-command OrderProduct(productId: ProductId, displayedPrice: Money, now: Minute) {
-  read product = Product[productId] with (now)
-
-  require product.validPrices contains displayedPrice
+handler OrderProduct(productId: ProductId, displayedPrice: Money, now: Minute) {
+  require ProductPrice(productId, now) contains displayedPrice
     else reject "Price is no longer valid"
 
   emit ProductOrdered { productId, price: displayedPrice }
 
-  scenario "Order product with invalid displayed price" {
-    given ProductDefined { productId: "p1", price: 123, at: 100 }
-    when OrderProduct { productId: "p1", displayedPrice: 100, now: 100 }
-    then rejected "Price is no longer valid"
-  }
+  scenarios {
+    scenario "Order product with invalid displayed price" {
+      given ProductDefined { productId: "p1", price: 123, at: 100 }
+      when OrderProduct { productId: "p1", displayedPrice: 100, now: 100 }
+      then rejected "Price is no longer valid"
+    }
 
-  scenario "Order product with valid displayed price" {
-    given ProductDefined { productId: "p1", price: 123, at: 100 }
-    when OrderProduct { productId: "p1", displayedPrice: 123, now: 100 }
-    then ProductOrdered { productId: "p1", price: 123 }
-  }
+    scenario "Order product with valid displayed price" {
+      given ProductDefined { productId: "p1", price: 123, at: 100 }
+      when OrderProduct { productId: "p1", displayedPrice: 123, now: 100 }
+      then ProductOrdered { productId: "p1", price: 123 }
+    }
 
-  scenario "Order product with a displayed price that was never valid" {
-    given ProductDefined { productId: "p1", price: 123, at: 80 }
-    when OrderProduct { productId: "p1", displayedPrice: 100, now: 100 }
-    then rejected "Price is no longer valid"
-  }
+    scenario "Order product with a displayed price that was never valid" {
+      given ProductDefined { productId: "p1", price: 123, at: 80 }
+      when OrderProduct { productId: "p1", displayedPrice: 100, now: 100 }
+      then rejected "Price is no longer valid"
+    }
 
-  scenario "Order product with a price that was changed more than 10 minutes ago" {
-    given ProductDefined { productId: "p1", price: 123, at: 80 }
-    given ProductPriceChanged { productId: "p1", newPrice: 134, at: 80 }
-    when OrderProduct { productId: "p1", displayedPrice: 123, now: 100 }
-    then rejected "Price is no longer valid"
-  }
+    scenario "Order product with a price that was changed more than 10 minutes ago" {
+      given ProductDefined { productId: "p1", price: 123, at: 80 }
+      given ProductPriceChanged { productId: "p1", newPrice: 134, at: 80 }
+      when OrderProduct { productId: "p1", displayedPrice: 123, now: 100 }
+      then rejected "Price is no longer valid"
+    }
 
-  scenario "Order product with initial valid price" {
-    given ProductDefined { productId: "p1", price: 123, at: 80 }
-    when OrderProduct { productId: "p1", displayedPrice: 123, now: 100 }
-    then ProductOrdered { productId: "p1", price: 123 }
-  }
+    scenario "Order product with initial valid price" {
+      given ProductDefined { productId: "p1", price: 123, at: 80 }
+      when OrderProduct { productId: "p1", displayedPrice: 123, now: 100 }
+      then ProductOrdered { productId: "p1", price: 123 }
+    }
 
-  scenario "Order product with a price that was changed less than 10 minutes ago" {
-    given ProductDefined { productId: "p1", price: 123, at: 80 }
-    given ProductPriceChanged { productId: "p1", newPrice: 134, at: 91 }
-    when OrderProduct { productId: "p1", displayedPrice: 123, now: 100 }
-    then ProductOrdered { productId: "p1", price: 123 }
-  }
+    scenario "Order product with a price that was changed less than 10 minutes ago" {
+      given ProductDefined { productId: "p1", price: 123, at: 80 }
+      given ProductPriceChanged { productId: "p1", newPrice: 134, at: 91 }
+      when OrderProduct { productId: "p1", displayedPrice: 123, now: 100 }
+      then ProductOrdered { productId: "p1", price: 123 }
+    }
 
-  scenario "Order product with valid new price" {
-    given ProductDefined { productId: "p1", price: 123, at: 80 }
-    given ProductPriceChanged { productId: "p1", newPrice: 134, at: 91 }
-    when OrderProduct { productId: "p1", displayedPrice: 134, now: 100 }
-    then ProductOrdered { productId: "p1", price: 134 }
+    scenario "Order product with valid new price" {
+      given ProductDefined { productId: "p1", price: 123, at: 80 }
+      given ProductPriceChanged { productId: "p1", newPrice: 134, at: 91 }
+      when OrderProduct { productId: "p1", displayedPrice: 134, now: 100 }
+      then ProductOrdered { productId: "p1", price: 134 }
+    }
   }
 }
 ````
@@ -169,55 +160,55 @@ command OrderProduct(productId: ProductId, displayedPrice: Money, now: Minute) {
 The previous stages could be implemented with a traditional Event-Sourced Aggregate in theory.
 But with the requirement to be able to order *multiple products at once* with a dynamic price, the flexibility of DCB shines.
 
-The `OrderProducts` command replaces `OrderProduct`: it reads the `Product` once for every item in the cart and checks each displayed price against the valid prices of that product. The "Consistency boundary" tab shows the result: one Query Item per ordered product, and a `ProductsOrdered` Event that is tagged with the `ProductId` of every product it contains. All products are covered by a single decision – if the price of any of them changes in the meantime, the whole order fails:
+The `OrderProducts` command replaces `OrderProduct`: it reads the `ProductPrice` projection once for every item in the cart (`each items.productId`) and checks each displayed price against the valid prices of that product. The "Consistency boundary" tab shows the result: one Query Item per ordered product, and a `ProductsOrdered` Event that is tagged with the `ProductId` of every product it contains. All products are covered by a single decision – if the price of any of them changes in the meantime, the whole order fails:
 
-````dcb id="dynamic_product_price_03" extends="dynamic_product_price_02" removes="command OrderProduct, event ProductOrdered"
+````dcb id="dynamic_product_price_03" extends="dynamic_product_price_02" removes="handler OrderProduct, event ProductOrdered"
 model "Dynamic product price (shopping cart)"
 
 record Item { productId: ProductId, price: Money }
 
-event ProductsOrdered { items: Item[] }
+event ProductsOrdered { items: Item[] tag each productId }
 
-command OrderProducts(items: Item[], now: Minute) {
-  read product = Product[items.productId] with (now)
-
-  require product.validPrices contains items.price
+handler OrderProducts(items: Item[], now: Minute) {
+  require ProductPrice(each items.productId, now) contains items.price
     else reject "Price is no longer valid"
 
   emit ProductsOrdered { items }
 
-  scenario "Order product with a displayed price that was never valid" {
-    given ProductDefined { productId: "p1", price: 123, at: 80 }
-    when OrderProducts { items: [{ productId: "p1", price: 100 }], now: 100 }
-    then rejected "Price is no longer valid"
-  }
+  scenarios {
+    scenario "Order product with a displayed price that was never valid" {
+      given ProductDefined { productId: "p1", price: 123, at: 80 }
+      when OrderProducts { items: [{ productId: "p1", price: 100 }], now: 100 }
+      then rejected "Price is no longer valid"
+    }
 
-  scenario "Order product with a price that was changed more than 10 minutes ago" {
-    given ProductDefined { productId: "p1", price: 123, at: 80 }
-    given ProductPriceChanged { productId: "p1", newPrice: 134, at: 80 }
-    when OrderProducts { items: [{ productId: "p1", price: 123 }], now: 100 }
-    then rejected "Price is no longer valid"
-  }
+    scenario "Order product with a price that was changed more than 10 minutes ago" {
+      given ProductDefined { productId: "p1", price: 123, at: 80 }
+      given ProductPriceChanged { productId: "p1", newPrice: 134, at: 80 }
+      when OrderProducts { items: [{ productId: "p1", price: 123 }], now: 100 }
+      then rejected "Price is no longer valid"
+    }
 
-  scenario "Order product with initial valid price" {
-    given ProductDefined { productId: "p1", price: 123, at: 80 }
-    when OrderProducts { items: [{ productId: "p1", price: 123 }], now: 100 }
-    then ProductsOrdered { items: [{ productId: "p1", price: 123 }] }
-  }
+    scenario "Order product with initial valid price" {
+      given ProductDefined { productId: "p1", price: 123, at: 80 }
+      when OrderProducts { items: [{ productId: "p1", price: 123 }], now: 100 }
+      then ProductsOrdered { items: [{ productId: "p1", price: 123 }] }
+    }
 
-  scenario "Order product with a price that was changed less than 10 minutes ago" {
-    given ProductDefined { productId: "p1", price: 123, at: 80 }
-    given ProductPriceChanged { productId: "p1", newPrice: 134, at: 91 }
-    when OrderProducts { items: [{ productId: "p1", price: 123 }], now: 100 }
-    then ProductsOrdered { items: [{ productId: "p1", price: 123 }] }
-  }
+    scenario "Order product with a price that was changed less than 10 minutes ago" {
+      given ProductDefined { productId: "p1", price: 123, at: 80 }
+      given ProductPriceChanged { productId: "p1", newPrice: 134, at: 91 }
+      when OrderProducts { items: [{ productId: "p1", price: 123 }], now: 100 }
+      then ProductsOrdered { items: [{ productId: "p1", price: 123 }] }
+    }
 
-  scenario "Order multiple products with valid prices" {
-    given ProductDefined { productId: "p1", price: 123, at: 80 }
-    given ProductPriceChanged { productId: "p1", newPrice: 134, at: 91 }
-    given ProductDefined { productId: "p2", price: 321, at: 92 }
-    when OrderProducts { items: [{ productId: "p1", price: 123 }, { productId: "p2", price: 321 }], now: 100 }
-    then ProductsOrdered { items: [{ productId: "p1", price: 123 }, { productId: "p2", price: 321 }] }
+    scenario "Order multiple products with valid prices" {
+      given ProductDefined { productId: "p1", price: 123, at: 80 }
+      given ProductPriceChanged { productId: "p1", newPrice: 134, at: 91 }
+      given ProductDefined { productId: "p2", price: 321, at: 92 }
+      when OrderProducts { items: [{ productId: "p1", price: 123 }, { productId: "p2", price: 321 }], now: 100 }
+      then ProductsOrdered { items: [{ productId: "p1", price: 123 }, { productId: "p2", price: 321 }] }
+    }
   }
 }
 ````

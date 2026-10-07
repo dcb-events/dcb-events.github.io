@@ -2,7 +2,7 @@
 
 The playground is a static app without a build step, included as a git submodule
 (`playground/`, override with the `DCB_PLAYGROUND_DIR` environment variable). Its `app/`
-folder is copied as is, minus tests and generators, and a small script is injected that
+folder is copied as is, minus tests, generators and command line tools, and a small script is injected that
 lets the playground share the site's light/dark setting (see `DCB_PLAYGROUND_HOST` in the
 playground's `shared.js`).
 
@@ -19,7 +19,7 @@ from urllib.parse import urlparse
 
 log = logging.getLogger('mkdocs.hooks.playground')
 
-EXCLUDE = ('*.test.js', 'test-harness.js', 'generate-*.js', '.DS_Store')
+EXCLUDE = ('*.test.js', 'test-harness.js', 'generate-*.js', 'print-model.js', '.DS_Store')
 
 
 def on_post_build(config, **kwargs):

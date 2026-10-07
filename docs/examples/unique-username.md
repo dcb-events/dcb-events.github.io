@@ -47,29 +47,31 @@ model "Unique username"
 
 tag type Username = string
 
-event AccountRegistered { username: Username }
+event AccountRegistered { tag username: Username }
 
-projection UsernameClaimed(username: Username): boolean = false {
+projection UsernameClaimed (tag username: Username): boolean = false {
   on AccountRegistered => set true
 }
 
-command RegisterAccount(username: Username) {
-  read claimed = UsernameClaimed(username)
+handler RegisterAccount(username: Username) {
+  alias claimed = UsernameClaimed(username)
 
   require claimed is false
     else reject "Username is already taken"
 
   emit AccountRegistered { username }
 
-  scenario "Register account with claimed username" {
-    given AccountRegistered { username: "u1" }
-    when RegisterAccount { username: "u1" }
-    then rejected "Username is already taken"
-  }
+  scenarios {
+    scenario "Register account with claimed username" {
+      given AccountRegistered { username: "u1" }
+      when RegisterAccount { username: "u1" }
+      then rejected "Username is already taken"
+    }
 
-  scenario "Register account with unused username" {
-    when RegisterAccount { username: "u1" }
-    then AccountRegistered { username: "u1" }
+    scenario "Register account with unused username" {
+      when RegisterAccount { username: "u1" }
+      then AccountRegistered { username: "u1" }
+    }
   }
 }
 ```
@@ -87,26 +89,28 @@ This example extends the previous one to show how a previously claimed username 
     Part 4 introduces a potential remedy, on its own this is merely an oversimplified example.
 
 ```dcb id="unique_username_02" extends="unique_username_01"
-event AccountClosed { username: Username }
+event AccountClosed { tag username: Username }
 
-projection UsernameClaimed(username: Username): boolean = false {
+projection UsernameClaimed (tag username: Username): boolean = false {
   on AccountRegistered => set true
   on AccountClosed => set false
 }
 
-command RegisterAccount(username: Username) {
-  read claimed = UsernameClaimed(username)
+handler RegisterAccount(username: Username) {
+  alias claimed = UsernameClaimed(username)
 
   require claimed is false
     else reject "Username is already taken"
 
   emit AccountRegistered { username }
 
-  scenario "Register account with username of closed account" {
-    given AccountRegistered { username: "u1" }
-    given AccountClosed { username: "u1" }
-    when RegisterAccount { username: "u1" }
-    then AccountRegistered { username: "u1" }
+  scenarios {
+    scenario "Register account with username of closed account" {
+      given AccountRegistered { username: "u1" }
+      given AccountClosed { username: "u1" }
+      when RegisterAccount { username: "u1" }
+      then AccountRegistered { username: "u1" }
+    }
   }
 }
 ```
@@ -118,37 +122,38 @@ This example extends the previous one to show how the username of an active acco
 The `UsernameChanged` Event is tagged with the old _and_ the new username, so it is part of the Query for both (see the "Consistency boundary" tab). A declarative handler cannot tell which of the two usernames it is folding, so the `UsernameClaimed` projection is scripted from here on: the change releases the old username and claims the new one.
 
 ````dcb id="unique_username_03" extends="unique_username_02"
-event UsernameChanged { oldUsername: Username, newUsername: Username }
+event UsernameChanged { tag oldUsername: Username, tag newUsername: Username }
 
-projection UsernameClaimed: boolean {
-  script(username: Username)
-  tagFilter ["Username:{username}"]
+projection UsernameClaimed (tag username: Username): boolean {
+  script
   initialState false
   on AccountRegistered => ```true```
   on AccountClosed => ```false```
-  on UsernameChanged => ```event.data.newUsername === args.username```
+  on UsernameChanged => ```event.data.newUsername === tags.username```
 }
 
-command RegisterAccount(username: Username) {
-  read claimed = UsernameClaimed(username)
+handler RegisterAccount(username: Username) {
+  alias claimed = UsernameClaimed(username)
 
   require claimed is false
     else reject "Username is already taken"
 
   emit AccountRegistered { username }
 
-  scenario "Register account with a username that was previously used and then changed" {
-    given AccountRegistered { username: "u1" }
-    given UsernameChanged { oldUsername: "u1", newUsername: "u1changed" }
-    when RegisterAccount { username: "u1" }
-    then AccountRegistered { username: "u1" }
-  }
+  scenarios {
+    scenario "Register account with a username that was previously used and then changed" {
+      given AccountRegistered { username: "u1" }
+      given UsernameChanged { oldUsername: "u1", newUsername: "u1changed" }
+      when RegisterAccount { username: "u1" }
+      then AccountRegistered { username: "u1" }
+    }
 
-  scenario "Register account with a username that another username was changed to" {
-    given AccountRegistered { username: "u1" }
-    given UsernameChanged { oldUsername: "u1", newUsername: "u1changed" }
-    when RegisterAccount { username: "u1changed" }
-    then rejected "Username is already taken"
+    scenario "Register account with a username that another username was changed to" {
+      given AccountRegistered { username: "u1" }
+      given UsernameChanged { oldUsername: "u1", newUsername: "u1changed" }
+      when RegisterAccount { username: "u1changed" }
+      then rejected "Username is already taken"
+    }
   }
 }
 ````
@@ -165,84 +170,85 @@ This example extends the previous one to show how a username can be reserved for
 ````dcb id="unique_username_04" extends="unique_username_03"
 type Day = integer
 
-event AccountClosed { username: Username, closedOn: Day }
-event UsernameChanged { oldUsername: Username, newUsername: Username, changedOn: Day }
+event AccountClosed { tag username: Username, closedOn: Day }
+event UsernameChanged { tag oldUsername: Username, tag newUsername: Username, changedOn: Day }
 
-projection UsernameClaimed: boolean {
-  script(username: Username, today: Day)
-  tagFilter ["Username:{username}"]
+projection UsernameClaimed (tag username: Username, today: Day): boolean {
+  script
   initialState false
   on AccountRegistered => ```true```
   on AccountClosed => ```args.today - event.data.closedOn <= 3```
-  on UsernameChanged => ```event.data.newUsername === args.username || args.today - event.data.changedOn <= 3```
+  on UsernameChanged => ```event.data.newUsername === tags.username || args.today - event.data.changedOn <= 3```
 }
 
-command RegisterAccount(username: Username, today: Day) {
-  read claimed = UsernameClaimed(username, today)
+handler RegisterAccount(username: Username, today: Day) {
+  alias claimed = UsernameClaimed(username, today)
 
   require claimed is false
     else reject "Username is already taken"
 
   emit AccountRegistered { username }
 
-  scenario "Register account with claimed username" {
-    given AccountRegistered { username: "u1" }
-    when RegisterAccount { username: "u1", today: 10 }
-    then rejected "Username is already taken"
-  }
+  scenarios {
+    scenario "Register account with claimed username" {
+      given AccountRegistered { username: "u1" }
+      when RegisterAccount { username: "u1", today: 10 }
+      then rejected "Username is already taken"
+    }
 
-  scenario "Register account with unused username" {
-    when RegisterAccount { username: "u1", today: 10 }
-    then AccountRegistered { username: "u1" }
-  }
+    scenario "Register account with unused username" {
+      when RegisterAccount { username: "u1", today: 10 }
+      then AccountRegistered { username: "u1" }
+    }
 
-  scenario "Register account with username of closed account" {
-    given AccountRegistered { username: "u1" }
-    given AccountClosed { username: "u1", closedOn: 1 }
-    when RegisterAccount { username: "u1", today: 10 }
-    then AccountRegistered { username: "u1" }
-  }
+    scenario "Register account with username of closed account" {
+      given AccountRegistered { username: "u1" }
+      given AccountClosed { username: "u1", closedOn: 1 }
+      when RegisterAccount { username: "u1", today: 10 }
+      then AccountRegistered { username: "u1" }
+    }
 
-  scenario "Register account with a username that was previously used and then changed" {
-    given AccountRegistered { username: "u1" }
-    given UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 1 }
-    when RegisterAccount { username: "u1", today: 10 }
-    then AccountRegistered { username: "u1" }
-  }
+    scenario "Register account with a username that was previously used and then changed" {
+      given AccountRegistered { username: "u1" }
+      given UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 1 }
+      when RegisterAccount { username: "u1", today: 10 }
+      then AccountRegistered { username: "u1" }
+    }
 
-  scenario "Register account with a username that another username was changed to" {
-    given AccountRegistered { username: "u1" }
-    given UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 1 }
-    when RegisterAccount { username: "u1changed", today: 10 }
-    then rejected "Username is already taken"
-  }
+    scenario "Register account with a username that another username was changed to" {
+      given AccountRegistered { username: "u1" }
+      given UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 1 }
+      when RegisterAccount { username: "u1changed", today: 10 }
+      then rejected "Username is already taken"
+    }
 
-  scenario "Register username of closed account before retention period" {
-    given AccountRegistered { username: "u1" }
-    given AccountClosed { username: "u1", closedOn: 7 }
-    when RegisterAccount { username: "u1", today: 10 }
-    then rejected "Username is already taken"
-  }
+    scenario "Register username of closed account before retention period" {
+      given AccountRegistered { username: "u1" }
+      given AccountClosed { username: "u1", closedOn: 7 }
+      when RegisterAccount { username: "u1", today: 10 }
+      then rejected "Username is already taken"
+    }
 
-  scenario "Register changed username before retention period" {
-    given AccountRegistered { username: "u1" }
-    given UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 7 }
-    when RegisterAccount { username: "u1", today: 10 }
-    then rejected "Username is already taken"
-  }
+    scenario "Register changed username before retention period" {
+      given AccountRegistered { username: "u1" }
+      given UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 7 }
+      when RegisterAccount { username: "u1", today: 10 }
+      then rejected "Username is already taken"
+    }
 
-  scenario "Register username of closed account after retention period" {
-    given AccountRegistered { username: "u1" }
-    given AccountClosed { username: "u1", closedOn: 6 }
-    when RegisterAccount { username: "u1", today: 10 }
-    then AccountRegistered { username: "u1" }
-  }
+    scenario "Register username of closed account after retention period" {
+      given AccountRegistered { username: "u1" }
+      given AccountClosed { username: "u1", closedOn: 6 }
+      when RegisterAccount { username: "u1", today: 10 }
+      then AccountRegistered { username: "u1" }
+    }
 
-  scenario "Register changed username after retention period" {
-    given AccountRegistered { username: "u1" }
-    given UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 6 }
-    when RegisterAccount { username: "u1", today: 10 }
-    then AccountRegistered { username: "u1" }
+    scenario "Register changed username after retention period" {
+      given AccountRegistered { username: "u1" }
+      given UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 6 }
+      when RegisterAccount { username: "u1", today: 10 }
+      then AccountRegistered { username: "u1" }
+    }
   }
 }
 ````

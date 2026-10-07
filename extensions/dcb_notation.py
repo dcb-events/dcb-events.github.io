@@ -5,12 +5,12 @@
     ```
 
 A block that extends another can drop some of its definitions with
-`removes="command OrderProduct, event ProductOrdered"`. A block with `hidden="true"` is checked
+`removes="handler OrderProduct, event ProductOrdered"`. A block with `hidden="true"` is checked
 and can be extended or excerpted, but is not shown.
 
 Two more kinds of block show notation without being a model of their own:
 
-    ```dcb excerpt="course_subscription_03" show="projection CourseCapacity, command DefineCourse"
+    ```dcb excerpt="course_subscription_03" show="projection CourseCapacity, handler DefineCourse"
     ```
 
 shows some definitions of a model rendered before it, exactly as that model has them, and
