@@ -100,6 +100,7 @@ projection CoursePeakSubscriptions (tag courseId: CourseId): integer {
 
 // Commands
 @feature("Course management")
+@icon("✨")
 command DefineCourse(capacity: Capacity) {
   emit CourseDefined { courseId: CourseNumbering(), capacity }
 }
@@ -205,6 +206,19 @@ Comments are for the reader only. The DCB Playground does not store them, so the
 
 Values are written as JSON. Keys of objects may be written without quotes. Members of an [`enum`](#enum) are written without quotes wherever the type is known. A value of a [tag type](#tag-type) may be written with its type, `CourseId("c1")`, and has to be where a [read](#read) is given one.
 
+### Annotations { #annotations }
+
+| Annotation | On | Effect |
+|---|---|---|
+| `@icon("📚")` | events, commands (and [entities](#entity)) | the symbol the playground shows it with |
+| `@feature("Enrolment")` | commands | the feature group the playground lists it under |
+| `@tagSchema("{type}={value}")` | tag types | how a Tag of the type is written, see [`tag type`](#tag-type) |
+
+```dcb excerpt="notation_reference" show="command DefineCourse"
+```
+
+Annotations change how the DCB Playground presents a definition, not what it means. An annotation stands on the line before the definition.
+
 ## Data
 
 ### `tag type` { #tag-type }
@@ -265,7 +279,7 @@ A projection without Tags, which sees all Events of the types it handles. A proj
 | Handler | Effect |
 |---|---|
 | `on E => set <value>` | replaces the value |
-| `on E => increment 1`, `on E => decrement 1` | changes an integer |
+| `on E => increment 1`, `on E => decrement 1` | changes a number (`integer`, `number` or a [`type`](#type) based on one) |
 | `on E => append <value>`, `on E => remove <value>` | changes a list |
 
 The set of operations is fixed, because the DCB Playground analyses them. A [scripted projection](#script) can do anything else.
@@ -435,17 +449,6 @@ require ProductExists(each items.productId) is true
 ## Experimental
 
 The constructs below are still being tried out. The DCB Playground only offers them once experimental features are switched on in its settings.
-
-### Annotations <span class="dcb-badge dcb-badge--experimental">experimental</span> { #annotations data-toc-label="Annotations" }
-
-| Annotation | On | Effect |
-|---|---|---|
-| `@icon("📚")` | entities, events, commands | the symbol the playground shows it with |
-| `@feature("Enrolment")` | commands | the feature the playground lists it under |
-| `@tagSchema("{type}={value}")` | tag types | how a Tag of the type is written, see [`tag type`](#tag-type) |
-
-```dcb excerpt="notation_reference" show="entity Student, command RegisterStudent"
-```
 
 ### `currentValue` <span class="dcb-badge dcb-badge--experimental">experimental</span> { #current-value data-toc-label="currentValue" }
 

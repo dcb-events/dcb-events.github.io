@@ -89,7 +89,7 @@ The handlers are a fixed set of operations:
 | Handler | Effect |
 |---|---|
 | `set <value>` | replaces the value |
-| `increment <n>`, `decrement <n>` | changes an integer |
+| `increment <n>`, `decrement <n>` | changes a number |
 | `append <value>`, `remove <value>` | changes a list |
 
 A value is a literal (`true`, `0`, `"c1"`) or a property of the Event: `event.data.capacity`.
@@ -345,6 +345,24 @@ require CourseStatus(courseId) != Archived
 The messages of a command are the complete set of reasons it can be rejected for, and the DCB Playground lists them for each command. A message is static text, one line, by convention in sentence case without a full stop.
 
 A scenario that expects a rejection states the message and nothing else. Which condition rejected the command, and the values it read, are not part of the outcome: conditions sharing a message are interchangeable, and a projection that stores its state differently still rejects for the same reason. The DCB Playground shows both when a scenario is opened.
+
+### Annotations <span class="dcb-badge">advanced</span> { #annotations data-toc-label="Annotations" }
+
+Annotations change how the DCB Playground presents a definition, not what it means:
+
+```dcb-fragment
+@feature("Course management")
+@icon("🗄️")
+command ArchiveCourse(courseId: CourseId) { … }
+
+@icon("🗄️")
+event CourseArchived { tag courseId: CourseId }
+
+@tagSchema("{type}={value}")
+tag type CourseId = string
+```
+
+`@icon` and `@feature` are for the playground's pages only: the symbol a command or an Event is shown with, and the feature group a command is listed under. `@tagSchema` changes how a Tag of that type is written, `CourseId:c1` by default.
 
 ### When the notation can't express something <span class="dcb-badge">advanced</span> { #json-fallback data-toc-label="JSON fallback" }
 
@@ -637,20 +655,7 @@ It declares its Tags like any projection and passes them on to the projections i
 
 - `currentValue` refers to a projection's own value in a handler, e.g. `on CourseDefined => set successor(currentValue)`
 - An optional read, `alias tutor? = Student(tutorId)`, reads nothing if the value is `null`, and conditions over it hold
-- Annotations change how the DCB Playground presents a definition, not what it means:
-
-```dcb-fragment
-@icon("📚")
-entity Course (tag courseId: CourseId) { … }
-
-@feature("Course management")
-command ArchiveCourse(courseId: CourseId) { … }
-
-@tagSchema("{type}={value}")
-tag type CourseId = string
-```
-
-`@icon` and `@feature` are for the playground's pages only. `@tagSchema` changes how a Tag of that type is written, `CourseId:c1` by default.
+- An entity can have an [`@icon`](#annotations) like an Event or a command
 
 ### The complete model { data-toc-label="The complete model" }
 
