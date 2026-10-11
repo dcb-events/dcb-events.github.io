@@ -11,7 +11,7 @@ What makes it useful for DCB is what it does *not* contain: a command never stat
 !!! warning "Experimental"
 
     The DCB notation is the text form of models in the [:material-play-box-outline: DCB Playground](/playground/) and, like the playground, it is subject to change.
-    The source of truth is the playground's JSON format ([schema v8](/schemas/model/v8.json)): every construct of the notation is exactly one shape of that format, so a model can be turned into text and back without losing anything.
+    The source of truth is the playground's JSON format ([schema v9](/schemas/model/v9.json)): every construct of the notation is exactly one shape of that format, so a model can be turned into text and back without losing anything.
 
 This page introduces the notation step by step. The first part covers the basics needed to read the examples. The second part, marked <span class="dcb-badge">advanced</span>, covers the rest of the language, and the last part, marked <span class="dcb-badge dcb-badge--experimental">experimental</span>, covers features that are still being tried out. Every keyword is listed in the [reference](reference.md).
 
@@ -261,27 +261,26 @@ The read is one read per element, and a condition over it has to hold for every 
 
 An Event can be tagged with every element of a list in the same way: `event ProductsOrdered { items: Item[] tag each productId }`.
 
-### Scripted projections <span class="dcb-badge">advanced</span> { #scripted-projections data-toc-label="Scripted projections" }
+### Derived projections <span class="dcb-badge">advanced</span> { #derived-projections data-toc-label="Derived projections" }
 
-The handler operations are deliberately few, because the DCB Playground analyses them (e.g. to draw lifecycles). For anything else, a projection can be written in JavaScript:
+A projection can also be *derived*: one value worked out from other projections, without handlers or an initial value of its own. It either computes a number or compares two values:
 
-```dcb id="notation_scripted" extends="notation_03" hidden="true"
-projection CoursePeakSubscriptions (tag courseId: CourseId): integer {
-  script
-  initialState { current: 0, peak: 0 }
-  exposes peak
-  on StudentSubscribedToCourse => ```({ current: state.current + 1, peak: Math.max(state.peak, state.current + 1) })```
+```dcb id="notation_derived" extends="notation_03" hidden="true"
+derived projection CourseSeatsLeft (tag courseId: CourseId): integer {
+  CourseCapacity(courseId) - CourseSubscriptionCount(courseId)
+}
+
+derived projection CourseIsFull (tag courseId: CourseId): boolean {
+  CourseSubscriptionCount(courseId) >= CourseCapacity(courseId)
 }
 ```
 
-```dcb excerpt="notation_scripted" show="projection CoursePeakSubscriptions"
+```dcb excerpt="notation_derived" show="projection CourseSeatsLeft, projection CourseIsFull"
 ```
 
-Each handler is an expression over `state` and `event` that returns the next state. The Tags are declared like for any other projection, so the Query is derived the same way, and a handler can access their values as `tags.courseId`. `exposes` names the part of the state commands read.
+A computation is one of `+`, `-`, `*`, `min(a, b)` and `max(a, b)` over two projections or numbers. A longer expression is a chain of derived projections, each with a name of its own. A comparison is written like a [`require`](reference.md#require) and is always a `boolean`.
 
-Unlike other projections, a scripted one can take further values after its Tags, `(tag courseId: CourseId, days: integer)`. A read gives them after the Tags, `CourseActivity(courseId, 14)`, and a handler accesses them as `args.days`. The [unique username](../examples/unique-username.md) example uses this for a retention period.
-
-The playground runs scripts unsandboxed in the browser, so it asks for confirmation before opening a model that contains one.
+A derived projection declares its Tags like any projection and passes them on to the projections it reads. Reading it reads its operands, each by its own Tags: a command that reads `CourseSeatsLeft(courseId)` has `CourseDefined`, `CourseCapacityChanged` and `StudentSubscribedToCourse` in its Query.
 
 ### Numbering <span class="dcb-badge">advanced</span> { #numbering data-toc-label="Numbering" }
 
@@ -316,7 +315,7 @@ The [invoice number](../examples/invoice-number.md) example uses this to create 
 
 Besides tag types, a model can declare types that constrain a value, enums and records:
 
-```dcb id="notation_types" extends="notation_scripted" hidden="true"
+```dcb id="notation_types" extends="notation_derived" hidden="true"
 type Capacity = integer { minimum: 1 }
 
 enum CourseStatus { NonExistent, Existent, Archived }
@@ -607,9 +606,6 @@ entity Course (tag courseId: CourseId) {
   isFull = CourseIsFull
 }
 
-projection CourseIsFull (tag courseId: CourseId): boolean
-  derived CourseSubscriptionCount(courseId) >= CourseCapacity(courseId)
-
 command SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
   alias course = Course(courseId)
   alias student = Student(studentId)
@@ -640,16 +636,28 @@ command SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
 ```dcb excerpt="notation_07" show="command SubscribeStudentToCourse"
 ```
 
-An Event with a `when` is only appended if its conditions hold (several are combined with `and`). Unlike a `require`, a failing `when` does not reject the command. The conditions count towards the consistency boundary just like the ones of `require`.
+An Event with a `when` is only appended if its conditions hold (several are combined with `and`). Unlike a `require`, a failing `when` does not reject the command. The conditions count towards the consistency boundary just like the ones of `require`. `course.isFull` is the [derived projection](#derived-projections) `CourseIsFull`, bound to the entity.
 
-### Derived projections <span class="dcb-badge dcb-badge--experimental">experimental</span> { #derived-projections data-toc-label="Derived projections" }
+### Scripted projections <span class="dcb-badge dcb-badge--experimental">experimental</span> { #scripted-projections data-toc-label="Scripted projections" }
 
-`course.isFull` in the previous section is a *derived* projection: a boolean defined by one condition over other projections, without handlers of its own:
+The handler operations are deliberately few, because the DCB Playground analyses them (e.g. to draw lifecycles), and a value worked out from others is a [derived projection](#derived-projections). For anything else, a projection can be written in JavaScript, `scripted` in front:
 
-```dcb excerpt="notation_07" show="projection CourseIsFull"
+```dcb id="notation_scripted" extends="notation_03" hidden="true"
+scripted projection CoursePeakSubscriptions (tag courseId: CourseId): integer {
+  initialState { current: 0, peak: 0 }
+  exposes peak
+  on StudentSubscribedToCourse => ```({ current: state.current + 1, peak: Math.max(state.peak, state.current + 1) })```
+}
 ```
 
-It declares its Tags like any projection and passes them on to the projections it reads. Reading it reads its operands: every command that uses `course.isFull` has `StudentSubscribedToCourse`, `CourseDefined` and `CourseCapacityChanged` in its Query.
+```dcb excerpt="notation_scripted" show="projection CoursePeakSubscriptions"
+```
+
+Each handler is an expression over `state` and `event` that returns the next state. The Tags are declared like for any other projection, so the Query is derived the same way, and a handler can access their values as `tags.courseId`. `exposes` names the part of the state commands read.
+
+Unlike other projections, a scripted one can take further values after its Tags, `scripted projection CourseActivity (tag courseId: CourseId, days: integer)`. A read gives them after the Tags, `CourseActivity(courseId, 14)`, and a handler accesses them as `args.days`. The [unique username](../examples/unique-username.md) example uses this for a retention period.
+
+The playground runs scripts unsandboxed in the browser, so it asks for confirmation before opening a model that contains one.
 
 ### More experimental features <span class="dcb-badge dcb-badge--experimental">experimental</span> { #more-experimental data-toc-label="More experimental features" }
 
@@ -673,7 +681,7 @@ The DCB notation is not the first language for event-sourced models, and it borr
 
 - *Borrowed:* `emit Event { field, other: value }` including the shorthand for fields named like the command's properties, and `on Event => …` for the handlers of a fold.
 - *Different:* heklang folds Events *inline*, inside the command that needs the result. The DCB notation declares every fold once, as a named projection, and commands read it by name. A projection that two entities share and three commands read would otherwise have to be written five times, and the DCB Playground stores models that way, too.
-- *Different:* a heklang fold arm is an expression (`=> state + 1`). The notation only allows a fixed set of operations (`set`, `increment`, `append`, …), because the playground analyses them, e.g. to draw a lifecycle from the Events that move it. A [scripted projection](#scripted-projections) is the way out.
+- *Different:* a heklang fold arm is an expression (`=> state + 1`). The notation only allows a fixed set of operations (`set`, `increment`, `append`, …), because the playground analyses them, e.g. to draw a lifecycle from the Events that move it. Arithmetic between values is a [derived projection](#derived-projections), and a [scripted projection](#scripted-projections) is the way out for the rest.
 
 **Weltenwanderer** [:octicons-link-external-16:](https://www.weltenwanderer.dev/){:target="_blank" .small} is a specification language for domain models that compiles to verified TypeScript, organised around *deciders*: a state, the commands decided on it, and the Events that evolve it.
 

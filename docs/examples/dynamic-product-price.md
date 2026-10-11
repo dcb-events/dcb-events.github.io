@@ -93,8 +93,7 @@ type Minute = integer
 event ProductDefined { tag productId: ProductId, price: Money, at: Minute }
 event ProductPriceChanged { tag productId: ProductId, newPrice: Money, at: Minute }
 
-projection ProductPrice (tag productId: ProductId, now: Minute): Money[] {
-  script
+scripted projection ProductPrice (tag productId: ProductId, now: Minute): Money[] {
   initialState []
   on ProductDefined => ```[event.data.price]```
   on ProductPriceChanged => ```args.now - event.data.at <= 10 ? [...state, event.data.newPrice] : [event.data.newPrice]```

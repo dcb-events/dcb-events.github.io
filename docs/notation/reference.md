@@ -88,11 +88,15 @@ untagged projection CourseNumbering: CourseId = "c1" {
   on CourseDefined => set successor(event.data.courseId)
 }
 
-projection CourseIsFull (tag courseId: CourseId): boolean
-  derived CourseSubscriptionCount(courseId) >= CourseCapacity(courseId)
+derived projection CourseIsFull (tag courseId: CourseId): boolean {
+  CourseSubscriptionCount(courseId) >= CourseCapacity(courseId)
+}
 
-projection CoursePeakSubscriptions (tag courseId: CourseId): integer {
-  script
+derived projection CourseSeatsLeft (tag courseId: CourseId): integer {
+  CourseCapacity(courseId) - CourseSubscriptionCount(courseId)
+}
+
+scripted projection CoursePeakSubscriptions (tag courseId: CourseId): integer {
   initialState { current: 0, peak: 0 }
   exposes peak
   on StudentSubscribedToCourse => ```({ current: state.current + 1, peak: Math.max(state.peak, state.current + 1) })```
@@ -282,7 +286,7 @@ A projection without Tags, which sees all Events of the types it handles. A proj
 | `on E => increment 1`, `on E => decrement 1` | changes a number (`integer`, `number` or a [`type`](#type) based on one) |
 | `on E => append <value>`, `on E => remove <value>` | changes a list |
 
-The set of operations is fixed, because the DCB Playground analyses them. A [scripted projection](#script) can do anything else.
+The set of operations is fixed, because the DCB Playground analyses them. A [derived projection](#derived) works out a value from others, and a [scripted projection](#script) can do anything else.
 
 ### `event.data` { #event-data }
 
@@ -420,22 +424,20 @@ on CourseDefined => set successor(event.data.courseId)
 
 The value following another one: `7` → `8`, `c1` → `c2`, `inv-009` → `inv-010`. See [numbering](index.md#numbering) in the guide.
 
-### `script` <span class="dcb-badge">advanced</span> { #script data-toc-label="script" }
+### `derived` <span class="dcb-badge">advanced</span> { #derived data-toc-label="derived" }
 
-```dcb excerpt="notation_reference" show="projection CoursePeakSubscriptions"
+```dcb excerpt="notation_reference" show="projection CourseIsFull, projection CourseSeatsLeft"
 ```
 
-A projection written in JavaScript. Its Tags are declared like for any projection, so its Query is derived the same way.
+A value worked out from other projections, without handlers or initial value. Its block holds one expression:
 
-| Field | Meaning |
+| Expression | Value |
 |---|---|
-| `(tag courseId: CourseId, days: integer)` | the Tags, then further values the script takes. A [read](#read) gives them in that order: `CourseActivity(courseId, 14)` |
-| `script` | marks the projection as scripted |
-| `initialState { … }` | the state before the first Event |
-| `exposes peak` | the field of the state commands read. Without it, the whole state is the value |
-| ``on E => ```expr``` `` | a handler: an expression over `state`, `event`, `tags` (`tags.courseId`) and `args` (`args.days`) that returns the next state |
+| `A(courseId) >= B(courseId)` | a comparison, written like a [`require`](#require). Always a `boolean` |
+| `A(courseId) - B(courseId)` | a computation with `+`, `-` or `*`, over two projections or numbers. An `integer` from two integers, a `number` otherwise |
+| `min(A(courseId), 10)` | the smaller of two numbers, `max(…)` the larger |
 
-The DCB Playground asks for confirmation before it opens a model containing scripts, and `?safe` in its address disables them.
+A longer expression is a chain of derived projections. If one side is `null`, a computation is `null`, too. A derived projection declares its Tags and passes them on to the projections it reads. Reading it reads its operands, each by its own Tags, so their Events are part of the Query. See [derived projections](index.md#derived-projections) in the guide.
 
 ### Fan-out <span class="dcb-badge">advanced</span> { #fan-out data-toc-label="Fan-out" }
 
@@ -474,12 +476,21 @@ An entity is not stored, and it is not a consistency boundary: a command's Query
 
 Marks the property of an entity that holds the state an instance is in, a `boolean` (two states) or an [`enum`](#enum). The DCB Playground draws the state machine from its handlers and the conditions that guard them. An entity doesn't need a lifecycle.
 
-### `derived` <span class="dcb-badge dcb-badge--experimental">experimental</span> { #derived data-toc-label="derived" }
+### `scripted` <span class="dcb-badge dcb-badge--experimental">experimental</span> { #script data-toc-label="scripted" }
 
-```dcb excerpt="notation_reference" show="projection CourseIsFull"
+```dcb excerpt="notation_reference" show="projection CoursePeakSubscriptions"
 ```
 
-A boolean defined by one condition over other projections, written like a [`require`](#require), without handlers or initial value. It declares its Tags and passes them on to the projections it reads. Reading it reads its operands, so their Events are part of the Query.
+A projection written in JavaScript, `scripted` in front of `projection`. Its Tags are declared like for any projection, so its Query is derived the same way.
+
+| Field | Meaning |
+|---|---|
+| `scripted projection CourseActivity (tag courseId: CourseId, days: integer)` | the Tags, then further values the script takes. A [read](#read) gives them in that order: `CourseActivity(courseId, 14)` |
+| `initialState { … }` | the state before the first Event |
+| `exposes peak` | the field of the state commands read. Without it, the whole state is the value |
+| ``on E => ```expr``` `` | a handler: an expression over `state`, `event`, `tags` (`tags.courseId`) and `args` (`args.days`) that returns the next state |
+
+The DCB Playground asks for confirmation before it opens a model containing scripts, and `?safe` in its address disables them.
 
 ### Reading an entity <span class="dcb-badge dcb-badge--experimental">experimental</span> { #read-entity data-toc-label="Reading an entity" }
 

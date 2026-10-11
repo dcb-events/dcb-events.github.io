@@ -124,8 +124,7 @@ The `UsernameChanged` Event is tagged with the old _and_ the new username, so it
 ````dcb id="unique_username_03" extends="unique_username_02"
 event UsernameChanged { tag oldUsername: Username, tag newUsername: Username }
 
-projection UsernameClaimed (tag username: Username): boolean {
-  script
+scripted projection UsernameClaimed (tag username: Username): boolean {
   initialState false
   on AccountRegistered => ```true```
   on AccountClosed => ```false```
@@ -173,8 +172,7 @@ type Day = integer
 event AccountClosed { tag username: Username, closedOn: Day }
 event UsernameChanged { tag oldUsername: Username, tag newUsername: Username, changedOn: Day }
 
-projection UsernameClaimed (tag username: Username, today: Day): boolean {
-  script
+scripted projection UsernameClaimed (tag username: Username, today: Day): boolean {
   initialState false
   on AccountRegistered => ```true```
   on AccountClosed => ```args.today - event.data.closedOn <= 3```
