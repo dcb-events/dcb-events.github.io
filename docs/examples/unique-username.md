@@ -49,14 +49,14 @@ tag type Username = string
 
 event AccountRegistered { tag username: Username }
 
-projection UsernameClaimed (tag username: Username): boolean = false {
+projection UsernameTaken (tag username: Username): boolean = false {
   on AccountRegistered => set true
 }
 
 command RegisterAccount(username: Username) {
-  alias claimed = UsernameClaimed(username)
+  alias taken = UsernameTaken(username)
 
-  require claimed is false
+  require taken is false
     else reject "Username is already taken"
 
   emit AccountRegistered { username }
@@ -91,15 +91,15 @@ This example extends the previous one to show how a previously claimed username 
 ```dcb id="unique_username_02" extends="unique_username_01"
 event AccountClosed { tag username: Username }
 
-projection UsernameClaimed (tag username: Username): boolean = false {
+projection UsernameTaken (tag username: Username): boolean = false {
   on AccountRegistered => set true
   on AccountClosed => set false
 }
 
 command RegisterAccount(username: Username) {
-  alias claimed = UsernameClaimed(username)
+  alias taken = UsernameTaken(username)
 
-  require claimed is false
+  require taken is false
     else reject "Username is already taken"
 
   emit AccountRegistered { username }
@@ -119,22 +119,23 @@ command RegisterAccount(username: Username) {
 
 This example extends the previous one to show how the username of an active account could be changed.
 
-The `UsernameChanged` Event is tagged with the old _and_ the new username, so it is part of the Query for both (see the "Consistency boundary" tab). A declarative handler cannot tell which of the two usernames it is folding, so the `UsernameClaimed` projection is scripted from here on: the change releases the old username and claims the new one.
+The `ChangeUsername` command releases the old username and claims the new one, so it records two Events: `UsernameReleased` and `UsernameClaimed`. Each of them is about a single username, which keeps the `UsernameTaken` projection simple. The command reads that projection for both usernames, so a single decision covers both of them (see the "Consistency boundary" tab): if either username is claimed or released in the meantime, the change fails.
 
-````dcb id="unique_username_03" extends="unique_username_02"
-event UsernameChanged { tag oldUsername: Username, tag newUsername: Username }
+```dcb id="unique_username_03" extends="unique_username_02"
+event UsernameReleased { tag username: Username }
+event UsernameClaimed { tag username: Username }
 
-scripted projection UsernameClaimed (tag username: Username): boolean {
-  initialState false
-  on AccountRegistered => ```true```
-  on AccountClosed => ```false```
-  on UsernameChanged => ```event.data.newUsername === tags.username```
+projection UsernameTaken (tag username: Username): boolean = false {
+  on AccountRegistered => set true
+  on AccountClosed => set false
+  on UsernameReleased => set false
+  on UsernameClaimed => set true
 }
 
 command RegisterAccount(username: Username) {
-  alias claimed = UsernameClaimed(username)
+  alias taken = UsernameTaken(username)
 
-  require claimed is false
+  require taken is false
     else reject "Username is already taken"
 
   emit AccountRegistered { username }
@@ -142,20 +143,53 @@ command RegisterAccount(username: Username) {
   scenarios {
     scenario "Register account with a username that was previously used and then changed" {
       given AccountRegistered { username: "u1" }
-      and UsernameChanged { oldUsername: "u1", newUsername: "u1changed" }
+      and UsernameReleased { username: "u1" }
+      and UsernameClaimed { username: "u1changed" }
       when RegisterAccount { username: "u1" }
       then AccountRegistered { username: "u1" }
     }
 
     scenario "Register account with a username that another username was changed to" {
       given AccountRegistered { username: "u1" }
-      and UsernameChanged { oldUsername: "u1", newUsername: "u1changed" }
+      and UsernameReleased { username: "u1" }
+      and UsernameClaimed { username: "u1changed" }
       when RegisterAccount { username: "u1changed" }
       then rejected "Username is already taken"
     }
   }
 }
-````
+
+command ChangeUsername(username: Username, newUsername: Username) {
+  require UsernameTaken(username) is true
+    else reject "Username is not in use"
+  require UsernameTaken(newUsername) is false
+    else reject "Username is already taken"
+
+  emit UsernameReleased { username }
+  emit UsernameClaimed { username: newUsername }
+
+  scenarios {
+    scenario "Change username" {
+      given AccountRegistered { username: "u1" }
+      when ChangeUsername { username: "u1", newUsername: "u1changed" }
+      then UsernameReleased { username: "u1" }
+      and UsernameClaimed { username: "u1changed" }
+    }
+
+    scenario "Change username to a claimed username" {
+      given AccountRegistered { username: "u1" }
+      and AccountRegistered { username: "u2" }
+      when ChangeUsername { username: "u1", newUsername: "u2" }
+      then rejected "Username is already taken"
+    }
+
+    scenario "Change a username that is not in use" {
+      when ChangeUsername { username: "u1", newUsername: "u1changed" }
+      then rejected "Username is not in use"
+    }
+  }
+}
+```
 
 ### Feature 4: Username retention
 
@@ -164,25 +198,30 @@ This example extends the previous one to show how a username can be reserved for
 
 !!! note
 
-    The decision depends on the current date, so it is passed in with the command (`today`), and the Events record when they happened in their payload (`closedOn`, `changedOn`). That keeps the decision model deterministic: it compares the two to determine the Event's age. Representing dates as day numbers is a simplification, typically this would be a timestamp.
+    The decision depends on the current date, so it is passed in with the command (`today`), and the Events record when they happened in their payload (`closedOn`, `releasedOn`). That keeps the decision model deterministic: it compares the two to determine the Event's age. Representing dates as day numbers is a simplification, typically this would be a timestamp.
 
-````dcb id="unique_username_04" extends="unique_username_03"
+The `UsernameReleasedOn` projection keeps the day a username was last released, and the derived projection `UsernameRetainedUntil` adds the retention period of three days to it. Both commands only accept a username once that day has passed.
+
+```dcb id="unique_username_04" extends="unique_username_03"
 type Day = integer
 
 event AccountClosed { tag username: Username, closedOn: Day }
-event UsernameChanged { tag oldUsername: Username, tag newUsername: Username, changedOn: Day }
+event UsernameReleased { tag username: Username, releasedOn: Day }
 
-scripted projection UsernameClaimed (tag username: Username, today: Day): boolean {
-  initialState false
-  on AccountRegistered => ```true```
-  on AccountClosed => ```args.today - event.data.closedOn <= 3```
-  on UsernameChanged => ```event.data.newUsername === tags.username || args.today - event.data.changedOn <= 3```
+// Starts far in the past, so a username that was never released is not retained
+projection UsernameReleasedOn (tag username: Username): Day = -1000 {
+  on AccountClosed => set event.data.closedOn
+  on UsernameReleased => set event.data.releasedOn
+}
+
+derived projection UsernameRetainedUntil (tag username: Username): Day {
+  UsernameReleasedOn(username) + 3
 }
 
 command RegisterAccount(username: Username, today: Day) {
-  alias claimed = UsernameClaimed(username, today)
-
-  require claimed is false
+  require UsernameTaken(username) is false
+    else reject "Username is already taken"
+  require UsernameRetainedUntil(username) < today
     else reject "Username is already taken"
 
   emit AccountRegistered { username }
@@ -208,14 +247,16 @@ command RegisterAccount(username: Username, today: Day) {
 
     scenario "Register account with a username that was previously used and then changed" {
       given AccountRegistered { username: "u1" }
-      and UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 1 }
+      and UsernameReleased { username: "u1", releasedOn: 1 }
+      and UsernameClaimed { username: "u1changed" }
       when RegisterAccount { username: "u1", today: 10 }
       then AccountRegistered { username: "u1" }
     }
 
     scenario "Register account with a username that another username was changed to" {
       given AccountRegistered { username: "u1" }
-      and UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 1 }
+      and UsernameReleased { username: "u1", releasedOn: 1 }
+      and UsernameClaimed { username: "u1changed" }
       when RegisterAccount { username: "u1changed", today: 10 }
       then rejected "Username is already taken"
     }
@@ -229,7 +270,8 @@ command RegisterAccount(username: Username, today: Day) {
 
     scenario "Register changed username before retention period" {
       given AccountRegistered { username: "u1" }
-      and UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 7 }
+      and UsernameReleased { username: "u1", releasedOn: 7 }
+      and UsernameClaimed { username: "u1changed" }
       when RegisterAccount { username: "u1", today: 10 }
       then rejected "Username is already taken"
     }
@@ -243,13 +285,55 @@ command RegisterAccount(username: Username, today: Day) {
 
     scenario "Register changed username after retention period" {
       given AccountRegistered { username: "u1" }
-      and UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 6 }
+      and UsernameReleased { username: "u1", releasedOn: 6 }
+      and UsernameClaimed { username: "u1changed" }
       when RegisterAccount { username: "u1", today: 10 }
       then AccountRegistered { username: "u1" }
     }
   }
 }
-````
+
+command ChangeUsername(username: Username, newUsername: Username, today: Day) {
+  require UsernameTaken(username) is true
+    else reject "Username is not in use"
+  require UsernameTaken(newUsername) is false
+    else reject "Username is already taken"
+  require UsernameRetainedUntil(newUsername) < today
+    else reject "Username is already taken"
+
+  emit UsernameReleased { username, releasedOn: today }
+  emit UsernameClaimed { username: newUsername }
+
+  scenarios {
+    scenario "Change username" {
+      given AccountRegistered { username: "u1" }
+      when ChangeUsername { username: "u1", newUsername: "u1changed", today: 10 }
+      then UsernameReleased { username: "u1", releasedOn: 10 }
+      and UsernameClaimed { username: "u1changed" }
+    }
+
+    scenario "Change username to a claimed username" {
+      given AccountRegistered { username: "u1" }
+      and AccountRegistered { username: "u2" }
+      when ChangeUsername { username: "u1", newUsername: "u2", today: 10 }
+      then rejected "Username is already taken"
+    }
+
+    scenario "Change a username that is not in use" {
+      when ChangeUsername { username: "u1", newUsername: "u1changed", today: 10 }
+      then rejected "Username is not in use"
+    }
+
+    scenario "Change username to one of a closed account before retention period" {
+      given AccountRegistered { username: "u1" }
+      and AccountRegistered { username: "u2" }
+      and AccountClosed { username: "u2", closedOn: 7 }
+      when ChangeUsername { username: "u1", newUsername: "u2", today: 10 }
+      then rejected "Username is already taken"
+    }
+  }
+}
+```
 
 ## Conclusion
 
