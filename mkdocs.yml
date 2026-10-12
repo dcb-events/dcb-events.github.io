@@ -47,6 +47,8 @@ nav:
       - examples/index.md
       - Course subscriptions: examples/course-subscriptions.md
       - Unique username: examples/unique-username.md
+      - Product reviews: examples/product-reviews.md
+      - Bike rental: examples/bike-rental.md
       - Invoice number: examples/invoice-number.md
       - Dynamic product price: examples/dynamic-product-price.md
       - Event-Sourced Aggregate: examples/event-sourced-aggregate.md
