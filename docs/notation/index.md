@@ -124,7 +124,7 @@ scenarios {
 }
 ```
 
-The scenarios of a command sit in one `scenarios` group at its end. Each one states the Events already appended (`given`), the command that is handled (`when`), and `then` the Events it appends, `nothing`, or the message it was rejected with.
+The scenarios of a command sit in one `scenarios` group at its end. Each one states the Events already appended (`given`), the command that is handled (`when`), and `then` the Events it appends, `nothing`, or the message it was rejected with. Each keyword is said once, further Events continue with `and`.
 
 The scenarios are not just documentation: the build of this website fails if one of them does not hold.
 
@@ -200,13 +200,13 @@ command SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
   scenarios {
     scenario "Subscribe student to fully booked course" {
       given CourseDefined { courseId: "c1", capacity: 1 }
-      given StudentSubscribedToCourse { courseId: "c1", studentId: "s1" }
+      and StudentSubscribedToCourse { courseId: "c1", studentId: "s1" }
       when SubscribeStudentToCourse { courseId: "c1", studentId: "s2" }
       then rejected "Course is full"
     }
     scenario "Subscribe student to the same course twice" {
       given CourseDefined { courseId: "c1", capacity: 10 }
-      given StudentSubscribedToCourse { courseId: "c1", studentId: "s1" }
+      and StudentSubscribedToCourse { courseId: "c1", studentId: "s1" }
       when SubscribeStudentToCourse { courseId: "c1", studentId: "s1" }
       then rejected "Student is already subscribed"
     }
@@ -503,7 +503,7 @@ command ArchiveCourse(courseId: CourseId) {
   scenarios {
     scenario "Archive an archived course" {
       given CourseDefined { courseId: "c1", capacity: 10 }
-      given CourseArchived { courseId: "c1" }
+      and CourseArchived { courseId: "c1" }
       when ArchiveCourse { courseId: "c1" }
       then rejected "Course is not active"
     }
@@ -571,10 +571,10 @@ command RescheduleCourse(courseId: CourseId, slots: string[]) {
   scenarios {
     scenario "Reschedule a course into a slot of another course of a student" {
       given CourseDefined { courseId: "c1", capacity: 10 }
-      given CourseDefined { courseId: "c2", capacity: 10 }
-      given CourseRescheduled { courseId: "c2", slots: ["mon-9"] }
-      given StudentSubscribedToCourse { courseId: "c1", studentId: "s1" }
-      given StudentSubscribedToCourse { courseId: "c2", studentId: "s1" }
+      and CourseDefined { courseId: "c2", capacity: 10 }
+      and CourseRescheduled { courseId: "c2", slots: ["mon-9"] }
+      and StudentSubscribedToCourse { courseId: "c1", studentId: "s1" }
+      and StudentSubscribedToCourse { courseId: "c2", studentId: "s1" }
       when RescheduleCourse { courseId: "c1", slots: ["mon-9", "tue-9"] }
       then rejected "Slots clash with a subscriber's other course"
     }
@@ -625,7 +625,7 @@ command SubscribeStudentToCourse(courseId: CourseId, studentId: StudentId) {
   scenarios {
     scenario "Subscribe student to fully booked course" {
       given CourseDefined { courseId: "c1", capacity: 1 }
-      given StudentSubscribedToCourse { courseId: "c1", studentId: "s1" }
+      and StudentSubscribedToCourse { courseId: "c1", studentId: "s1" }
       when SubscribeStudentToCourse { courseId: "c1", studentId: "s2" }
       then StudentWaitlistedForCourse { courseId: "c1", studentId: "s2" }
     }

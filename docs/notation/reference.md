@@ -129,7 +129,7 @@ command ArchiveCourse(courseId: CourseId) {
   scenarios {
     scenario "an archived course cannot be archived again" {
       given CourseDefined { courseId: "c1", capacity: 10 }
-      given CourseArchived { courseId: "c1" }
+      and CourseArchived { courseId: "c1" }
       when ArchiveCourse { courseId: "c1" }
       then rejected "Course is not active"
     }
@@ -372,8 +372,9 @@ An example that pins behaviour down. The scenarios of a command or projection si
 | `then E { … }` | the Events appended |
 | `then nothing` | no Event appended |
 | `then rejected "<message>"` | the message the command was rejected with |
+| `and E { … }` | a further Event after `given` or `then` |
 
-In the DCB Playground the `then` is optional, applying a text without one records what the model does. On this website every scenario has to state it.
+A scenario reads as a sentence: `given`, `when` and `then` are each said once, and further Events continue with `and`. Every scenario states its `then`; the DCB Playground offers to write in what the model does.
 
 ### Projection scenarios { #projection-scenario }
 

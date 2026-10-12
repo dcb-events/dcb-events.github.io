@@ -72,7 +72,7 @@ command ConfirmSignUp(emailAddress: EmailAddress, otp: Otp) {
 
     scenario "Confirm SignUp for already used OTP" {
       given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "222222", name: "John Doe" }
-      given SignUpConfirmed { emailAddress: "john.doe@example.com", otp: "222222", name: "John Doe" }
+      and SignUpConfirmed { emailAddress: "john.doe@example.com", otp: "222222", name: "John Doe" }
       when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "222222" }
       then rejected "Code was already used"
     }
@@ -134,7 +134,7 @@ command ConfirmSignUp(emailAddress: EmailAddress, otp: Otp, now: Minute) {
 
     scenario "Confirm SignUp for already used OTP" {
       given SignUpInitiated { emailAddress: "john.doe@example.com", otp: "222222", name: "John Doe", expiresAt: 160 }
-      given SignUpConfirmed { emailAddress: "john.doe@example.com", otp: "222222", name: "John Doe" }
+      and SignUpConfirmed { emailAddress: "john.doe@example.com", otp: "222222", name: "John Doe" }
       when ConfirmSignUp { emailAddress: "john.doe@example.com", otp: "222222", now: 100 }
       then rejected "Code was already used"
     }

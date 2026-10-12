@@ -107,7 +107,7 @@ command RegisterAccount(username: Username) {
   scenarios {
     scenario "Register account with username of closed account" {
       given AccountRegistered { username: "u1" }
-      given AccountClosed { username: "u1" }
+      and AccountClosed { username: "u1" }
       when RegisterAccount { username: "u1" }
       then AccountRegistered { username: "u1" }
     }
@@ -142,14 +142,14 @@ command RegisterAccount(username: Username) {
   scenarios {
     scenario "Register account with a username that was previously used and then changed" {
       given AccountRegistered { username: "u1" }
-      given UsernameChanged { oldUsername: "u1", newUsername: "u1changed" }
+      and UsernameChanged { oldUsername: "u1", newUsername: "u1changed" }
       when RegisterAccount { username: "u1" }
       then AccountRegistered { username: "u1" }
     }
 
     scenario "Register account with a username that another username was changed to" {
       given AccountRegistered { username: "u1" }
-      given UsernameChanged { oldUsername: "u1", newUsername: "u1changed" }
+      and UsernameChanged { oldUsername: "u1", newUsername: "u1changed" }
       when RegisterAccount { username: "u1changed" }
       then rejected "Username is already taken"
     }
@@ -201,49 +201,49 @@ command RegisterAccount(username: Username, today: Day) {
 
     scenario "Register account with username of closed account" {
       given AccountRegistered { username: "u1" }
-      given AccountClosed { username: "u1", closedOn: 1 }
+      and AccountClosed { username: "u1", closedOn: 1 }
       when RegisterAccount { username: "u1", today: 10 }
       then AccountRegistered { username: "u1" }
     }
 
     scenario "Register account with a username that was previously used and then changed" {
       given AccountRegistered { username: "u1" }
-      given UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 1 }
+      and UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 1 }
       when RegisterAccount { username: "u1", today: 10 }
       then AccountRegistered { username: "u1" }
     }
 
     scenario "Register account with a username that another username was changed to" {
       given AccountRegistered { username: "u1" }
-      given UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 1 }
+      and UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 1 }
       when RegisterAccount { username: "u1changed", today: 10 }
       then rejected "Username is already taken"
     }
 
     scenario "Register username of closed account before retention period" {
       given AccountRegistered { username: "u1" }
-      given AccountClosed { username: "u1", closedOn: 7 }
+      and AccountClosed { username: "u1", closedOn: 7 }
       when RegisterAccount { username: "u1", today: 10 }
       then rejected "Username is already taken"
     }
 
     scenario "Register changed username before retention period" {
       given AccountRegistered { username: "u1" }
-      given UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 7 }
+      and UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 7 }
       when RegisterAccount { username: "u1", today: 10 }
       then rejected "Username is already taken"
     }
 
     scenario "Register username of closed account after retention period" {
       given AccountRegistered { username: "u1" }
-      given AccountClosed { username: "u1", closedOn: 6 }
+      and AccountClosed { username: "u1", closedOn: 6 }
       when RegisterAccount { username: "u1", today: 10 }
       then AccountRegistered { username: "u1" }
     }
 
     scenario "Register changed username after retention period" {
       given AccountRegistered { username: "u1" }
-      given UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 6 }
+      and UsernameChanged { oldUsername: "u1", newUsername: "u1changed", changedOn: 6 }
       when RegisterAccount { username: "u1", today: 10 }
       then AccountRegistered { username: "u1" }
     }

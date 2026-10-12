@@ -150,25 +150,25 @@ command SubscribeStudentToCourse(studentId: StudentId, courseId: CourseId) {
     }
     scenario "Subscribe student to fully booked course" {
       given CourseDefined { courseId: "c1", capacity: 3 }
-      given StudentSubscribedToCourse { studentId: "s1", courseId: "c1" }
-      given StudentSubscribedToCourse { studentId: "s2", courseId: "c1" }
-      given StudentSubscribedToCourse { studentId: "s3", courseId: "c1" }
+      and StudentSubscribedToCourse { studentId: "s1", courseId: "c1" }
+      and StudentSubscribedToCourse { studentId: "s2", courseId: "c1" }
+      and StudentSubscribedToCourse { studentId: "s3", courseId: "c1" }
       when SubscribeStudentToCourse { studentId: "s4", courseId: "c1" }
       then rejected "Course is full"
     }
     scenario "Subscribe student to the same course twice" {
       given CourseDefined { courseId: "c1", capacity: 10 }
-      given StudentSubscribedToCourse { studentId: "s1", courseId: "c1" }
+      and StudentSubscribedToCourse { studentId: "s1", courseId: "c1" }
       when SubscribeStudentToCourse { studentId: "s1", courseId: "c1" }
       then rejected "Student is already subscribed"
     }
     scenario "Subscribe student to more than 5 courses" {
       given CourseDefined { courseId: "c6", capacity: 10 }
-      given StudentSubscribedToCourse { studentId: "s1", courseId: "c1" }
-      given StudentSubscribedToCourse { studentId: "s1", courseId: "c2" }
-      given StudentSubscribedToCourse { studentId: "s1", courseId: "c3" }
-      given StudentSubscribedToCourse { studentId: "s1", courseId: "c4" }
-      given StudentSubscribedToCourse { studentId: "s1", courseId: "c5" }
+      and StudentSubscribedToCourse { studentId: "s1", courseId: "c1" }
+      and StudentSubscribedToCourse { studentId: "s1", courseId: "c2" }
+      and StudentSubscribedToCourse { studentId: "s1", courseId: "c3" }
+      and StudentSubscribedToCourse { studentId: "s1", courseId: "c4" }
+      and StudentSubscribedToCourse { studentId: "s1", courseId: "c5" }
       when SubscribeStudentToCourse { studentId: "s1", courseId: "c6" }
       then rejected "Student is subscribed to too many courses"
     }

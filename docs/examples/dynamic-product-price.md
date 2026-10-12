@@ -126,7 +126,7 @@ command OrderProduct(productId: ProductId, displayedPrice: Money, now: Minute) {
 
     scenario "Order product with a price that was changed more than 10 minutes ago" {
       given ProductDefined { productId: "p1", price: 123, at: 80 }
-      given ProductPriceChanged { productId: "p1", newPrice: 134, at: 80 }
+      and ProductPriceChanged { productId: "p1", newPrice: 134, at: 80 }
       when OrderProduct { productId: "p1", displayedPrice: 123, now: 100 }
       then rejected "Price is no longer valid"
     }
@@ -139,14 +139,14 @@ command OrderProduct(productId: ProductId, displayedPrice: Money, now: Minute) {
 
     scenario "Order product with a price that was changed less than 10 minutes ago" {
       given ProductDefined { productId: "p1", price: 123, at: 80 }
-      given ProductPriceChanged { productId: "p1", newPrice: 134, at: 91 }
+      and ProductPriceChanged { productId: "p1", newPrice: 134, at: 91 }
       when OrderProduct { productId: "p1", displayedPrice: 123, now: 100 }
       then ProductOrdered { productId: "p1", price: 123 }
     }
 
     scenario "Order product with valid new price" {
       given ProductDefined { productId: "p1", price: 123, at: 80 }
-      given ProductPriceChanged { productId: "p1", newPrice: 134, at: 91 }
+      and ProductPriceChanged { productId: "p1", newPrice: 134, at: 91 }
       when OrderProduct { productId: "p1", displayedPrice: 134, now: 100 }
       then ProductOrdered { productId: "p1", price: 134 }
     }
@@ -183,7 +183,7 @@ command OrderProducts(items: Item[], now: Minute) {
 
     scenario "Order product with a price that was changed more than 10 minutes ago" {
       given ProductDefined { productId: "p1", price: 123, at: 80 }
-      given ProductPriceChanged { productId: "p1", newPrice: 134, at: 80 }
+      and ProductPriceChanged { productId: "p1", newPrice: 134, at: 80 }
       when OrderProducts { items: [{ productId: "p1", price: 123 }], now: 100 }
       then rejected "Price is no longer valid"
     }
@@ -196,15 +196,15 @@ command OrderProducts(items: Item[], now: Minute) {
 
     scenario "Order product with a price that was changed less than 10 minutes ago" {
       given ProductDefined { productId: "p1", price: 123, at: 80 }
-      given ProductPriceChanged { productId: "p1", newPrice: 134, at: 91 }
+      and ProductPriceChanged { productId: "p1", newPrice: 134, at: 91 }
       when OrderProducts { items: [{ productId: "p1", price: 123 }], now: 100 }
       then ProductsOrdered { items: [{ productId: "p1", price: 123 }] }
     }
 
     scenario "Order multiple products with valid prices" {
       given ProductDefined { productId: "p1", price: 123, at: 80 }
-      given ProductPriceChanged { productId: "p1", newPrice: 134, at: 91 }
-      given ProductDefined { productId: "p2", price: 321, at: 92 }
+      and ProductPriceChanged { productId: "p1", newPrice: 134, at: 91 }
+      and ProductDefined { productId: "p2", price: 321, at: 92 }
       when OrderProducts { items: [{ productId: "p1", price: 123 }, { productId: "p2", price: 321 }], now: 100 }
       then ProductsOrdered { items: [{ productId: "p1", price: 123 }, { productId: "p2", price: 321 }] }
     }
