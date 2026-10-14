@@ -24,7 +24,7 @@ No. DCB makes it easier to switch between the consistency models, but it is stil
 
 The idea of DCB started with the goal of killing the Aggregate [:octicons-link-external-16:](https://sara.event-thinking.io/2023/04/kill-aggregate-chapter-1-I-am-here-to-kill-the-aggregate.html){:target="_blank" .small}.
 
-However, DCB does not actually attack the Aggregate pattern itself. Instead, it offers an alternative approach to achieving consistency in event-driven architectures — one that doesn't rely on Aggregates as the primary mechanism.
+However, DCB does not actually attack the Aggregate pattern itself. Instead, it offers an alternative approach to achieving consistency in event-driven architectures – one that doesn't rely on Aggregates as the primary mechanism.
 
 For more on this, see our article on [Aggregates](topics/aggregates.md).
 
@@ -83,15 +83,15 @@ On the contrary. While DCB may challenge certain assumptions and require some ad
 
 ## How does it improve performance?
 
-The primary goal of DCB is not to improve performance, but to provide a way to selectively enforce consistency where it’s actually needed. That said, in large-scale applications, enforcing strict consistency everywhere can become a performance bottleneck. By making it easier to apply eventual consistency where appropriate, DCB can help systems scale more effectively and potentially improve performance as a side effect—though that’s not its core purpose.
+The primary goal of DCB is not to improve performance, but to provide a way to selectively enforce consistency where it’s actually needed. That said, in large-scale applications, enforcing strict consistency everywhere can become a performance bottleneck. By making it easier to apply eventual consistency where appropriate, DCB can help systems scale more effectively and potentially improve performance as a side effect–though that’s not its core purpose.
 
 ## How does it scale?
 
-DCB is still a relatively young concept, and its scalability characteristics are being actively explored. That said, early benchmarks using a PostgreSQL-based implementation indicate promising performance: even after processing 1 million Events, the system maintained a throughput of approximately 0.001 seconds per Event — equivalent to around 1,000 events per second. While these results are preliminary and implementation-dependent, they suggest that DCB can scale effectively in practice, especially when paired with well-optimized persistence layers and infrastructure.
+DCB is still a relatively young concept, and its scalability characteristics are being actively explored. That said, early benchmarks using a PostgreSQL-based implementation indicate promising performance: even after processing 1 million Events, the system maintained a throughput of approximately 0.001 seconds per Event – equivalent to around 1,000 events per second. While these results are preliminary and implementation-dependent, they suggest that DCB can scale effectively in practice, especially when paired with well-optimized persistence layers and infrastructure.
 
 ## Does it increase chances of lock collisions?
 
-A collision occurs when multiple processes attempt to modify the same data at nearly the same time, leading to contention over access. DCB actually _reduces_ the risk of such collisions by narrowing the scope of consistency enforcement. Instead of locking entire entities or aggregates, DCB allows fine-grained boundaries that isolate only the parts of the system where consistency constraints must be enforced. As a result, multiple processes can safely modify the same entity – so long as their changes don’t violate each other’s consistency requirements — thereby reducing contention and improving concurrency.
+A collision occurs when multiple processes attempt to modify the same data at nearly the same time, leading to contention over access. DCB actually _reduces_ the risk of such collisions by narrowing the scope of consistency enforcement. Instead of locking entire entities or aggregates, DCB allows fine-grained boundaries that isolate only the parts of the system where consistency constraints must be enforced. As a result, multiple processes can safely modify the same entity – so long as their changes don’t violate each other’s consistency requirements – thereby reducing contention and improving concurrency.
 
 ## How can it be used with a "traditional" Event Store?
 
@@ -107,6 +107,6 @@ Furthermore, DCB leads to some additional complexity in the Event Store implemen
 
 ## What are the next steps?
 
-The future of DCB is still unfolding. There’s a lot more to discover, both conceptually and in practice and your feedback will play a key role in shaping its evolution — sparking new ideas, use cases, and conversations.
+The future of DCB is still unfolding. There’s a lot more to discover, both conceptually and in practice and your feedback will play a key role in shaping its evolution – sparking new ideas, use cases, and conversations.
 
 We plan to continuously extend this website with more [examples](examples/index.md), [articles](topics/index.md), and [resources](resources/index.md) to help others explore and apply DCB in real-world systems. Make sure to watch the Github Repository[:octicons-link-external-16:](https://github.com/dcb-events/dcb-events.github.io){:target="_blank" .small} of this website to get notified about changes.

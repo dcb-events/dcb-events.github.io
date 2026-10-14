@@ -49,7 +49,7 @@ command CreateInvoice(invoiceData: InvoiceData) {
 
 ### Better performance
 
-With this approach, **every past `InvoiceCreated` event must be loaded** just to determine the next invoice number. And although this may not introduce significant performance concerns with hundreds or even thousands of invoices — depending on how fast the underlying Event Store is — it remains a suboptimal and inefficient design choice.
+With this approach, **every past `InvoiceCreated` event must be loaded** just to determine the next invoice number. And although this may not introduce significant performance concerns with hundreds or even thousands of invoices – depending on how fast the underlying Event Store is – it remains a suboptimal and inefficient design choice.
 
 #### Snapshots
 

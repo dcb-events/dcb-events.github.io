@@ -1,6 +1,6 @@
 In software architecture, how we view and handle data often comes down to two fundamental perspectives: **event-based** and **state-based**. The state-based view focuses on the current snapshot of data. It’s straightforward and efficient for querying, reporting, and displaying data to users. In contrast, the event-based view captures every change over time, providing a complete history of how the state evolved.
 
-Depending on your use case, one view may serve better than the other — or you might need both. That’s where projections come in: they translate an event-based history into a state-based model tailored to specific needs.
+Depending on your use case, one view may serve better than the other – or you might need both. That’s where projections come in: they translate an event-based history into a state-based model tailored to specific needs.
 
 The result is commonly used for persistent <dfn title="Representation of data tailored for specific read operations, often denormalized for performance">Read Models</dfn>. In Event Sourcing, however, projections are also used to build the <dfn title="Representation of the system's current state, used to enforce integrity constraints before moving the system to a new state">Decision Model</dfn> needed to enforce consistency constraints. 
 
@@ -92,7 +92,7 @@ console.log({numberOfActiveCourses})
 
 In the above example, the reducer iterates over all Events even though it only changes the state for `CourseDefined` and `CourseArchived` events. This is not an issue for this simple example. But in reality, those events are not stored in memory, and there can be many of them. So obviously, they should be filtered _before_ they are read from the Event Store.
 
-As previously mentioned, in the context of DCB, projections are typically used to reconstruct the minimal model required to validate the constraints the system needs to enforce — usually in response to a command issued by the user.
+As previously mentioned, in the context of DCB, projections are typically used to reconstruct the minimal model required to validate the constraints the system needs to enforce – usually in response to a command issued by the user.
 
 Given that the system should ensure a performant response to user input, it becomes clear how paramount it is to minimize the time and effort needed to rebuild the Decision Model.
 The most effective approach, then, is to limit the reconstruction to the absolute minimum, by loading only the Events that are relevant to validating the received command.

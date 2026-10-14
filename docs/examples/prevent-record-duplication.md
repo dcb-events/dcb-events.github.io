@@ -32,7 +32,7 @@ To prevent double submissions on the server-side, several strategies can be used
 
 With DCB, a random `idempotency token` can be safely generated on the client side and included in the command. When the corresponding Event is persisted, the token is stored alongside the server-generated entity identifier.
 
-With that, a Decision Model can be created that is responsible for validating the uniqueness of the token within the context of that operation — ensuring that the same token cannot be used more than once. This allows the server to enforce idempotency without exposing domain identifiers to the client or requiring additional infrastructure for token tracking:
+With that, a Decision Model can be created that is responsible for validating the uniqueness of the token within the context of that operation – ensuring that the same token cannot be used more than once. This allows the server to enforce idempotency without exposing domain identifiers to the client or requiring additional infrastructure for token tracking:
 
 ```dcb id="prevent_record_duplication_01"
 model "Prevent record duplication"
