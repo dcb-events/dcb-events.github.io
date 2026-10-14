@@ -10,14 +10,11 @@ The playground's help links to the reference of the DCB notation on this site, a
 anchor. The build fails if one of those pages or anchors does not exist.
 """
 import json
-import logging
 import os
 import shutil
 import subprocess
 from pathlib import Path
 from urllib.parse import urlparse
-
-log = logging.getLogger('mkdocs.hooks.playground')
 
 EXCLUDE = ('*.test.js', 'test-harness.js', 'generate-*.js', 'print-model.js', '.DS_Store')
 
@@ -25,8 +22,7 @@ EXCLUDE = ('*.test.js', 'test-harness.js', 'generate-*.js', 'print-model.js', '.
 def on_post_build(config, **kwargs):
     source = Path(os.environ.get('DCB_PLAYGROUND_DIR', 'playground'))
     if not (source / 'app' / 'index.html').is_file():
-        log.warning(f'DCB Playground not found in "{source}" (run `git submodule update --init`), skipping /playground/')
-        return
+        raise RuntimeError(f'DCB Playground not found in "{source}" (run `git submodule update --init`)')
     site = Path(config['site_dir'])
 
     target = site / 'playground'

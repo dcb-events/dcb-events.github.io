@@ -41,3 +41,6 @@ tmp
 # IDEs & Editors
 .idea
 *~
+
+# Local planning notes
+PLAYGROUND_PLAN.md
