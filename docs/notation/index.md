@@ -11,7 +11,7 @@ What makes it useful for DCB is what it does *not* contain: a command never stat
 !!! warning "Experimental"
 
     The DCB notation is the text form of models in the [:material-play-box-outline: DCB Playground](/playground/) and, like the playground, it is subject to change.
-    The source of truth is the playground's JSON format ([schema v9](/schemas/model/v9.json)): every construct of the notation is exactly one shape of that format, so a model can be turned into text and back without losing anything.
+    The source of truth is the playground's JSON format ([schema v10](/schemas/model/v10.json)): every construct of the notation is exactly one shape of that format, so a model can be turned into text and back without losing anything.
 
 This page introduces the notation step by step. The first part covers the basics needed to read the examples. The second part, marked <span class="dcb-badge">advanced</span>, covers the rest of the language, and the last part, marked <span class="dcb-badge dcb-badge--experimental">experimental</span>, covers features that are still being tried out. Every keyword is listed in the [reference](reference.md).
 
@@ -281,6 +281,19 @@ derived projection CourseIsFull (tag courseId: CourseId): boolean {
 A computation is one of `+`, `-`, `*`, `min(a, b)` and `max(a, b)` over two projections or numbers. A longer expression is a chain of derived projections, each with a name of its own. A comparison is written like a [`require`](reference.md#require) and is always a `boolean`.
 
 A derived projection declares its Tags like any projection and passes them on to the projections it reads. Reading it reads its operands, each by its own Tags: a command that reads `CourseSeatsLeft(courseId)` has `CourseDefined`, `CourseCapacityChanged` and `StudentSubscribedToCourse` in its Query.
+
+A derived projection can also take *arguments*: parameters without `tag`, which a read gives after the Tags. The expression compares or computes with them by name, so the request can be part of the decision:
+
+```dcb id="notation_derived_arguments" extends="notation_derived" hidden="true"
+derived projection CourseHasSeatsFor (tag courseId: CourseId, seats: integer): boolean {
+  CourseSeatsLeft(courseId) >= seats
+}
+```
+
+```dcb excerpt="notation_derived_arguments" show="projection CourseHasSeatsFor"
+```
+
+`CourseHasSeatsFor(courseId, 3)` reads the same Events as `CourseSeatsLeft(courseId)`: an argument narrows nothing.
 
 ### Numbering <span class="dcb-badge">advanced</span> { #numbering data-toc-label="Numbering" }
 

@@ -96,6 +96,10 @@ derived projection CourseSeatsLeft (tag courseId: CourseId): integer {
   CourseCapacity(courseId) - CourseSubscriptionCount(courseId)
 }
 
+derived projection CourseHasSeatsFor (tag courseId: CourseId, seats: integer): boolean {
+  CourseSeatsLeft(courseId) >= seats
+}
+
 scripted projection CoursePeakSubscriptions (tag courseId: CourseId): integer {
   initialState { current: 0, peak: 0 }
   exposes peak
@@ -313,7 +317,7 @@ CourseNumbering()
 CourseStatus(CourseId("c1"))
 ```
 
-The value of a projection, for a value of each of its Tags, in the order the projection declares them. An [untagged](#untagged) projection is read with `()`. A value is a property of the command, an alias, another read or a literal of the [tag type](#literals).
+The value of a projection, for a value of each of its Tags and then of each of its arguments (see [`derived`](#derived)), in the order the projection declares them. An [untagged](#untagged) projection is read with `()`. A value is a property of the command, an alias, another read or a literal of the [tag type](#literals).
 
 A read can be written wherever a value is: in a condition, in an Event's property, or as the value of another read. The same read written twice is read once.
 
@@ -427,7 +431,7 @@ The value following another one: `7` → `8`, `c1` → `c2`, `inv-009` → `inv-
 
 ### `derived` <span class="dcb-badge">advanced</span> { #derived data-toc-label="derived" }
 
-```dcb excerpt="notation_reference" show="projection CourseIsFull, projection CourseSeatsLeft"
+```dcb excerpt="notation_reference" show="projection CourseIsFull, projection CourseSeatsLeft, projection CourseHasSeatsFor"
 ```
 
 A value worked out from other projections, without handlers or initial value. Its block holds one expression:
@@ -438,7 +442,7 @@ A value worked out from other projections, without handlers or initial value. It
 | `A(courseId) - B(courseId)` | a computation with `+`, `-` or `*`, over two projections or numbers. An `integer` from two integers, a `number` otherwise |
 | `min(A(courseId), 10)` | the smaller of two numbers, `max(…)` the larger |
 
-A longer expression is a chain of derived projections. If one side is `null`, a computation is `null`, too. A derived projection declares its Tags and passes them on to the projections it reads. Reading it reads its operands, each by its own Tags, so their Events are part of the Query. See [derived projections](index.md#derived-projections) in the guide.
+A longer expression is a chain of derived projections. If one side is `null`, a computation is `null`, too. A derived projection declares its Tags and passes them on to the projections it reads. A parameter without `tag`, like `seats`, is an argument: a [read](#read) gives it after the Tags, `CourseHasSeatsFor(courseId, 3)`, and the expression compares or computes with it by name, or passes it on to a read. An argument narrows nothing, unless it is passed on as a Tag of a read. Reading it reads its operands, each by its own Tags, so their Events are part of the Query. See [derived projections](index.md#derived-projections) in the guide.
 
 ### Fan-out <span class="dcb-badge">advanced</span> { #fan-out data-toc-label="Fan-out" }
 
@@ -486,7 +490,7 @@ A projection written in JavaScript, `scripted` in front of `projection`. Its Tag
 
 | Field | Meaning |
 |---|---|
-| `scripted projection CourseActivity (tag courseId: CourseId, days: integer)` | the Tags, then further values the script takes. A [read](#read) gives them in that order: `CourseActivity(courseId, 14)` |
+| `scripted projection CourseActivity (tag courseId: CourseId, days: integer)` | the Tags, then arguments, as for a [derived projection](#derived). A [read](#read) gives them in that order: `CourseActivity(courseId, 14)` |
 | `initialState { … }` | the state before the first Event |
 | `exposes peak` | the field of the state commands read. Without it, the whole state is the value |
 | ``on E => ```expr``` `` | a handler: an expression over `state`, `event`, `tags` (`tags.courseId`) and `args` (`args.days`) that returns the next state |
@@ -512,7 +516,7 @@ Reads can build on earlier ones, and the Query is then as deep as the chain. See
 alias course = Course(courseId, since: today)
 ```
 
-Values for the further arguments of the [scripted projections](#script) among the entity's properties, by name after the identifier.
+Values for the arguments of the projections among the entity's properties, by name after the identifier.
 
 ### Optional reads <span class="dcb-badge dcb-badge--experimental">experimental</span> { #optional-read data-toc-label="Optional reads" }
 
