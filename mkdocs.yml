@@ -26,13 +26,13 @@ theme:
     - scheme: slate
       toggle:
         icon: material/weather-sunny
-        name: Dark mode
+        name: Switch to light mode
       primary: teal
       accent: deep orange
     - scheme: default
       toggle:
         icon: material/weather-night
-        name: Light mode
+        name: Switch to dark mode
       primary: teal
       accent: deep orange
 
@@ -40,10 +40,15 @@ nav:
   - DCB:
     - Home: index.md
     - Specification: specification.md
+    - DCB notation:
+      - notation/index.md
+      - Reference: notation/reference.md
   - Examples:
       - examples/index.md
       - Course subscriptions: examples/course-subscriptions.md
       - Unique username: examples/unique-username.md
+      - Product reviews: examples/product-reviews.md
+      - Bike rental: examples/bike-rental.md
       - Invoice number: examples/invoice-number.md
       - Dynamic product price: examples/dynamic-product-price.md
       - Event-Sourced Aggregate: examples/event-sourced-aggregate.md
@@ -67,7 +72,7 @@ nav:
   - About: about.md
 
 markdown_extensions:
-  - extensions.replace_dcb_scenarios
+  - extensions.dcb_notation
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
@@ -105,14 +110,13 @@ plugins:
 hooks:
   - hooks/copyright.py
   - hooks/preview.py
+  - hooks/playground.py
+  - hooks/dcb_notation.py
 
 watch:
   - hooks
   - extensions
   - overrides
 
-extra_javascript:
-  - assets/js/codapi-snippet.js
-  - assets/js/dcb-scenario.bundle.js
 extra_css:
   - assets/css/custom.css

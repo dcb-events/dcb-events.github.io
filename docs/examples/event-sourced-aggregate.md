@@ -168,8 +168,6 @@ class CourseAggregate {
 }
 ```
 
-<codapi-snippet id="example-event-sourced-aggregate" engine="browser"></codapi-snippet>
-
 With that, a `CourseAggregate` can be created:
 
 ```js
@@ -178,8 +176,6 @@ course.changeCapacity(15)
 const events = course.pullRecordedEvents()
 console.log(events.map(e => e.type)) // ["CourseDefined","CourseCapacityChanged"]
 ```
-
-<codapi-snippet engine="browser" sandbox="javascript" depends-on="example-event-sourced-aggregate"></codapi-snippet>
 
 ...or reconstituted from previously recorded events:
 
@@ -201,8 +197,6 @@ const events = [
 const course = CourseAggregate.reconstitute(events)
 course.changeCapacity(15) // Error: Course "c1" already has a capacity of "15
 ```
-
-<codapi-snippet engine="browser" sandbox="javascript" depends-on="example-event-sourced-aggregate"></codapi-snippet>
 
 ### Repository
 
@@ -236,8 +230,6 @@ class CourseRepository {
 }
 ```
 
-<codapi-snippet id="example-repository" engine="browser" depends-on="example-event-sourced-aggregate"></codapi-snippet>
-
 It can be used with an `InMemoryEventStore.js`[:octicons-link-external-16:](../assets/js/InMemoryEventStore.js){:target="_blank" .small}
 
 ```js
@@ -256,8 +248,6 @@ console.log(
   .map(e => e.type)
 ) // ["CourseDefined","CourseCapacityChanged"]
 ```
-
-<codapi-snippet engine="browser" sandbox="javascript" depends-on="example-repository" template="/assets/js/InMemoryEventStoreTemplate.js"></codapi-snippet>
 
 ## DCB approach
 
@@ -289,8 +279,6 @@ class DcbCourseRepository {
 }
 ```
 
-<codapi-snippet id="example-dcb-repository" engine="browser" depends-on="example-event-sourced-aggregate"></codapi-snippet>
-
 It can be used with an `InMemoryDcbEventStore.js`[:octicons-link-external-16:](../assets/js/InMemoryDcbEventStore.js){:target="_blank" .small}
 
 ```js
@@ -309,8 +297,6 @@ console.log(
   dcbEventStore.read(createQuery([{ tags: ["course:c1"] }])).first()
 ) // {type: 'CourseDefined', data: { courseId: 'c1', title: 'Course 01', capacity: 10 }, tags: [ 'course:c1' ], position: 1}
 ```
-
-<codapi-snippet engine="browser" sandbox="javascript" depends-on="example-dcb-repository" template="/assets/js/dcb.js"></codapi-snippet>
 
 ## Conclusion
 

@@ -56,7 +56,7 @@ Even if only the affected course were locked, it would prevent independent paral
 
 #### Optimistic Locking
 
-With Optimistic Locking, multiple users can freely read and attempt to modify the same data. However, updates are only permitted if the data remains unchanged since it was read. This allows unrestricted reading, while writing faces similar constraints to pessimistic locking — but typically requires shorter database locks.
+With Optimistic Locking, multiple users can freely read and attempt to modify the same data. However, updates are only permitted if the data remains unchanged since it was read. This allows unrestricted reading, while writing faces similar constraints to pessimistic locking – but typically requires shorter database locks.
 
 It is usually achieved with a _version number_
 
@@ -77,7 +77,7 @@ The Aggregate Pattern formalizes consistency boundaries by **modeling them expli
 
 In this pattern, closely related domain entities and value objects are grouped into an Aggregate, with one entity designated as the Aggregate Root. The Aggregate Root serves as the exclusive access point, mediating all state changes. This ensures that all invariants and business rules are enforced consistently and atomically within the boundary of the Aggregate.
 
-A typical example is an `Order` Aggregate, where operations such as adding or removing line items are only performed through methods on the `Order` Aggregate Root. This guarantees that domain invariants—such as the correctness of the total price—are maintained at all times:
+A typical example is an `Order` Aggregate, where operations such as adding or removing line items are only performed through methods on the `Order` Aggregate Root. This guarantees that domain invariants–such as the correctness of the total price–are maintained at all times:
 
 ![order Aggregate diagram](img/order-aggregate.png){data-description="The Order is the Aggregate root. Shipping Address and Order Items are also part of the Order Aggregate" data-gallery="aggregate-pattern"}
 /// caption
@@ -117,7 +117,7 @@ This restriction is acceptable as long as an operation impacts only the invarian
 With that, subscribing a student affects the invariants of two Aggregates.
 
 !!! note
-    In some cases, such challenges indicate poorly defined Aggregate boundaries. However, in this scenario, restructuring the model — for example, by introducing a `Subscription` Aggregate — would not resolve the issue, since the business invariants related to both `Course` and `Student` must still be enforced independently within their respective Aggregates.
+    In some cases, such challenges indicate poorly defined Aggregate boundaries. However, in this scenario, restructuring the model – for example, by introducing a `Subscription` Aggregate – would not resolve the issue, since the business invariants related to both `Course` and `Student` must still be enforced independently within their respective Aggregates.
 
     Likewise, making the Aggregate larger, covering more entities and value objects, is not a real option in this situation. Indeed, it would mean creating a single aggregate that includes all courses and all students, to cover any possible subscription. However, this has the obvious drawback of reducing scalability, cohesion, and the degree of parallel processing.
 
@@ -158,11 +158,11 @@ This makes the Event Stream a good match for [Aggregates](../topics/aggregates.m
 
 While Event-Sourced Aggregates bring powerful capabilities, it's important to recognize that they are subject to the same limitations as traditional Aggregates. In fact, their boundaries tend to be even more rigid, as they become materialized in the structure of the Event Streams. This rigidity can make it significantly harder to adapt the design later on, especially as the model evolves and new insights emerge.
 
-We believe that flexibility is essential in software design — it should leave room for mistakes, experimentation, and new realizations as understanding deepens over time. Additionally, Event-Sourced Aggregates often grow in size as more Events accumulate, which can negatively impact performance. Although there are mitigation strategies, such as snapshots or patterns like "closing the books", they often come at the cost of added complexity.
+We believe that flexibility is essential in software design – it should leave room for mistakes, experimentation, and new realizations as understanding deepens over time. Additionally, Event-Sourced Aggregates often grow in size as more Events accumulate, which can negatively impact performance. Although there are mitigation strategies, such as snapshots or patterns like "closing the books", they often come at the cost of added complexity.
 
 ## Relation to DCB
 
-Dynamic Consistency Boundaries offer an alternative approach by allowing consistency to be enforced for a specific use case, rather than being hardwired into a static Aggregate structure. This is where the "dynamic" aspect comes in — not because the consistency is weaker or less accurate, but because the boundary is established at runtime, tailored to the requirements of a single interaction.
+Dynamic Consistency Boundaries offer an alternative approach by allowing consistency to be enforced for a specific use case, rather than being hardwired into a static Aggregate structure. This is where the "dynamic" aspect comes in – not because the consistency is weaker or less accurate, but because the boundary is established at runtime, tailored to the requirements of a single interaction.
 
 As a result, only the Events that are necessary to evaluate those invariants are loaded and considered, improving flexibility and potentially reducing overhead.
 
@@ -170,7 +170,7 @@ In essence, DCB makes it possible to construct a Decision Model dynamically, jus
 
 ### Killing it, really?
 
-While the phrase "Killing the Aggregate" might sound provocative, we don’t view DCB as a rejection of the Aggregate pattern. On the contrary, we see it as an *evolution* — one that preserves the core intent of Aggregates, especially when viewed from the perspective of a single interaction.
+While the phrase "Killing the Aggregate" might sound provocative, we don’t view DCB as a rejection of the Aggregate pattern. On the contrary, we see it as an *evolution* – one that preserves the core intent of Aggregates, especially when viewed from the perspective of a single interaction.
 
 That said, we've chosen not to overload the term “Aggregate” any further, especially given the existing ambiguity and varied interpretations in the community. Instead, we often refer to this construct as a **Decision Model**, emphasizing its role in evaluating business rules and producing decisions in a specific context.
 

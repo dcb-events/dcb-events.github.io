@@ -1,6 +1,6 @@
 In software architecture, how we view and handle data often comes down to two fundamental perspectives: **event-based** and **state-based**. The state-based view focuses on the current snapshot of data. It’s straightforward and efficient for querying, reporting, and displaying data to users. In contrast, the event-based view captures every change over time, providing a complete history of how the state evolved.
 
-Depending on your use case, one view may serve better than the other — or you might need both. That’s where projections come in: they translate an event-based history into a state-based model tailored to specific needs.
+Depending on your use case, one view may serve better than the other – or you might need both. That’s where projections come in: they translate an event-based history into a state-based model tailored to specific needs.
 
 The result is commonly used for persistent <dfn title="Representation of data tailored for specific read operations, often denormalized for performance">Read Models</dfn>. In Event Sourcing, however, projections are also used to build the <dfn title="Representation of the system's current state, used to enforce integrity constraints before moving the system to a new state">Decision Model</dfn> needed to enforce consistency constraints. 
 
@@ -63,7 +63,6 @@ const events = [
   "CourseDefined"
 ]
 ```
-<codapi-snippet id="example1" engine="browser"></codapi-snippet>
 
 In order to find out how many active courses there are in total, the following simple projection could be defined and we can use JavaScripts `reduce`[:octicons-link-external-16:](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce){:target="_blank" .small} function to aggregate all Events creating a single state, starting with the `initialState`:
 
@@ -84,7 +83,6 @@ const numberOfActiveCourses = events.reduce(projection, initialState)
 
 console.log({numberOfActiveCourses})
 ```
-<codapi-snippet engine="browser" sandbox="javascript" depends-on="example1"></codapi-snippet>
 
 !!! note
 
@@ -94,7 +92,7 @@ console.log({numberOfActiveCourses})
 
 In the above example, the reducer iterates over all Events even though it only changes the state for `CourseDefined` and `CourseArchived` events. This is not an issue for this simple example. But in reality, those events are not stored in memory, and there can be many of them. So obviously, they should be filtered _before_ they are read from the Event Store.
 
-As previously mentioned, in the context of DCB, projections are typically used to reconstruct the minimal model required to validate the constraints the system needs to enforce — usually in response to a command issued by the user.
+As previously mentioned, in the context of DCB, projections are typically used to reconstruct the minimal model required to validate the constraints the system needs to enforce – usually in response to a command issued by the user.
 
 Given that the system should ensure a performant response to user input, it becomes clear how paramount it is to minimize the time and effort needed to rebuild the Decision Model.
 The most effective approach, then, is to limit the reconstruction to the absolute minimum, by loading only the Events that are relevant to validating the received command.
@@ -121,7 +119,6 @@ console.log(
   )
 )
 ```
-<codapi-snippet engine="browser" sandbox="javascript" depends-on="example1"></codapi-snippet>
 
 ### Filter Events by Tags
 
@@ -171,7 +168,6 @@ const events = [
   },
 ]
 ```
-<codapi-snippet id="example3" engine="browser"></codapi-snippet>
 
 ...and extend the projection by some `tagFilter`:
 
@@ -193,8 +189,6 @@ console.log(
   )
 )
 ```
-
-<codapi-snippet engine="browser" sandbox="javascript" depends-on="example3"></codapi-snippet>
 
 In the above example, the projection is hard-coded to filter events tagged `course:c1`. In a real application, the `tagFilter` is the most dynamic part of the projection as it depends on the specific use case, i.e. the affected entity instance(s). So it makes sense to create some kind of _factory_ that allows to pass in the relevant dynamic information (the **course id** in this case):
 
@@ -226,8 +220,6 @@ const CourseExistsProjection = (courseId) =>
   })
 ```
 
-<codapi-snippet id="example4" engine="browser"></codapi-snippet>
-
 The resulting object can be used to easily filter events and to build the projection state:
 
 ```js
@@ -246,8 +238,6 @@ const state = events
 console.log("projected state:", state)
 ```
 
-<codapi-snippet engine="browser" sandbox="javascript" depends-on="example3 example4" template="/assets/js/dcb.js"></codapi-snippet>
-
 Similarly a projection for the current `title` of a course would look like this:
 
 ```js
@@ -261,7 +251,6 @@ const CourseTitleProjection = (courseId) =>
     tagFilter: [`course:${courseId}`],
   })
 ```
-<codapi-snippet id="example5" engine="browser"></codapi-snippet>
 
 ??? info "The library is not a requirement"
 
@@ -316,8 +305,6 @@ const state = events
 console.log(state)
 ```
 
-<codapi-snippet engine="browser" sandbox="javascript" depends-on="example3" template="/assets/js/dcb.js"></codapi-snippet>
-
 But that has some drawbacks, namely:
 
 - It increases complexity of the projection code and makes it harder to reason about
@@ -340,8 +327,6 @@ const state = events
 console.log("projected state:", state)
 ```
 
-<codapi-snippet engine="browser" sandbox="javascript" depends-on="example3 example4 example5" template="/assets/js/dcb.js"></codapi-snippet>
-
 As you can see, the state of the composite projection is an object with a key for every projection of the composition. Likewise, the resulting query will match only Events that are relevant for at least one of the composed projections.
 
 ## How to use this with DCB
@@ -363,8 +348,6 @@ const { state, appendCondition } = buildDecisionModel(eventStore, {
 console.log("state:", state)
 console.log("append condition:", appendCondition)
 ```
-
-<codapi-snippet engine="browser" sandbox="javascript" depends-on="example3 example4 example5" template="/assets/js/dcb.js"></codapi-snippet>
 
 !!! note
 
