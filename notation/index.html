@@ -1,0 +1,2698 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="DCB – A simpler and more flexible approach to consistency in event-driven systems">
+      
+      
+      
+        <link rel="canonical" href="https://dcb.events/notation/">
+      
+      
+        <link rel="prev" href="../specification/">
+      
+      
+        <link rel="next" href="reference/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>DCB notation - Dynamic Consistency Boundaries</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/css/custom.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  
+
+  <link href="../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="deep-orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#dcb-notation" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+              <button class="md-banner__button md-icon" aria-label="Don't show this again">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+              </button>
+            
+            
+  <div class="dcb-announce-bar">
+    <a href="https://discord.gg/hmfHwuxMft" target="_blank" rel="noopener" class="dcb-announce">
+      <span class="dcb-announce__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.317 4.37a19.8 19.8 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.3 18.3 0 0 0-5.487 0 13 13 0 0 0-.617-1.25.08.08 0 0 0-.079-.037A19.7 19.7 0 0 0 3.677 4.37a.1.1 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.08.08 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.08.08 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13 13 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10 10 0 0 0 .372-.292.07.07 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.07.07 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.08.08 0 0 0 .084.028 19.8 19.8 0 0 0 6.002-3.03.08.08 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.06.06 0 0 0-.031-.03M8.02 15.33c-1.182 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418m7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418"></path></svg>
+      </span>
+      Join the DCB Discord server
+    </a>
+    <span class="dcb-announce__divider"></span>
+    <a href="https://luma.com/dcb.events" target="_blank" rel="noopener" class="dcb-announce">
+      <span class="dcb-announce__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 10v2H7v-2zm4 0v2h-2v-2zm4 0v2h-2v-2zm2-7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h1V1h2v2h8V1h2v2zm0 16V8H5v11zM9 14v2H7v-2zm4 0v2h-2v-2zm4 0v2h-2v-2z"></path></svg>
+      </span>
+      Join the DCB Campfire meetup
+    </a>
+  </div>
+
+          </div>
+          
+            <script>var el=document.querySelector("[data-md-component=announce]");if(el){var content=el.querySelector(".md-typeset");__md_hash(content.innerHTML)===__md_get("__announce")&&(el.hidden=!0)}</script>
+          
+        </aside>
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Dynamic Consistency Boundaries" class="md-header__button md-logo" aria-label="Dynamic Consistency Boundaries" data-md-component="logo">
+      
+  <img src="../assets/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Dynamic Consistency Boundaries
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              DCB notation
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="deep-orange" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="deep-orange" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    <a href="../playground/" class="md-header__button md-icon" title="DCB Playground" aria-label="DCB Playground">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V5h14m0-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m-9 5v8l5-4z"></path></svg>
+    </a>
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required="">
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix="">
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href=".." class="md-tabs__link">
+          
+  
+  
+    
+  
+  DCB
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../examples/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Examples
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../topics/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Related topics
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../resources/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Resources
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../faq/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../about/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  About
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Dynamic Consistency Boundaries" class="md-nav__button md-logo" aria-label="Dynamic Consistency Boundaries" data-md-component="logo">
+      
+  <img src="../assets/logo.png" alt="logo">
+
+    </a>
+    Dynamic Consistency Boundaries
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix="">
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked="">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href=".." class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DCB
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    DCB
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../specification/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m23.5 17-5 5-3.5-3.5 1.5-1.5 2 2 3.5-3.5zM6 2a2 2 0 0 0-2 2v16c0 1.11.89 2 2 2h7.81c-.36-.62-.61-1.3-.73-2H6V4h7v5h5v4.08c.33-.05.67-.08 1-.08.34 0 .67.03 1 .08V8l-6-6M8 12v2h8v-2m-8 4v2h5v-2Z"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Specification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_3" checked="">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="./" class="md-nav__link md-nav__link--active">
+              
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 3a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2H3v2h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h2v-2H8v-5a2 2 0 0 0-2-2 2 2 0 0 0 2-2V5h2V3m6 0a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1v2h-1a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-2v-2h2v-5a2 2 0 0 1 2-2 2 2 0 0 1-2-2V5h-2V3z"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    DCB notation
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link md-nav__link--active" for="__nav_1_3" id="__nav_1_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    DCB notation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5.81 2C4.83 2.09 4 3 4 4v16c0 1.05.95 2 2 2h12c1.05 0 2-.95 2-2V4a2 2 0 0 0-2-2h-6v7L9.5 7.5 7 9V2H5.81M12 13h1a1 1 0 0 1 1 1v4h-1v-2h-1v2h-1v-4a1 1 0 0 1 1-1m0 1v1h1v-1zm3 1h3v1l-2 3h2v1h-3v-1l2-3h-2z"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../examples/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Examples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/course-subscriptions/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 3 1 9l11 6 9-4.91V17h2V9M5 13.18v4L12 21l7-3.82v-4L12 17z"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Course subscriptions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/unique-username/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M224 248a120 120 0 1 0 0-240 120 120 0 1 0 0 240m-29.7 56C95.8 304 16 383.8 16 482.3c0 16.4 13.3 29.7 29.7 29.7h356.6c16.4 0 29.7-13.3 29.7-29.7 0-98.5-79.8-178.3-178.3-178.3z"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Unique username
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/product-reviews/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 15.4V6.1l1.71 4.03 4.38.37-3.32 2.89.99 4.28M22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.45 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03z"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Product reviews
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/bike-rental/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 10c-.56 0-1.09.11-1.59.28L14.46 4.5H11V6h2.54l.88 1.72L12 13.13l-1.77-4.18c.27-.1.51-.37.51-.7 0-.41-.33-.75-.74-.75H8c-.42 0-.76.34-.76.75S7.58 9 8 9h.61l2.25 5.25h-.94C9.56 11.85 7.5 10 5 10c-2.76 0-5 2.24-5 5s2.24 5 5 5c2.5 0 4.56-1.85 4.92-4.25h2.58l2.79-6.32.79 1.53A4.98 4.98 0 0 0 14 15c0 2.76 2.24 5 5 5s5-2.24 5-5-2.24-5-5-5M5 18.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5c1.67 0 3.07 1.18 3.41 2.75H4v1.5h4.41A3.495 3.495 0 0 1 5 18.5m14 0c-1.93 0-3.5-1.57-3.5-3.5 0-1.08.5-2.03 1.27-2.67l1.8 3.52 1.32-.72-1.79-3.5c.29-.07.59-.13.9-.13 1.93 0 3.5 1.57 3.5 3.5s-1.57 3.5-3.5 3.5"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Bike rental
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/invoice-number/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M9 4.75A.75.75 0 0 1 9.75 4h4a.75.75 0 0 1 .53 1.28l-1.89 1.892c.312.076.604.18.867.319.742.391 1.244 1.063 1.244 2.005 0 .653-.231 1.208-.629 1.627-.386.408-.894.653-1.408.777-1.01.243-2.225.063-3.124-.527a.751.751 0 0 1 .822-1.254c.534.35 1.32.474 1.951.322.306-.073.53-.201.67-.349.129-.136.218-.32.218-.596 0-.308-.123-.509-.444-.678-.373-.197-.98-.318-1.806-.318a.75.75 0 0 1-.53-1.28l1.72-1.72H9.75A.75.75 0 0 1 9 4.75m-3.587 5.763c-.35-.05-.77.113-.983.572a.75.75 0 1 1-1.36-.632c.508-1.094 1.589-1.565 2.558-1.425 1 .145 1.872.945 1.872 2.222 0 1.433-1.088 2.192-1.79 2.681-.308.216-.571.397-.772.573H7a.75.75 0 0 1 0 1.5H3.75a.75.75 0 0 1-.75-.75c0-.69.3-1.211.67-1.61.348-.372.8-.676 1.15-.92.8-.56 1.18-.904 1.18-1.474 0-.473-.267-.69-.587-.737M5.604.089A.75.75 0 0 1 6 .75v4.77h.711a.75.75 0 0 1 0 1.5H3.759a.75.75 0 0 1 0-1.5H4.5V2.15l-.334.223a.75.75 0 0 1-.832-1.248l1.5-1a.75.75 0 0 1 .77-.037Z"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Invoice number
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/dynamic-product-price/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5.5 7A1.5 1.5 0 0 1 4 5.5 1.5 1.5 0 0 1 5.5 4 1.5 1.5 0 0 1 7 5.5 1.5 1.5 0 0 1 5.5 7m15.91 4.58-9-9C12.05 2.22 11.55 2 11 2H4c-1.11 0-2 .89-2 2v7c0 .55.22 1.05.59 1.41l8.99 9c.37.36.87.59 1.42.59s1.05-.23 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.56-.23-1.06-.59-1.42"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Dynamic product price
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/event-sourced-aggregate/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.25 2c.19 0 .36.11.44.26l2.22 3.96.09.28-.09.28-2.22 3.96c-.08.15-.25.26-.44.26h-4.5c-.19 0-.36-.11-.44-.26L3.09 6.78 3 6.5l.09-.28 2.22-3.96c.08-.15.25-.26.44-.26zm0 11c.19 0 .36.11.44.26l2.22 3.96.09.28-.09.28-2.22 3.96c-.08.15-.25.26-.44.26h-4.5c-.19 0-.36-.11-.44-.26l-2.22-3.96L3 17.5l.09-.28 2.22-3.96c.08-.15.25-.26.44-.26zm9.25-5.5c.19 0 .36.11.44.26l2.22 3.96.09.28-.09.28-2.22 3.96c-.08.15-.25.26-.44.26H15c-.19 0-.36-.11-.44-.26l-2.22-3.96-.09-.28.09-.28 2.22-3.96c.08-.15.25-.26.44-.26z"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Event-Sourced Aggregate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/opt-in-token/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19c0-3.31 2.69-6 6-6 1.1 0 2.12.3 3 .81V6a2 2 0 0 0-2-2H4c-1.11 0-2 .89-2 2v12a2 2 0 0 0 2 2h9.09c-.05-.33-.09-.66-.09-1M4 8V6l8 5 8-5v2l-8 5zm13.75 14.16-2.75-3L16.16 18l1.59 1.59L21.34 16l1.16 1.41z"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Opt-In Token
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/prevent-record-duplication/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 0H9C7.9 0 7 .9 7 2v16c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V2c0-1.1-.9-2-2-2m0 18H9V2h10zM3 4v18c0 1.1.9 2 2 2h12v-2H5V4zm11 2c-1.1 0-2 .9-2 2 0 .4.1.7.3 1H12c-1.1 0-2 .9-2 2s.9 2 2 2c.6 0 1.1-.3 1.5-.7l-1 2.7h3l-1-2.7c.4.4.9.7 1.5.7 1.1 0 2-.9 2-2s-.9-2-2-2h-.3c.2-.3.3-.6.3-1 0-1.1-.9-2-2-2"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Prevent record duplication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../topics/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Related topics
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Related topics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../topics/aggregates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Aggregates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../topics/projections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Projections
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../topics/tags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tags
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../resources/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resources
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Resources
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../resources/libraries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Implementations and tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../resources/media/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../resources/articles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Articles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#basics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Basics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-first-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A first model
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Events
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#projections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Projections
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenarios
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#constraints-across-entities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constraints across entities
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#from-notation-to-dcb" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From notation to DCB
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced features
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fan-out-reads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fan-out reads
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#derived-projections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Derived projections
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#numbering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Numbering
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#constrained-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constrained types, enums, records
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rejections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rejections in detail
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#annotations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Annotations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#json-fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JSON fallback
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#experimental-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Experimental features
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Experimental features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#entities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Entities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lifecycles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lifecycles
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chained-reads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chained reads
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conditional-emits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conditional emits
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scripted-projections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scripted projections
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#more-experimental" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        More experimental features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-complete-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The complete model
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prior-art" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prior art
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#try-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Try it
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="dcb-notation">DCB notation</h1>
+<p>The examples on this website are written in the <em>DCB notation</em>, a small text language for describing a DCB model: the Events of a system, the projections that fold them into state, and the commands that decide on that state and append new Events.</p>
+<p>What makes it useful for DCB is what it does <em>not</em> contain: a command never states its consistency boundary. The notation says what a command reads, and the <a href="../specification/#query">Query</a> and <a href="../specification/#append-condition">Append Condition</a> are derived from that. Every example on this site shows the result in its "Consistency boundary" tab.</p>
+<div class="admonition warning">
+<p class="admonition-title">Experimental</p>
+<p>The DCB notation is the text form of models in the <a href="/playground/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V5h14m0-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m-9 5v8l5-4z"></path></svg></span> DCB Playground</a> and, like the playground, it is subject to change.
+The source of truth is the playground's JSON format (<a href="/schemas/model/v10.json">schema v10</a>): every construct of the notation is exactly one shape of that format, so a model can be turned into text and back without losing anything.</p>
+</div>
+<p>This page introduces the notation step by step. The first part covers the basics needed to read the examples. The second part, marked <span class="dcb-badge">advanced</span>, covers the rest of the language, and the last part, marked <span class="dcb-badge dcb-badge--experimental">experimental</span>, covers features that are still being tried out. Every keyword is listed in the <a href="reference/">reference</a>.</p>
+<h2 id="basics">Basics</h2>
+<h3 id="a-first-model">A first model</h3>
+<p>The following model allows to define courses, each with a unique id:</p>
+<div class="dcb-example"><div class="dcb-example__actions"><a class="md-button md-button--primary" href="/playground/#model=H4sIAAAAAAAAA9VVS2-bQBD-K9aoR4jBJa7DtQ-1Uh-HRrlUPgy7A94IdtHu4BRZ_PdqWRzHTuKmVS89sjN8j_mGZQevnNhQg5DDhrl1-XwuRXFBW9Ls5qHm5o2RVM-3aXJx64yGCKQovvizG7JOGQ05pMlFAhFobAhyeGs668hBBKJzbJrrvqV3VCqtWBntIP-xO279JCGCvZQdcN_6mmOrdAVDBMpdYwU5246GdQSjvrOAY5E8amtNS5YVHXWJA-3U0F8H0geClPvWenysIS-xduSPPivH0-MQHfCwRaG4f4ynNFNF9iVw6wgYK6_zoG89-tWsuD82vB6Zbkn4g7OzeP9TOfZhTOBPDYGxOvXvibdYdzQVCmNqQg0nqiMYmbG-8b33hxvUsiYb-Ma8nsjGDwo5bJAjholwH7RXIEzToJbPGAxQAfa_y7ownZZo-xCmMFo-MFhTyR9Ry-9Kkv8kDlk_l-vuYNT3o8WGmOzXkyEMw-B1k1QCeRTtPnhFEIGlU4oZ1pZQ9jMKXF522xW1chs6_9Xt6f9AWHSY7FN9-9owhM1wgjRaZU5XQ0nIgV6vFom8KuJlcpnG2ZXI4uKKsjhZZGn5hrLFIisO91XQPQtSZneKN8Gw0tVMeTvTFj7euEptSZ_dcYmMxzMAkcJDr2kyeD93G4-0A7RV1_j79zdvXfogeXrJdCzM6CWEOFKHazys1wuy9Ss-Dg9LygpJGKfZSsSZLFbxapktYlGuKCuXKyqS5dnhabp74dz-ne_9Wh4Zv_-V_EUql37PhvXwC2O62U8lBwAA&amp;surface=code" target="_blank" rel="noopener" title="Open this model in the DCB Playground" aria-label="Open in Playground"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V5h14m0-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m-9 5v8l5-4z"></path></svg><span class="dcb-example__label">Open in Playground</span></a></div><div class="tabbed-set tabbed-alternate"><input checked="checked" id="__dcb_1_1" name="__dcb_1" type="radio"><input id="__dcb_1_2" name="__dcb_1" type="radio"><div class="tabbed-labels"><label for="__dcb_1_1">DCB notation</label><label for="__dcb_1_2">Consistency boundary</label></div><div class="tabbed-content"><div class="tabbed-block"><pre class="dcb-notation"><code><span class="dcb-line"><span class="dcb-hl-keyword">model</span> <span class="dcb-hl-string">"Courses"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Types</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">tag</span> <span class="dcb-hl-keyword">type</span> <span class="dcb-hl-type">CourseId</span> = <span class="dcb-hl-type">string</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Events</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">CourseDefined</span> { <span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>, capacity: <span class="dcb-hl-type">integer</span> }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Projections</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CourseExists</span> (<span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>): <span class="dcb-hl-type">boolean</span> = <span class="dcb-hl-keyword">false</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CourseDefined</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">true</span></span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Commands</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">DefineCourse</span>(courseId: <span class="dcb-hl-type">CourseId</span>, capacity: <span class="dcb-hl-type">integer</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CourseExists</span>(courseId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">false</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Course already exists"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">CourseDefined</span> { courseId, capacity }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Define course with existing id"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">10</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">DefineCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">15</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Course already exists"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Define course with new id"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">DefineCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">15</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">15</span> }</span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line">  }</span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span></code></pre></div><div class="tabbed-block"><div class="dcb-boundary"><p class="dcb-boundary__command"><code>DefineCourse</code> <span class="dcb-boundary__summary">reads 1 type, 1 tag</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>CourseExists(courseId)</code></td><td><code>CourseDefined</code></td><td><code>CourseId:{courseId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>CourseId:{courseId}</code></p></div></div></div></div></div>
+<p>It consists of four kinds of declarations, which may appear in any order, and the scenarios that test them. The rendered model is always printed the way the DCB Playground prints it: grouped by kind, under comments like <code>// Types</code>.</p>
+<h3 id="types">Types</h3>
+<div class="dcb-snippet"><pre class="dcb-notation"><code><span class="dcb-line"><span class="dcb-hl-keyword">tag</span> <span class="dcb-hl-keyword">type</span> <span class="dcb-hl-type">CourseId</span> = <span class="dcb-hl-type">string</span></span></code></pre></div>
+<p>A <code>type</code> gives a value a name. A type marked with <code>tag</code> is an identifier that can <a href="../specification/#tag">tag</a> an Event: its name is the key of the Tag, so the value <code>"c1"</code> becomes the Tag <code>CourseId:c1</code>. Only a value of a tag type can be a Tag.</p>
+<h3 id="events">Events</h3>
+<div class="dcb-snippet"><pre class="dcb-notation"><code><span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">CourseDefined</span> { <span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>, capacity: <span class="dcb-hl-type">integer</span> }</span></code></pre></div>
+<p>An <a href="../specification/#event">Event</a> has a name in the past tense and a list of typed properties. A property is typed with a type declared in the model or with one of JSON's basic types: <code>string</code>, <code>number</code>, <code>integer</code>, <code>boolean</code>. <code>email?: string</code> is an optional property and <code>courseIds: CourseId[]</code> a list.</p>
+<p><code>tag</code> marks a property as one of the Event's Tags: <code>CourseDefined { courseId: "c1", … }</code> is tagged with <code>CourseId:c1</code>. An Event has no other Tags than the ones it marks, so its declaration says exactly which Tags it is appended with.</p>
+<h3 id="projections">Projections</h3>
+<div class="dcb-snippet"><pre class="dcb-notation"><code><span class="dcb-line"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CourseExists</span> (<span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>): <span class="dcb-hl-type">boolean</span> = <span class="dcb-hl-keyword">false</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CourseDefined</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">true</span></span>
+<span class="dcb-line">}</span></code></pre></div>
+<p>A <a href="../topics/projections/">projection</a> folds Events into a value. It has a value type and an initial value (<code>boolean = false</code>), and one handler per Event type it reacts to: <code>on CourseDefined =&gt; set true</code>.</p>
+<p>In parentheses, it names the Tags it is kept by: <code>CourseExists</code> is a value per course, and for the course <code>"c1"</code> it only sees Events tagged <code>CourseId:c1</code>. A projection with several Tags only sees Events that have all of them. A projection that is kept for the whole Event log says so with <code>untagged</code>, see <a href="#numbering">numbering</a>.</p>
+<p>The handlers are a fixed set of operations:</p>
+<table>
+<thead>
+<tr>
+<th>Handler</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>set &lt;value&gt;</code></td>
+<td>replaces the value</td>
+</tr>
+<tr>
+<td><code>increment &lt;n&gt;</code>, <code>decrement &lt;n&gt;</code></td>
+<td>changes a number</td>
+</tr>
+<tr>
+<td><code>append &lt;value&gt;</code>, <code>remove &lt;value&gt;</code></td>
+<td>changes a list</td>
+</tr>
+</tbody>
+</table>
+<p>A value is a literal (<code>true</code>, <code>0</code>, <code>"c1"</code>) or a property of the Event: <code>event.data.capacity</code>.</p>
+<h3 id="commands">Commands</h3>
+<div class="dcb-snippet"><pre class="dcb-notation"><code><span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">DefineCourse</span>(courseId: <span class="dcb-hl-type">CourseId</span>, capacity: <span class="dcb-hl-type">integer</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CourseExists</span>(courseId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">false</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Course already exists"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">CourseDefined</span> { courseId, capacity }</span>
+<span class="dcb-line">}</span></code></pre></div>
+<p>A <code>command</code> declares what can be done and how it is decided: its name and its properties, <code>DefineCourse</code> with a <code>courseId</code> and a <code>capacity</code>, then a body with two parts, in this order:</p>
+<ol>
+<li><code>require</code> states a condition that has to hold. If one does not, the command is rejected with the message after <code>else reject</code>. Every condition needs one</li>
+<li><code>emit</code> appends an Event. Each of its properties is taken from the command, a read or a literal. <code>{ courseId, capacity }</code> is short for <code>{ courseId: courseId, capacity: capacity }</code></li>
+</ol>
+<p><code>CourseExists(courseId)</code> <em>reads</em> the projection: it gives a value for each of the projection's Tags, in parentheses, here the course of the command. A read can be written wherever a value is expected.</p>
+<h3 id="scenarios">Scenarios</h3>
+<div class="dcb-snippet"><pre class="dcb-notation"><code><span class="dcb-line"><span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Define course with existing id"</span> {</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">10</span> }</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">DefineCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">15</span> }</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Course already exists"</span></span>
+<span class="dcb-line">  }</span>
+<span class="dcb-line">}</span></code></pre></div>
+<p>The scenarios of a command sit in one <code>scenarios</code> group at its end. Each one states the Events already appended (<code>given</code>), the command that is handled (<code>when</code>), and <code>then</code> the Events it appends, <code>nothing</code>, or the message it was rejected with. Each keyword is said once, further Events continue with <code>and</code>.</p>
+<p>The scenarios are not just documentation: the build of this website fails if one of them does not hold.</p>
+<h3 id="adding-a-command">Adding a command</h3>
+<p>The next step adds a command to change the capacity of a course. <code>CourseCapacity</code> shows a projection that takes its value from the Events:</p>
+<div class="dcb-example"><div class="dcb-example__actions"><a class="md-button md-button--primary" href="/playground/#model=H4sIAAAAAAAAA9VXXY-rNhD9K2jUR9gA4SPkdW-rVuqX1NV9qfIwmIH4itgpNptGEf-9MpAAySab3W2veqW8xDYz55w5M5gDfKfYmjYIS1hrvVXL2Sxj6QM9k9Bq1u2p2UZmVM6ePffhi5ICbMhY-otZ-0yV4lLAEjz3wQUbBG4IlvAo60qRAhtYrbTcPO239IlyLrjmUihY_nmYHv0pAxuOUA6g91uzp3TFRQGNDVw9YQFLXdXUrGxo8d0M2G6Sibqt5JYqzWlyig1p-wP7py7pCBBXv21NfCxhmWOpyCz9zJXu_zb2EA-3yLjeX8bjQlNB1T3hVjZoLAzOAd9qlKSD9tinelyjKL4iRUG7x_-Opamq0Fzvp2VdtZm-EDMLNyv-_d9caWO5PvhLOmgsziUwiZ-xrKnfSKUsCQWcobahzYzlZ3P2tLhGkZVUdflaV77gQCMU6q5PFGnoEx7tfLXAH-YyLsoNLu5HefSP_N5bYtwOjWE3DXjp3zcEHpuwaVrbMLnZoMiumKOD32X-5qZBKmuRYbXvGoFJkY0IlpTrH1Fkf_CslWrok2s9cRiImvNY4YY0Vb-eidA0jcFNGWeoW9DqB4MIbKjoPIWFZUWY7S3qchnY2zotuVrT7bl8TP8GYPag7EvnBmNMu6o12kVvfXNT83_jhqeqvmKGTJKyhNSdG8DocAewi4H3Xmj0V42lYVjxYj3NehZjMkdsEFS0EcxEPiPWn7K4smrB-pn1istfeEW_y-1jlK-R6KehYiSw4vJ8HPIMlpDEcU6x5zp5nLlOECdzJ40Cz8nQZYhBOI-TeLjFdb1qdYCsHdfrrqxcFBY3pPrJezllC_5M4ua7JEONUyWAeTDub89tDJ_d2kQ6AFZFvTG30leeCo0ndP-QrDWTLZeupG3q7nLbNdEd88x4uBUv8NwoYeg5eRp6ThD4rpN4LHTmeRD5IQtYiO5N8QTt7tTt3-N9NOmE-OmC_Y6qhMZnJ03caB6l8yRycg9DJ_DD0Fn4i8ShRZxGDH3MWTT6LGjbwTpGs2RuoSWkcE62YkclBomuTO-3SNWWZdxKH3fJ-aA7KRL5abRATB0v8iMnSP3YQUrmjrfwkjgN4kWUpq8o0ntGS6MO7azuMvQGTT7Udv79bXeXpvc48HJeXgN6kXJlfv8A-QkPecgOAAA&amp;surface=code" target="_blank" rel="noopener" title="Open this model in the DCB Playground" aria-label="Open in Playground"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V5h14m0-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m-9 5v8l5-4z"></path></svg><span class="dcb-example__label">Open in Playground</span></a></div><div class="tabbed-set tabbed-alternate"><input checked="checked" id="__dcb_7_1" name="__dcb_7" type="radio"><input id="__dcb_7_2" name="__dcb_7" type="radio"><div class="tabbed-labels"><label for="__dcb_7_1">DCB notation</label><label for="__dcb_7_2">Consistency boundary</label></div><div class="tabbed-content"><div class="tabbed-block"><pre class="dcb-notation"><code><span class="dcb-line"><span class="dcb-hl-keyword">model</span> <span class="dcb-hl-string">"Courses"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Types</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">tag</span> <span class="dcb-hl-keyword">type</span> <span class="dcb-hl-type">CourseId</span> = <span class="dcb-hl-type">string</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Events</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">CourseDefined</span> { <span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>, capacity: <span class="dcb-hl-type">integer</span> }</span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">CourseCapacityChanged</span> { <span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>, newCapacity: <span class="dcb-hl-type">integer</span> }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Projections</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CourseExists</span> (<span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>): <span class="dcb-hl-type">boolean</span> = <span class="dcb-hl-keyword">false</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CourseDefined</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">true</span></span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CourseCapacity</span> (<span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>): <span class="dcb-hl-type">integer</span> = <span class="dcb-hl-number">0</span> {</span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CourseDefined</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">event</span>.data.capacity</span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CourseCapacityChanged</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">event</span>.data.newCapacity</span>
+<span class="dcb-line dcb-line--changed">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Commands</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">DefineCourse</span>(courseId: <span class="dcb-hl-type">CourseId</span>, capacity: <span class="dcb-hl-type">integer</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CourseExists</span>(courseId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">false</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Course already exists"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">CourseDefined</span> { courseId, capacity }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Define course with existing id"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">10</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">DefineCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">15</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Course already exists"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Define course with new id"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">DefineCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">15</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">15</span> }</span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line">  }</span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">ChangeCourseCapacity</span>(courseId: <span class="dcb-hl-type">CourseId</span>, newCapacity: <span class="dcb-hl-type">integer</span>) {</span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CourseExists</span>(courseId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">true</span></span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Course does not exist"</span></span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CourseCapacity</span>(courseId) != newCapacity</span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Capacity is unchanged"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">CourseCapacityChanged</span> { courseId, newCapacity }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Change capacity of a non-existing course"</span> {</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">ChangeCourseCapacity</span> { courseId: <span class="dcb-hl-string">"c0"</span>, newCapacity: <span class="dcb-hl-number">15</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Course does not exist"</span></span>
+<span class="dcb-line dcb-line--changed">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Change capacity of a course to a new value"</span> {</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">12</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">ChangeCourseCapacity</span> { courseId: <span class="dcb-hl-string">"c1"</span>, newCapacity: <span class="dcb-hl-number">15</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">CourseCapacityChanged</span> { courseId: <span class="dcb-hl-string">"c1"</span>, newCapacity: <span class="dcb-hl-number">15</span> }</span>
+<span class="dcb-line dcb-line--changed">    }</span>
+<span class="dcb-line dcb-line--changed">  }</span>
+<span class="dcb-line dcb-line--changed">}</span>
+<span class="dcb-line"></span></code></pre></div><div class="tabbed-block"><div class="dcb-boundary"><p class="dcb-boundary__command"><code>DefineCourse</code> <span class="dcb-boundary__summary">reads 1 type, 1 tag</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>CourseExists(courseId)</code></td><td><code>CourseDefined</code></td><td><code>CourseId:{courseId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>CourseId:{courseId}</code></p><p class="dcb-boundary__command"><code>ChangeCourseCapacity</code> <span class="dcb-boundary__summary">reads 2 types, 1 tag</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>CourseExists(courseId)</code></td><td><code>CourseDefined</code></td><td><code>CourseId:{courseId}</code></td></tr><tr><td><code>CourseCapacity(courseId)</code></td><td><code>CourseCapacityChanged</code>, <code>CourseDefined</code></td><td><code>CourseId:{courseId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>CourseId:{courseId}</code></p></div></div></div></div></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>The highlighted lines are the ones that changed compared to the previous step. "<span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V5h14m0-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m-9 5v8l5-4z"></path></svg></span> Open in Playground" opens the complete model in the <a href="/playground/">DCB Playground</a>, where it can be edited and run.</p>
+</div>
+<h3 id="constraints-across-entities">Constraints across entities</h3>
+<p>The last basic step adds the command that is the reason this example exists: a student subscribes to a course, as long as the course is not full and the student is not subscribed to more than five courses:</p>
+<div class="dcb-example"><div class="dcb-example__actions"><a class="md-button md-button--primary" href="/playground/#model=H4sIAAAAAAAAA91YW4_iNhT-K5HVRzyTkAsJr9NWrbS9SDPal9U8HDsn4G2waezMFCH-e-UkkAQIMDCa7lbihcQ-53yfv3OJ1-QHzee4ADIlc2OWenp_n3J2hy8ojb6v3-n7hUoxv3_x3LuvWkkyIilnv9lnn7HQQkkyJZ5755IRkbBAMiUPqiw0ajIivNRGLZ5WS_wRMyGFEUpqMv2y7i_9NSUjsg1lTcxqad9pUwg5I5sREfoJZmRqihI3o93eR1OmKM1bNj-PSAXuZDTVS7RWl4VaYmEE9lbxNuZmweqpdtpBI_QfS2sfcjLNINdoH30S2jR_Ozg4LIELszq0J6TBGRaXmHseEQMzG2cb33PHSR3aQ-PqYQ5y9oEQJb4-fATKRhKPJdO8EAzTJ1UH_GFIdUeUewa7er0K6ahj_bnSsjTCrPpifq78fkVuH5zU-U__CG1sljaOjnFiYLZPh3X8AnmJzQumVI4gyR6CEak8Q_7Zrt09nINMcyxqf1UuHsk7SxuYurRoNKRxuE3iQVnfjKUrxRNY3FtxNFv-bATSLQIbi65v8DBr32C4m3qbI9w1uVKp8UGV0vzXJJ7K4S5uIXmBC5Qd9N7mSDHYxnlM6d1sbZG1iboPrVcTamxWkvvQbBLehA2WS5TpSb3s2N9UpYCrxQJkOpDwtSQ_uBS-V19jqpQpFKuaV65k2gGYY2Z-AZk-irTiqa19Q3Vu3QK166GABRosft8jYbPZ2LgxFRxMFbT-2UZERqTAfRcO5AVCunKw9mXDXpYsF3qOpyeMrfs3BDZqmT22rk32frZXxeOgXn53_f-bUcNTUQ6IIVWoHalMrQZiebggsIMmdm1o-HcJuUVYiNm873XPRq83jIjEWWWhLmk9YM0qR2inlLzpQ2dUfmTYvErt3SjPgehrfldnm7r7PU-DHd2vCeQCdGu_2-J6yhpsgetOaEc4bV9aRv9XaTY871wbY45aP82rCfgw4945z4_QILSTlXl-FP-gTvYgcCUNCHlR0ein5lDFaJRno9v2Rr2bem6MtZTm0yDn4WAcrX_HKMco5SxArhze3FYMVrOTH5VXVbQ35J6NSnOUUAi1P9yJlEzJZOL6aex61I8QaJAEMY0xSiiLkzANA4zjbNxezdSTR4PZeRVmXmePkDNH2FLUzJGHM-NMvKA8-bWTgoE-C4R7pDuteG5VTV7n1tKaQDEr7QCvz-wKrfJNs0mVhqsKS33Mlev6xqoeCS6Yzqz8KvLYBBJw44T6YzemAYBPIfADmqUMAN1JgpF3kjyJrxfy9n64tyLtAd9dfF1xKqHV2Y4T10uy0A8TOkEW0oBhSJnHY8p8P818P4vGWdS566uau7O15qjMAUcqSXey4lsmWooGZtG3UFVdN3YHg9tVst9PdowgxOPE9yMauAA04G5GgUeMhuMQOJ-EGST8DCONZoyy7OCrU3_XvYGTm9JufHnaXcTpJQo8nP6GAj1w2RFjAsBCFkQ0cxFpkEScspD7lHsRY6kXcO7HLfW7Eu00RdQSbpvjymFK_YXpMTGeGBLfhfzehc6pXjJkq9MtiPbI5WfZ2zgmt-bHbtDonE7CoiAFmoU-0MDFhELAYpoFyCJkHotDPHM6Zo6OhsWuqppXwT_2fNxv5IC86w_ozLDVlvbJeOwxL6M8jD0aoDumcRBx6uM4y9BNWepGZ86r2_w6FzwfelzvSu_pWvY-crC_fwH4OCTebRsAAA&amp;surface=code" target="_blank" rel="noopener" title="Open this model in the DCB Playground" aria-label="Open in Playground"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V5h14m0-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m-9 5v8l5-4z"></path></svg><span class="dcb-example__label">Open in Playground</span></a></div><div class="tabbed-set tabbed-alternate"><input checked="checked" id="__dcb_8_1" name="__dcb_8" type="radio"><input id="__dcb_8_2" name="__dcb_8" type="radio"><div class="tabbed-labels"><label for="__dcb_8_1">DCB notation</label><label for="__dcb_8_2">Consistency boundary</label></div><div class="tabbed-content"><div class="tabbed-block"><pre class="dcb-notation"><code><span class="dcb-line"><span class="dcb-hl-keyword">model</span> <span class="dcb-hl-string">"Courses"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Types</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">tag</span> <span class="dcb-hl-keyword">type</span> <span class="dcb-hl-type">CourseId</span> = <span class="dcb-hl-type">string</span></span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-keyword">tag</span> <span class="dcb-hl-keyword">type</span> <span class="dcb-hl-type">StudentId</span> = <span class="dcb-hl-type">string</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Events</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">CourseDefined</span> { <span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>, capacity: <span class="dcb-hl-type">integer</span> }</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">CourseCapacityChanged</span> { <span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>, newCapacity: <span class="dcb-hl-type">integer</span> }</span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> { <span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>, <span class="dcb-hl-keyword">tag</span> studentId: <span class="dcb-hl-type">StudentId</span> }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Projections</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CourseExists</span> (<span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>): <span class="dcb-hl-type">boolean</span> = <span class="dcb-hl-keyword">false</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CourseDefined</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">true</span></span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CourseCapacity</span> (<span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>): <span class="dcb-hl-type">integer</span> = <span class="dcb-hl-number">0</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CourseDefined</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">event</span>.data.capacity</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CourseCapacityChanged</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">event</span>.data.newCapacity</span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CourseSubscriptionCount</span> (<span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>): <span class="dcb-hl-type">integer</span> = <span class="dcb-hl-number">0</span> {</span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> =&gt; <span class="dcb-hl-keyword">increment</span> <span class="dcb-hl-number">1</span></span>
+<span class="dcb-line dcb-line--changed">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">StudentCourseIds</span> (<span class="dcb-hl-keyword">tag</span> studentId: <span class="dcb-hl-type">StudentId</span>): <span class="dcb-hl-type">CourseId</span>[] = [] {</span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> =&gt; <span class="dcb-hl-keyword">append</span> <span class="dcb-hl-keyword">event</span>.data.courseId</span>
+<span class="dcb-line dcb-line--changed">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Commands</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">DefineCourse</span>(courseId: <span class="dcb-hl-type">CourseId</span>, capacity: <span class="dcb-hl-type">integer</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CourseExists</span>(courseId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">false</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Course already exists"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">CourseDefined</span> { courseId, capacity }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Define course with existing id"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">10</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">DefineCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">15</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Course already exists"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Define course with new id"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">DefineCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">15</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">15</span> }</span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line">  }</span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">ChangeCourseCapacity</span>(courseId: <span class="dcb-hl-type">CourseId</span>, newCapacity: <span class="dcb-hl-type">integer</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CourseExists</span>(courseId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">true</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Course does not exist"</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CourseCapacity</span>(courseId) != newCapacity</span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Capacity is unchanged"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">CourseCapacityChanged</span> { courseId, newCapacity }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Change capacity of a non-existing course"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">ChangeCourseCapacity</span> { courseId: <span class="dcb-hl-string">"c0"</span>, newCapacity: <span class="dcb-hl-number">15</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Course does not exist"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Change capacity of a course to a new value"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">12</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">ChangeCourseCapacity</span> { courseId: <span class="dcb-hl-string">"c1"</span>, newCapacity: <span class="dcb-hl-number">15</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">CourseCapacityChanged</span> { courseId: <span class="dcb-hl-string">"c1"</span>, newCapacity: <span class="dcb-hl-number">15</span> }</span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line">  }</span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">SubscribeStudentToCourse</span>(courseId: <span class="dcb-hl-type">CourseId</span>, studentId: <span class="dcb-hl-type">StudentId</span>) {</span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">alias</span> studentCourseIds = <span class="dcb-hl-type">StudentCourseIds</span>(studentId)</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CourseExists</span>(courseId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">true</span></span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Course does not exist"</span></span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CourseSubscriptionCount</span>(courseId) &lt; <span class="dcb-hl-type">CourseCapacity</span>(courseId)</span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Course is full"</span></span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">require</span> studentCourseIds <span class="dcb-hl-keyword">not</span> <span class="dcb-hl-keyword">contains</span> courseId</span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Student is already subscribed"</span></span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-keyword">count</span>(studentCourseIds) &lt; <span class="dcb-hl-number">5</span></span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Student is subscribed to too many courses"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> { courseId, studentId }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Subscribe student to fully booked course"</span> {</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">1</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">SubscribeStudentToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s2"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Course is full"</span></span>
+<span class="dcb-line dcb-line--changed">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Subscribe student to the same course twice"</span> {</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">10</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">SubscribeStudentToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Student is already subscribed"</span></span>
+<span class="dcb-line dcb-line--changed">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Subscribe student to course with capacity"</span> {</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">10</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">SubscribeStudentToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s1"</span> }</span>
+<span class="dcb-line dcb-line--changed">    }</span>
+<span class="dcb-line dcb-line--changed">  }</span>
+<span class="dcb-line dcb-line--changed">}</span>
+<span class="dcb-line"></span></code></pre></div><div class="tabbed-block"><div class="dcb-boundary"><p class="dcb-boundary__command"><code>DefineCourse</code> <span class="dcb-boundary__summary">reads 1 type, 1 tag</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>CourseExists(courseId)</code></td><td><code>CourseDefined</code></td><td><code>CourseId:{courseId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>CourseId:{courseId}</code></p><p class="dcb-boundary__command"><code>ChangeCourseCapacity</code> <span class="dcb-boundary__summary">reads 2 types, 1 tag</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>CourseExists(courseId)</code></td><td><code>CourseDefined</code></td><td><code>CourseId:{courseId}</code></td></tr><tr><td><code>CourseCapacity(courseId)</code></td><td><code>CourseCapacityChanged</code>, <code>CourseDefined</code></td><td><code>CourseId:{courseId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>CourseId:{courseId}</code></p><p class="dcb-boundary__command"><code>SubscribeStudentToCourse</code> <span class="dcb-boundary__summary">reads 3 types, 2 tags</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>studentCourseIds</code></td><td><code>StudentSubscribedToCourse</code></td><td><code>StudentId:{studentId}</code></td></tr><tr><td><code>CourseExists(courseId)</code></td><td><code>CourseDefined</code></td><td><code>CourseId:{courseId}</code></td></tr><tr><td><code>CourseSubscriptionCount(courseId)</code></td><td><code>StudentSubscribedToCourse</code></td><td><code>CourseId:{courseId}</code></td></tr><tr><td><code>CourseCapacity(courseId)</code></td><td><code>CourseCapacityChanged</code>, <code>CourseDefined</code></td><td><code>CourseId:{courseId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>CourseId:{courseId}</code>, <code>StudentId:{studentId}</code></p></div></div></div></div></div>
+<p><code>StudentSubscribedToCourse</code> marks two properties as Tags, so it is tagged with both, the course <em>and</em> the student. Conditions can compare two reads (<code>CourseSubscriptionCount(courseId) &lt; CourseCapacity(courseId)</code>), test lists (<code>not contains</code>, <code>count(…)</code>) and more, see <a href="reference/#require">conditions</a> in the reference.</p>
+<p><code>alias</code> gives a read a name, here because two conditions use it. It does not read anything at that line: a read is part of the command wherever it is written, and the same read written twice is read once.</p>
+<h2 id="from-notation-to-dcb">From notation to DCB</h2>
+<p>A command's reads are all it takes to derive its consistency boundary. Each read contributes one <a href="../specification/#query-item">Query Item</a>: the Event types the projection handles, with the Tags it is read for. The "Consistency boundary" tab of the last example shows this for every command, for <code>SubscribeStudentToCourse</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Read</th>
+<th>Event Types</th>
+<th>Tags</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CourseExists(courseId)</code></td>
+<td><code>CourseDefined</code></td>
+<td><code>CourseId:{courseId}</code></td>
+</tr>
+<tr>
+<td><code>CourseSubscriptionCount(courseId)</code></td>
+<td><code>StudentSubscribedToCourse</code></td>
+<td><code>CourseId:{courseId}</code></td>
+</tr>
+<tr>
+<td><code>CourseCapacity(courseId)</code></td>
+<td><code>CourseDefined</code>, <code>CourseCapacityChanged</code></td>
+<td><code>CourseId:{courseId}</code></td>
+</tr>
+<tr>
+<td><code>studentCourseIds</code></td>
+<td><code>StudentSubscribedToCourse</code></td>
+<td><code>StudentId:{studentId}</code></td>
+</tr>
+</tbody>
+</table>
+<p>The command reads the Events matching this Query, decides, and appends its Event with an <a href="../specification/#append-condition">Append Condition</a> that fails if an Event matching the same Query was appended in the meantime.</p>
+<p>That is exactly the right boundary, and it was not written down anywhere:</p>
+<ul>
+<li>a concurrent subscription to the same course, or by the same student, makes the append fail, since <code>StudentSubscribedToCourse</code> is tagged with both</li>
+<li>so does a concurrent change of the course's capacity, because the command read <code>CourseCapacity(courseId)</code></li>
+<li>subscriptions to other courses by other students don't interfere at all</li>
+</ul>
+<p>Adding a condition to a command, or removing one, changes its boundary accordingly. Since the boundary is derived, it cannot become outdated.</p>
+<h2 id="advanced-features">Advanced features</h2>
+<p>The rest of this page covers features that are not needed to read most examples. Each section shows only the declarations it is about. The complete model, with everything combined, is at <a href="#the-complete-model">the end</a>.</p>
+<h3 id="fan-out-reads">Fan-out reads <span class="dcb-badge">advanced</span></h3>
+<p>A projection can be read for a whole list of values at once, with <code>each</code> in front of the list:</p>
+<div class="dcb-snippet"><pre class="dcb-notation"><code><span class="dcb-line"><span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">ProductExists</span>(<span class="dcb-hl-keyword">each</span> items.productId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">true</span></span>
+<span class="dcb-line">  <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Product does not exist"</span></span></code></pre></div>
+<p>The read is one read per element, and a condition over it has to hold for every element. The Query contains one Query Item per element, too. The shopping cart of the <a href="../examples/dynamic-product-price/#feature-3-multiple-products-shopping-cart">dynamic product price</a> example uses this to check the price of every product in an order.</p>
+<p>An Event can be tagged with every element of a list in the same way: <code>event ProductsOrdered { items: Item[] tag each productId }</code>.</p>
+<h3 id="derived-projections">Derived projections <span class="dcb-badge">advanced</span></h3>
+<p>A projection can also be <em>derived</em>: one value worked out from other projections, without handlers or an initial value of its own. It either computes a number or compares two values:</p>
+<div class="dcb-snippet"><pre class="dcb-notation"><code><span class="dcb-line"><span class="dcb-hl-keyword">derived</span> <span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CourseSeatsLeft</span> (<span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>): <span class="dcb-hl-type">integer</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-type">CourseCapacity</span>(courseId) - <span class="dcb-hl-type">CourseSubscriptionCount</span>(courseId)</span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">derived</span> <span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CourseIsFull</span> (<span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>): <span class="dcb-hl-type">boolean</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-type">CourseSubscriptionCount</span>(courseId) &gt;= <span class="dcb-hl-type">CourseCapacity</span>(courseId)</span>
+<span class="dcb-line">}</span></code></pre></div>
+<p>A computation is one of <code>+</code>, <code>-</code>, <code>*</code>, <code>min(a, b)</code> and <code>max(a, b)</code> over two projections or numbers. A longer expression is a chain of derived projections, each with a name of its own. A comparison is written like a <a href="reference/#require"><code>require</code></a> and is always a <code>boolean</code>.</p>
+<p>A derived projection declares its Tags like any projection and passes them on to the projections it reads. Reading it reads its operands, each by its own Tags: a command that reads <code>CourseSeatsLeft(courseId)</code> has <code>CourseDefined</code>, <code>CourseCapacityChanged</code> and <code>StudentSubscribedToCourse</code> in its Query.</p>
+<p>A derived projection can also take <em>arguments</em>: parameters without <code>tag</code>, which a read gives after the Tags. The expression compares or computes with them by name, so the request can be part of the decision:</p>
+<div class="dcb-snippet"><pre class="dcb-notation"><code><span class="dcb-line"><span class="dcb-hl-keyword">derived</span> <span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CourseHasSeatsFor</span> (<span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>, seats: <span class="dcb-hl-type">integer</span>): <span class="dcb-hl-type">boolean</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-type">CourseSeatsLeft</span>(courseId) &gt;= seats</span>
+<span class="dcb-line">}</span></code></pre></div>
+<p><code>CourseHasSeatsFor(courseId, 3)</code> reads the same Events as <code>CourseSeatsLeft(courseId)</code>: an argument narrows nothing.</p>
+<h3 id="numbering">Numbering <span class="dcb-badge">advanced</span></h3>
+<p>Instead of the client choosing a course id, the model can number courses itself. <code>successor(…)</code> is the value following another one (<code>c1</code> → <code>c2</code>, <code>inv-009</code> → <code>inv-010</code>), and an <code>untagged</code> projection sees all Events of its types:</p>
+<div class="dcb-snippet"><pre class="dcb-notation"><code><span class="dcb-line"><span class="dcb-hl-keyword">untagged</span> <span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CourseNumbering</span>: <span class="dcb-hl-type">CourseId</span> = <span class="dcb-hl-string">"c1"</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CourseDefined</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">successor</span>(<span class="dcb-hl-keyword">event</span>.data.courseId)</span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">DefineCourse</span>(capacity: <span class="dcb-hl-type">integer</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-type">CourseNumbering</span>(), capacity }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Define the second course"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">10</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">DefineCourse</span> { capacity: <span class="dcb-hl-number">15</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c2"</span>, capacity: <span class="dcb-hl-number">15</span> }</span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line">  }</span>
+<span class="dcb-line">}</span></code></pre></div>
+<p>An untagged projection has no Tags to read it for, so its read is <code>CourseNumbering()</code>. It is written right where its value is needed, in the Event.</p>
+<p>The <a href="../examples/invoice-number/">invoice number</a> example uses this to create a gapless sequence.</p>
+<h3 id="constrained-types">Types with constraints, enums and records <span class="dcb-badge">advanced</span></h3>
+<p>Besides tag types, a model can declare types that constrain a value, enums and records:</p>
+<div class="dcb-snippet"><pre class="dcb-notation"><code><span class="dcb-line"><span class="dcb-hl-keyword">type</span> <span class="dcb-hl-type">Capacity</span> = <span class="dcb-hl-type">integer</span> { minimum: <span class="dcb-hl-number">1</span> }</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">enum</span> <span class="dcb-hl-type">CourseStatus</span> { <span class="dcb-hl-type">NonExistent</span>, <span class="dcb-hl-type">Existent</span>, <span class="dcb-hl-type">Archived</span> }</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">record</span> <span class="dcb-hl-type">PersonName</span> { <span class="dcb-hl-flow">given</span>: <span class="dcb-hl-type">string</span>, family: <span class="dcb-hl-type">string</span> }</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">StudentRegistered</span> { <span class="dcb-hl-keyword">tag</span> studentId: <span class="dcb-hl-type">StudentId</span>, name: <span class="dcb-hl-type">PersonName</span>, email?: <span class="dcb-hl-type">string</span> }</span></code></pre></div>
+<p>The constraints after a type are JSON Schema keywords. An enum's members are strings, written without quotes wherever the type is known. A record has fields, but no identity of its own.</p>
+<h3 id="rejections">Rejections in detail <span class="dcb-badge">advanced</span></h3>
+<p>A rejection is identified by its message, not by the condition. Several conditions may share one message, and they are then one outcome:</p>
+<div class="dcb-snippet"><pre class="dcb-notation"><code><span class="dcb-line"><span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CourseStatus</span>(courseId) != <span class="dcb-hl-type">NonExistent</span></span>
+<span class="dcb-line">  <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Course is not available"</span></span>
+<span class="dcb-line"><span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CourseStatus</span>(courseId) != <span class="dcb-hl-type">Archived</span></span>
+<span class="dcb-line">  <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Course is not available"</span></span></code></pre></div>
+<p>The messages of a command are the complete set of reasons it can be rejected for, and the DCB Playground lists them for each command. A message is static text, one line, by convention in sentence case without a full stop.</p>
+<p>A scenario that expects a rejection states the message and nothing else. Which condition rejected the command, and the values it read, are not part of the outcome: conditions sharing a message are interchangeable, and a projection that stores its state differently still rejects for the same reason. The DCB Playground shows both when a scenario is opened.</p>
+<h3 id="annotations">Annotations <span class="dcb-badge">advanced</span></h3>
+<p>Annotations change how the DCB Playground presents a definition, not what it means:</p>
+<div class="dcb-snippet"><pre class="dcb-notation"><code><span class="dcb-line"><span class="dcb-hl-annotation">@</span><span class="dcb-hl-annotation">feature</span>(<span class="dcb-hl-string">"Course management"</span>)</span>
+<span class="dcb-line"><span class="dcb-hl-annotation">@</span><span class="dcb-hl-annotation">icon</span>(<span class="dcb-hl-string">"🗄️"</span>)</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">ArchiveCourse</span>(courseId: <span class="dcb-hl-type">CourseId</span>) { … }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-annotation">@</span><span class="dcb-hl-annotation">icon</span>(<span class="dcb-hl-string">"🗄️"</span>)</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">CourseArchived</span> { <span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span> }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-annotation">@</span><span class="dcb-hl-annotation">tagSchema</span>(<span class="dcb-hl-string">"{type}={value}"</span>)</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">tag</span> <span class="dcb-hl-keyword">type</span> <span class="dcb-hl-type">CourseId</span> = <span class="dcb-hl-type">string</span></span></code></pre></div>
+<p><code>@icon</code> and <code>@feature</code> are for the playground's pages only: the symbol a command or an Event is shown with, and the feature group a command is listed under. <code>@tagSchema</code> changes how a Tag of that type is written, <code>CourseId:c1</code> by default.</p>
+<h3 id="json-fallback">When the notation can't express something <span class="dcb-badge">advanced</span></h3>
+<p>The DCB Playground can store a few things the notation has no spelling for (yet). Instead of dropping them, it writes such a definition as its JSON, with a comment explaining why:</p>
+<div class="dcb-snippet"><pre class="dcb-notation"><code><span class="dcb-line"><span class="dcb-hl-comment">// Written as JSON: …</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">Foo</span> <span class="dcb-hl-keyword">json</span> { … }</span></code></pre></div>
+<p>Examples on this website never contain JSON definitions, the build fails if one would be needed.</p>
+<h2 id="experimental-features">Experimental features</h2>
+<p>The features below are still being tried out. The DCB Playground only offers them once <em>experimental features</em> are switched on in its settings. A model that uses them opens and runs either way, and the examples below switch them on when they are opened.</p>
+<h3 id="entities">Entities <span class="dcb-badge dcb-badge--experimental">experimental</span></h3>
+<p>The commands above read four projections, three of them about the same course. An <em>entity</em> gives projections that share an identity one name:</p>
+<div class="dcb-snippet"><pre class="dcb-notation"><code><span class="dcb-line"><span class="dcb-hl-keyword">entity</span> <span class="dcb-hl-type">Course</span> (<span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>) {</span>
+<span class="dcb-line">  exists = <span class="dcb-hl-type">CourseExists</span></span>
+<span class="dcb-line">  capacity = <span class="dcb-hl-type">CourseCapacity</span></span>
+<span class="dcb-line">  subscriptionCount = <span class="dcb-hl-type">CourseSubscriptionCount</span></span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">entity</span> <span class="dcb-hl-type">Student</span> (<span class="dcb-hl-keyword">tag</span> studentId: <span class="dcb-hl-type">StudentId</span>) {</span>
+<span class="dcb-line">  courseIds = <span class="dcb-hl-type">StudentCourseIds</span></span>
+<span class="dcb-line">}</span></code></pre></div>
+<p>An entity declares its identifier like a projection declares its Tag, and each of its properties is a projection with exactly that Tag. A command names one instance with an <code>alias</code> and reads it like a projection, <code>Course(courseId)</code>:</p>
+<div class="dcb-snippet"><pre class="dcb-notation"><code><span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">SubscribeStudentToCourse</span>(courseId: <span class="dcb-hl-type">CourseId</span>, studentId: <span class="dcb-hl-type">StudentId</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">alias</span> course = <span class="dcb-hl-type">Course</span>(courseId)</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">alias</span> student = <span class="dcb-hl-type">Student</span>(studentId)</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> course.exists <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">true</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Course does not exist"</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> course.subscriptionCount &lt; course.capacity</span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Course is full"</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> student.courseIds <span class="dcb-hl-keyword">not</span> <span class="dcb-hl-keyword">contains</span> courseId</span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Student is already subscribed"</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-keyword">count</span>(student.courseIds) &lt; <span class="dcb-hl-number">5</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Student is subscribed to too many courses"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> { courseId, studentId }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Subscribe student to fully booked course"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">1</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">SubscribeStudentToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s2"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Course is full"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Subscribe student to the same course twice"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">10</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">SubscribeStudentToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Student is already subscribed"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Subscribe student to course with capacity"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">10</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">SubscribeStudentToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s1"</span> }</span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line">  }</span>
+<span class="dcb-line">}</span></code></pre></div>
+<div class="admonition info">
+<p class="admonition-title">An entity is not a consistency boundary</p>
+<p>It is tempting to read <code>alias course = Course(courseId)</code> as "load the course", like an Aggregate. That is not what happens: an entity is not stored and has no boundary of its own. A command's Query contains only the Events of the properties it <em>uses</em>. <code>ChangeCourseCapacity</code> uses <code>course.exists</code> and <code>course.capacity</code>, so a concurrent subscription to the course does not affect it, although <code>subscriptionCount</code> belongs to the same entity.</p>
+<p>The Query of each command selects exactly the same Events as in the previous steps. The only difference is that the Query Items for the same course are combined into one, see the "Consistency boundary" tab of the <a href="#the-complete-model">complete model</a>.</p>
+</div>
+<p>Entities are optional. Everything they do can be written with plain projections, as in the basics. They are useful when several commands read the same things, and they make lifecycles possible.</p>
+<h3 id="lifecycles">Lifecycles <span class="dcb-badge dcb-badge--experimental">experimental</span></h3>
+<p>An entity may mark one property as its <em>lifecycle</em>, the property that says which state an instance is in:</p>
+<div class="dcb-snippet"><pre class="dcb-notation"><code><span class="dcb-line"><span class="dcb-hl-keyword">enum</span> <span class="dcb-hl-type">CourseStatus</span> { <span class="dcb-hl-type">NonExistent</span>, <span class="dcb-hl-type">Existent</span>, <span class="dcb-hl-type">Archived</span> }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">entity</span> <span class="dcb-hl-type">Course</span> (<span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-keyword">lifecycle</span> status</span>
+<span class="dcb-line">  status = <span class="dcb-hl-type">CourseStatus</span></span>
+<span class="dcb-line">  capacity = <span class="dcb-hl-type">CourseCapacity</span></span>
+<span class="dcb-line">  subscriptionCount = <span class="dcb-hl-type">CourseSubscriptionCount</span></span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CourseStatus</span> (<span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>): <span class="dcb-hl-type">CourseStatus</span> = <span class="dcb-hl-type">NonExistent</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CourseDefined</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-type">Existent</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CourseArchived</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-type">Archived</span></span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">ArchiveCourse</span>(courseId: <span class="dcb-hl-type">CourseId</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">alias</span> course = <span class="dcb-hl-type">Course</span>(courseId)</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> course.status == <span class="dcb-hl-type">Existent</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Course is not active"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">CourseArchived</span> { courseId }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Archive an archived course"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">10</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CourseArchived</span> { courseId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">ArchiveCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Course is not active"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line">  }</span>
+<span class="dcb-line">}</span></code></pre></div>
+<p>A lifecycle is either a <code>boolean</code> (two states, e.g. <code>lifecycle exists</code>) or an <code>enum</code> (<code>enum CourseStatus { … }</code> declares one). The DCB Playground draws the state machine from it: which Event moves an instance to which state, and which conditions guard each move. For the model itself, a lifecycle is an ordinary projection.</p>
+<h3 id="chained-reads">Chained reads <span class="dcb-badge dcb-badge--experimental">experimental</span></h3>
+<p>An entity can be <a href="#fan-out-reads">fanned out</a> like a projection, and a read can take its values from an earlier one. Rescheduling a course must not clash with the other courses of its students. The command reads the course, then every student subscribed to it, then every other course of those students:</p>
+<div class="dcb-snippet"><pre class="dcb-notation"><code><span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">RescheduleCourse</span>(courseId: <span class="dcb-hl-type">CourseId</span>, slots: <span class="dcb-hl-type">string</span>[]) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">alias</span> course = <span class="dcb-hl-type">Course</span>(courseId)</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">alias</span> students = <span class="dcb-hl-type">Student</span>(<span class="dcb-hl-keyword">each</span> course.studentIds)</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">alias</span> otherCourses = <span class="dcb-hl-type">Course</span>(<span class="dcb-hl-keyword">each</span> students.courseIds) <span class="dcb-hl-keyword">excluding</span> courseId</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> course.status == <span class="dcb-hl-type">Existent</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Course is not active"</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> otherCourses.slots <span class="dcb-hl-keyword">not</span> <span class="dcb-hl-keyword">containsAny</span> slots</span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Slots clash with a subscriber's other course"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">CourseRescheduled</span> { courseId, slots }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Reschedule a course into a slot of another course of a student"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">10</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c2"</span>, capacity: <span class="dcb-hl-number">10</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CourseRescheduled</span> { courseId: <span class="dcb-hl-string">"c2"</span>, slots: [<span class="dcb-hl-string">"mon-9"</span>] }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> { courseId: <span class="dcb-hl-string">"c2"</span>, studentId: <span class="dcb-hl-string">"s1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">RescheduleCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, slots: [<span class="dcb-hl-string">"mon-9"</span>, <span class="dcb-hl-string">"tue-9"</span>] }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Slots clash with a subscriber's other course"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line">  }</span>
+<span class="dcb-line">}</span></code></pre></div>
+<p><code>students</code> is one instance per element of <code>course.studentIds</code>, and a condition over it has to hold for every instance. <code>excluding</code> drops one identifier from the list.</p>
+<p>The boundary is then as deep as the chain of reads: the Query contains one Query Item per instance read, so a student subscribing to yet another course in the meantime makes the append fail.</p>
+<h3 id="conditional-emits">Conditional emits <span class="dcb-badge dcb-badge--experimental">experimental</span></h3>
+<p>A command can append different Events depending on the state it read. Instead of rejecting a subscription to a full course, it can put the student on a waiting list:</p>
+<div class="dcb-snippet"><pre class="dcb-notation"><code><span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">SubscribeStudentToCourse</span>(courseId: <span class="dcb-hl-type">CourseId</span>, studentId: <span class="dcb-hl-type">StudentId</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">alias</span> course = <span class="dcb-hl-type">Course</span>(courseId)</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">alias</span> student = <span class="dcb-hl-type">Student</span>(studentId)</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> course.status == <span class="dcb-hl-type">Existent</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Course is not active"</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> student.courseIds <span class="dcb-hl-keyword">not</span> <span class="dcb-hl-keyword">contains</span> courseId</span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Student is already subscribed"</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-keyword">count</span>(student.courseIds) &lt; <span class="dcb-hl-number">5</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Student is subscribed to too many courses"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> { courseId, studentId }</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">when</span> course.isFull <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">false</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">StudentWaitlistedForCourse</span> { courseId, studentId }</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">when</span> course.isFull <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">true</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Subscribe student to fully booked course"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">1</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">SubscribeStudentToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s2"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">StudentWaitlistedForCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s2"</span> }</span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Subscribe student to the same course twice"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">10</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">SubscribeStudentToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Student is already subscribed"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Subscribe student to course with capacity"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">10</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">SubscribeStudentToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s1"</span> }</span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line">  }</span>
+<span class="dcb-line">}</span></code></pre></div>
+<p>An Event with a <code>when</code> is only appended if its conditions hold (several are combined with <code>and</code>). Unlike a <code>require</code>, a failing <code>when</code> does not reject the command. The conditions count towards the consistency boundary just like the ones of <code>require</code>. <code>course.isFull</code> is the <a href="#derived-projections">derived projection</a> <code>CourseIsFull</code>, bound to the entity.</p>
+<h3 id="scripted-projections">Scripted projections <span class="dcb-badge dcb-badge--experimental">experimental</span></h3>
+<p>The handler operations are deliberately few, because the DCB Playground analyses them (e.g. to draw lifecycles), and a value worked out from others is a <a href="#derived-projections">derived projection</a>. For anything else, a projection can be written in JavaScript, <code>scripted</code> in front:</p>
+<div class="dcb-snippet"><pre class="dcb-notation"><code><span class="dcb-line"><span class="dcb-hl-keyword">scripted</span> <span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CoursePeakSubscriptions</span> (<span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>): <span class="dcb-hl-type">integer</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-keyword">initialState</span> { current: <span class="dcb-hl-number">0</span>, peak: <span class="dcb-hl-number">0</span> }</span>
+<span class="dcb-line">  <span class="dcb-hl-keyword">exposes</span> peak</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> =&gt; <span class="dcb-hl-code">```({ current: state.current + 1, peak: Math.max(state.peak, state.current + 1) })```</span></span>
+<span class="dcb-line">}</span></code></pre></div>
+<p>Each handler is an expression over <code>state</code> and <code>event</code> that returns the next state. The Tags are declared like for any other projection, so the Query is derived the same way, and a handler can access their values as <code>tags.courseId</code>. <code>exposes</code> names the part of the state commands read.</p>
+<p>Unlike other projections, a scripted one can take further values after its Tags, <code>scripted projection CourseActivity (tag courseId: CourseId, days: integer)</code>. A read gives them after the Tags, <code>CourseActivity(courseId, 14)</code>, and a handler accesses them as <code>args.days</code>. The <a href="../examples/unique-username/">unique username</a> example uses this for a retention period.</p>
+<p>The playground runs scripts unsandboxed in the browser, so it asks for confirmation before opening a model that contains one.</p>
+<h3 id="more-experimental">More experimental features <span class="dcb-badge dcb-badge--experimental">experimental</span></h3>
+<ul>
+<li><code>currentValue</code> refers to a projection's own value in a handler, e.g. <code>on CourseDefined =&gt; set successor(currentValue)</code></li>
+<li>An optional read, <code>alias tutor? = Student(tutorId)</code>, reads nothing if the value is <code>null</code>, and conditions over it hold</li>
+<li>An entity can have an <a href="#annotations"><code>@icon</code></a> like an Event or a command</li>
+</ul>
+<h3 id="the-complete-model">The complete model</h3>
+<p>All features above combined, except the numbering, which replaces how courses are defined:</p>
+<div class="dcb-example"><div class="dcb-example__actions"><a class="md-button md-button--primary" href="/playground/#model=H4sIAAAAAAAAA-VaW4-jRhb-K6gUaXclahowGNtvUSejHWkyiTKt7MOoH4riYFcChUMV3bFa_u-rAgzFxZi23c7O7Nv0QJ06l-9852Je0HeCbiAhaIU2Um7F6u4upME7eAIuxV35TNwlaQjx3ZNtvftdpByZKKTBT-r_foNMsJSjFbKtdxYyEScJoBW6T_NMgDD-SdNkG4OEfyET0VzINHnYbeEHiBhnkqVcoNWXl_apDyEy0UGrFyR3W_VMyIzxNdqbiIkHskYrmeWwN-uzn2UeApfnHb4nW0KZ3A2dZVzCGjJkooRxluQJWtl7_Wyh9GdJZC5G7jYRcHX2C_qU8h__YkICl8hE2j-_z-iGPUGIHnX5v0AmUv5J_WGibZZuIZMMWn5bsyfgzdPdQ8fq-sWIJCzeHX_zcf9ooiL2oxEqHkJ4VB_axLFzkRZhJn7eKvkkRquIxALUf31kQlZ_amrTJjwdeU1wTop7NJEka6Vno99jL44HJNxvCF_f0EQOz_e3sLJKk895IGjGAggf0lLhm1kqtETtCNRz-CxLTU36gNW_wlolWzYS12tpp0W2lbkHYa2sfoU0SAiLjyZwW5QiuRGvDbuqDGpNRW-Limk5-SsoUg3z-Ib5KOJUiol-7ogqasvEPPwPYTJWmAzfp9k3m4iqqHDJ5G60qozkZFVbt1n6O1BZNhytunu0WHTfr0lWd0RJhoWV92le1OKhq3qvDTnzqJ7182GU9Q4Uj7R3mXifx_Hwyx_KZ8rRMYuA7misOa4Pu5MY6ylVHbyvn5e9QvPOaGi10lZBZQjVkqy7gFZ3PJE4h4FKqGHQRMXdJP5NvYtWlok2hIcxZOVdRUsz0L4oF5DKQgHKLU-lgOrIL1Va6LAqerO2wH7T8ArBeuXf7_vs14fd3-zEsRZCt5txmkFSoq2y3t4PcOC9hrmuYTpHNZY19NQ1rcWEDR13TfvyeKFtZLsFHo7ipfb-UEyBSPERojeMZQhZUcBXLyiGSP6b8PAzCwtVx2jxoM9Lo4c6QTKSgITsU0fH_X5_cEyalVQqM0KVXRlbb05dexzb0-_vz2IfDkx5mWuDNI2B8Etdew0bFdFCyCiRxbiXAZGQPWwI_zn78c-cxGKivy8I88jIe5mbO8JGKemlGKJ_giQAhTZ9kt5fgfJ12Y3gPt9r3fFUcfWRQTrQm4fLvNnu3P5WBmy4e9DmqvW5zFytHz_D1qHx4hWVu-ze9mUnRNMkITw80gaV-Ltxg3-ttUmQ5jwk2a7QlcSMiFpZdOjs9S6enSKTwl081NzU5dHeLVsdV1VX2yJFOMqDY5SRQZciDRJnQMKdAeo1USBumwcxExsY6Gy1VdjB3lfQqtnEaOi9pi1sJ1DRZvYY_atbVH1LuDoBKiYMnkqDUMmeoBjIXqNZA4SpunWd1BoyTMRhXUgo2bKlb_WW0jjntBpoTiTBwNL0rGTQtTxlRDsl6nJVla-veat59bQwGzGinv9rOc1KYFhQq4x_AwkmuiuQXWvv0dGOplwSxiclWRvKxzKs8rfS-FBqRN1sXVXznMuPIISaE_rqe0e1arQxZGrINDUSwndGedFIQRz9aeEsPmigdwKXJnreAH81IKuVWsdxTLxXqYiGdhVH9rVflXUPWV4Yp5tXjSc3Ic3_68o_Xkj1n13OwFS7JjZzza1r4eW_ndygBoqxIgiEbk6jplnpty5I5QYqchAj2nbv0PQa5ve9ieAvGuehcuM3kg8j5a7jxm1v8B6u1N_z3ZRiXcsYqdTqFYPGRGyMZyY3BmlqY_YPYRQKVnXxVGZ3fsM8r2AUKh-3pdpECAqcZCztriIU6lAU-ZQuHBsvl16AXbqgOKCejX3L9W3fdZYzz28-4ymn28rE0gfFWMz42mDKkGrr0d9wlJ-kjC3iQiJJ23pEbaRPxLZVALksfi-IZOs8KRJk_JSnEkVWh9Jc0rSwpYxscXX5dVO5GJqwAVAgLZznejMaODMX-3MnwK4fznAQLRfYd4gbEX--cCgZdR6H54l-u57dB1C2DK-_TjojKp7CWe0T4sxotLDneElmDnbtmY0XLpnhhT8nC0osCJegfRdWTIjGQZqRRgYxeMpxDauajxoXHdl3vMZVxadp-nR5OUo6RFY7BJyF5xCywGQWRNidRxFeeE6ISeSFNgksGoJ9wiEVZGSqnAPPRrmBfIVLLso6Z3rWTXLpFAD2NwjHFO1dqWHR99y5Y4GDg-XMwi6lPl5aro2pEziW43h-QDVyqwcVo6q8yuFRHsc7I0jTPyAcwuLIouEqzm_92jA2UR2TpU0VSNhoeixbBx10TixHh6RJCjuoFVBvYblzSj1sz8HDLvVtvISAYrB8y5s7M9v35ycCKjdgCJLUPCyfGb1tSK3_kZjaR2I6gfJO7Cwa7gvmEAUh4Mh1l9iNohkmQeRgL3Asb05Cx1tEJ-Kll0vtB4ybhuuq7p2UMhfCQWtRfNuJZlGIA29BsLtwlngJEcV0Nrf8ueV69sxrIlDNmwbhBqlGzyHS624H3iAtevPvsISpsXmr4r4Io3kwgxmGeeRid-Et8dIPQhwGvuUSEoXRUqswTdPfFHXGi7KuWvai2HN9iijLf7Pna0IwMMy_WRTGBTinBbSHnWNCqnHmC0pSjpfVR-9XpckL5DkX0W7bMhPJHCoLz-TfV02i-8f9fwHLfDmM2DEAAA&amp;surface=code&amp;experimental" target="_blank" rel="noopener" title="Open this model in the DCB Playground" aria-label="Open in Playground"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V5h14m0-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m-9 5v8l5-4z"></path></svg><span class="dcb-example__label">Open in Playground</span></a></div><div class="tabbed-set tabbed-alternate"><input checked="checked" id="__dcb_32_1" name="__dcb_32" type="radio"><input id="__dcb_32_2" name="__dcb_32" type="radio"><div class="tabbed-labels"><label for="__dcb_32_1">DCB notation</label><label for="__dcb_32_2">Consistency boundary</label></div><div class="tabbed-content"><div class="tabbed-block"><pre class="dcb-notation"><code><span class="dcb-line dcb-line--changed"><span class="dcb-hl-keyword">model</span> <span class="dcb-hl-string">"Courses (complete)"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Types</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">tag</span> <span class="dcb-hl-keyword">type</span> <span class="dcb-hl-type">CourseId</span> = <span class="dcb-hl-type">string</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">tag</span> <span class="dcb-hl-keyword">type</span> <span class="dcb-hl-type">StudentId</span> = <span class="dcb-hl-type">string</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">type</span> <span class="dcb-hl-type">Capacity</span> = <span class="dcb-hl-type">integer</span> { minimum: <span class="dcb-hl-number">1</span> }</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">enum</span> <span class="dcb-hl-type">CourseStatus</span> { <span class="dcb-hl-type">NonExistent</span>, <span class="dcb-hl-type">Existent</span>, <span class="dcb-hl-type">Archived</span> }</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">record</span> <span class="dcb-hl-type">PersonName</span> { <span class="dcb-hl-flow">given</span>: <span class="dcb-hl-type">string</span>, family: <span class="dcb-hl-type">string</span> }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Events</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">CourseDefined</span> { <span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>, capacity: <span class="dcb-hl-type">integer</span> }</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">CourseCapacityChanged</span> { <span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>, newCapacity: <span class="dcb-hl-type">integer</span> }</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> { <span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>, <span class="dcb-hl-keyword">tag</span> studentId: <span class="dcb-hl-type">StudentId</span> }</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">StudentRegistered</span> { <span class="dcb-hl-keyword">tag</span> studentId: <span class="dcb-hl-type">StudentId</span>, name: <span class="dcb-hl-type">PersonName</span>, email?: <span class="dcb-hl-type">string</span> }</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">CourseArchived</span> { <span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span> }</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">CourseRescheduled</span> { <span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>, slots: <span class="dcb-hl-type">string</span>[] }</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">StudentWaitlistedForCourse</span> { <span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>, <span class="dcb-hl-keyword">tag</span> studentId: <span class="dcb-hl-type">StudentId</span> }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Entities</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">entity</span> <span class="dcb-hl-type">Course</span> (<span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-keyword">lifecycle</span> status</span>
+<span class="dcb-line">  status = <span class="dcb-hl-type">CourseStatus</span></span>
+<span class="dcb-line">  capacity = <span class="dcb-hl-type">CourseCapacity</span></span>
+<span class="dcb-line">  subscriptionCount = <span class="dcb-hl-type">CourseSubscriptionCount</span></span>
+<span class="dcb-line">  studentIds = <span class="dcb-hl-type">CourseStudentIds</span></span>
+<span class="dcb-line">  slots = <span class="dcb-hl-type">CourseSlots</span></span>
+<span class="dcb-line">  isFull = <span class="dcb-hl-type">CourseIsFull</span></span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">entity</span> <span class="dcb-hl-type">Student</span> (<span class="dcb-hl-keyword">tag</span> studentId: <span class="dcb-hl-type">StudentId</span>) {</span>
+<span class="dcb-line">  courseIds = <span class="dcb-hl-type">StudentCourseIds</span></span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Projections</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CourseCapacity</span> (<span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>): <span class="dcb-hl-type">integer</span> = <span class="dcb-hl-number">0</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CourseDefined</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">event</span>.data.capacity</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CourseCapacityChanged</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">event</span>.data.newCapacity</span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CourseSubscriptionCount</span> (<span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>): <span class="dcb-hl-type">integer</span> = <span class="dcb-hl-number">0</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> =&gt; <span class="dcb-hl-keyword">increment</span> <span class="dcb-hl-number">1</span></span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">StudentCourseIds</span> (<span class="dcb-hl-keyword">tag</span> studentId: <span class="dcb-hl-type">StudentId</span>): <span class="dcb-hl-type">CourseId</span>[] = [] {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> =&gt; <span class="dcb-hl-keyword">append</span> <span class="dcb-hl-keyword">event</span>.data.courseId</span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">derived</span> <span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CourseSeatsLeft</span> (<span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>): <span class="dcb-hl-type">integer</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-type">CourseCapacity</span>(courseId) - <span class="dcb-hl-type">CourseSubscriptionCount</span>(courseId)</span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">derived</span> <span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CourseIsFull</span> (<span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>): <span class="dcb-hl-type">boolean</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-type">CourseSubscriptionCount</span>(courseId) &gt;= <span class="dcb-hl-type">CourseCapacity</span>(courseId)</span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CourseStatus</span> (<span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>): <span class="dcb-hl-type">CourseStatus</span> = <span class="dcb-hl-type">NonExistent</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CourseDefined</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-type">Existent</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CourseArchived</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-type">Archived</span></span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CourseStudentIds</span> (<span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>): <span class="dcb-hl-type">StudentId</span>[] = [] {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> =&gt; <span class="dcb-hl-keyword">append</span> <span class="dcb-hl-keyword">event</span>.data.studentId</span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CourseSlots</span> (<span class="dcb-hl-keyword">tag</span> courseId: <span class="dcb-hl-type">CourseId</span>): <span class="dcb-hl-type">string</span>[] = [] {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CourseRescheduled</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">event</span>.data.slots</span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Commands</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">DefineCourse</span>(courseId: <span class="dcb-hl-type">CourseId</span>, capacity: <span class="dcb-hl-type">integer</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">alias</span> course = <span class="dcb-hl-type">Course</span>(courseId)</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> course.status == <span class="dcb-hl-type">NonExistent</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Course already exists"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">CourseDefined</span> { courseId, capacity }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Define course with existing id"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">10</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">DefineCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">15</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Course already exists"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Define course with new id"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">DefineCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">15</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">15</span> }</span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line">  }</span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">ChangeCourseCapacity</span>(courseId: <span class="dcb-hl-type">CourseId</span>, newCapacity: <span class="dcb-hl-type">integer</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">alias</span> course = <span class="dcb-hl-type">Course</span>(courseId)</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> course.status == <span class="dcb-hl-type">Existent</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Course is not active"</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> course.capacity != newCapacity</span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Capacity is unchanged"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">CourseCapacityChanged</span> { courseId, newCapacity }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Change capacity of a non-existing course"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">ChangeCourseCapacity</span> { courseId: <span class="dcb-hl-string">"c0"</span>, newCapacity: <span class="dcb-hl-number">15</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Course is not active"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Change capacity of a course to a new value"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">12</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">ChangeCourseCapacity</span> { courseId: <span class="dcb-hl-string">"c1"</span>, newCapacity: <span class="dcb-hl-number">15</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">CourseCapacityChanged</span> { courseId: <span class="dcb-hl-string">"c1"</span>, newCapacity: <span class="dcb-hl-number">15</span> }</span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line">  }</span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">SubscribeStudentToCourse</span>(courseId: <span class="dcb-hl-type">CourseId</span>, studentId: <span class="dcb-hl-type">StudentId</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">alias</span> course = <span class="dcb-hl-type">Course</span>(courseId)</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">alias</span> student = <span class="dcb-hl-type">Student</span>(studentId)</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> course.status == <span class="dcb-hl-type">Existent</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Course is not active"</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> student.courseIds <span class="dcb-hl-keyword">not</span> <span class="dcb-hl-keyword">contains</span> courseId</span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Student is already subscribed"</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-keyword">count</span>(student.courseIds) &lt; <span class="dcb-hl-number">5</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Student is subscribed to too many courses"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> { courseId, studentId }</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">when</span> course.isFull <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">false</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">StudentWaitlistedForCourse</span> { courseId, studentId }</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">when</span> course.isFull <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">true</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Subscribe student to fully booked course"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">1</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">SubscribeStudentToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s2"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">StudentWaitlistedForCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s2"</span> }</span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Subscribe student to the same course twice"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">10</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">SubscribeStudentToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Student is already subscribed"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Subscribe student to course with capacity"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">10</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">SubscribeStudentToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s1"</span> }</span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line">  }</span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">ArchiveCourse</span>(courseId: <span class="dcb-hl-type">CourseId</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">alias</span> course = <span class="dcb-hl-type">Course</span>(courseId)</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> course.status == <span class="dcb-hl-type">Existent</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Course is not active"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">CourseArchived</span> { courseId }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Archive an archived course"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">10</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CourseArchived</span> { courseId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">ArchiveCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Course is not active"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line">  }</span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">RescheduleCourse</span>(courseId: <span class="dcb-hl-type">CourseId</span>, slots: <span class="dcb-hl-type">string</span>[]) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">alias</span> course = <span class="dcb-hl-type">Course</span>(courseId)</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">alias</span> students = <span class="dcb-hl-type">Student</span>(<span class="dcb-hl-keyword">each</span> course.studentIds)</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">alias</span> otherCourses = <span class="dcb-hl-type">Course</span>(<span class="dcb-hl-keyword">each</span> students.courseIds) <span class="dcb-hl-keyword">excluding</span> courseId</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> course.status == <span class="dcb-hl-type">Existent</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Course is not active"</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> otherCourses.slots <span class="dcb-hl-keyword">not</span> <span class="dcb-hl-keyword">containsAny</span> slots</span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Slots clash with a subscriber's other course"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">CourseRescheduled</span> { courseId, slots }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Reschedule a course into a slot of another course of a student"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c1"</span>, capacity: <span class="dcb-hl-number">10</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CourseDefined</span> { courseId: <span class="dcb-hl-string">"c2"</span>, capacity: <span class="dcb-hl-number">10</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CourseRescheduled</span> { courseId: <span class="dcb-hl-string">"c2"</span>, slots: [<span class="dcb-hl-string">"mon-9"</span>] }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, studentId: <span class="dcb-hl-string">"s1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">StudentSubscribedToCourse</span> { courseId: <span class="dcb-hl-string">"c2"</span>, studentId: <span class="dcb-hl-string">"s1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">RescheduleCourse</span> { courseId: <span class="dcb-hl-string">"c1"</span>, slots: [<span class="dcb-hl-string">"mon-9"</span>, <span class="dcb-hl-string">"tue-9"</span>] }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Slots clash with a subscriber's other course"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line">  }</span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span></code></pre></div><div class="tabbed-block"><div class="dcb-boundary"><p class="dcb-boundary__command"><code>DefineCourse</code> <span class="dcb-boundary__summary">reads 2 types, 1 tag</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>course</code></td><td><code>CourseArchived</code>, <code>CourseDefined</code></td><td><code>CourseId:{courseId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>CourseId:{courseId}</code></p><p class="dcb-boundary__command"><code>ChangeCourseCapacity</code> <span class="dcb-boundary__summary">reads 3 types, 1 tag</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>course</code></td><td><code>CourseArchived</code>, <code>CourseCapacityChanged</code>, <code>CourseDefined</code></td><td><code>CourseId:{courseId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>CourseId:{courseId}</code></p><p class="dcb-boundary__command"><code>SubscribeStudentToCourse</code> <span class="dcb-boundary__summary">reads 4 types, 2 tags</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>course</code></td><td><code>CourseArchived</code>, <code>CourseCapacityChanged</code>, <code>CourseDefined</code>, <code>StudentSubscribedToCourse</code></td><td><code>CourseId:{courseId}</code></td></tr><tr><td><code>student</code></td><td><code>StudentSubscribedToCourse</code></td><td><code>StudentId:{studentId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>CourseId:{courseId}</code>, <code>StudentId:{studentId}</code></p><p class="dcb-boundary__command"><code>ArchiveCourse</code> <span class="dcb-boundary__summary">reads 2 types, 1 tag</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>course</code></td><td><code>CourseArchived</code>, <code>CourseDefined</code></td><td><code>CourseId:{courseId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>CourseId:{courseId}</code></p><p class="dcb-boundary__command"><code>RescheduleCourse</code> <span class="dcb-boundary__summary">reads 4 types, 3 tags, in 3 queries</span></p><table><thead><tr><th>Query</th><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td>1</td><td><code>course</code></td><td><code>CourseArchived</code>, <code>CourseDefined</code>, <code>StudentSubscribedToCourse</code></td><td><code>CourseId:{courseId}</code></td></tr><tr><td>2</td><td><code>students</code> (one per element)</td><td><code>StudentSubscribedToCourse</code></td><td><code>StudentId:{course.studentIds}</code> per element</td></tr><tr><td>3</td><td><code>otherCourses</code> (one per element)</td><td><code>CourseRescheduled</code></td><td><code>CourseId:{students.courseIds except courseId}</code> per element</td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> all Query Items above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>CourseId:{courseId}</code></p></div></div></div></div></div>
+<h2 id="prior-art">Prior art</h2>
+<p>The DCB notation is not the first language for event-sourced models, and it borrows from two of them.</p>
+<p><strong>heklang</strong> <a class="small" href="https://git.tqwewe.com/tephra/heklang" target="_blank"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5h-3.5a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25v-3.5a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14h-8.5A1.75 1.75 0 0 1 2 12.25v-8.5C2 2.784 2.784 2 3.75 2m6.854-1h4.146a.25.25 0 0 1 .25.25v4.146a.25.25 0 0 1-.427.177L13.03 4.03 9.28 7.78a.75.75 0 0 1-1.042-.018.75.75 0 0 1-.018-1.042l3.75-3.75-1.543-1.543A.25.25 0 0 1 10.604 1"></path></svg></span></a> is a total language for event-sourced application logic and, like this notation, built around DCB: the Events a command folded are the condition its append is checked against.</p>
+<ul>
+<li><em>Borrowed:</em> <code>emit Event { field, other: value }</code> including the shorthand for fields named like the command's properties, and <code>on Event =&gt; …</code> for the handlers of a fold.</li>
+<li><em>Different:</em> heklang folds Events <em>inline</em>, inside the command that needs the result. The DCB notation declares every fold once, as a named projection, and commands read it by name. A projection that two entities share and three commands read would otherwise have to be written five times, and the DCB Playground stores models that way, too.</li>
+<li><em>Different:</em> a heklang fold arm is an expression (<code>=&gt; state + 1</code>). The notation only allows a fixed set of operations (<code>set</code>, <code>increment</code>, <code>append</code>, …), because the playground analyses them, e.g. to draw a lifecycle from the Events that move it. Arithmetic between values is a <a href="#derived-projections">derived projection</a>, and a <a href="#scripted-projections">scripted projection</a> is the way out for the rest.</li>
+</ul>
+<p><strong>Weltenwanderer</strong> <a class="small" href="https://www.weltenwanderer.dev/" target="_blank"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5h-3.5a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25v-3.5a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14h-8.5A1.75 1.75 0 0 1 2 12.25v-8.5C2 2.784 2.784 2 3.75 2m6.854-1h4.146a.25.25 0 0 1 .25.25v4.146a.25.25 0 0 1-.427.177L13.03 4.03 9.28 7.78a.75.75 0 0 1-1.042-.018.75.75 0 0 1-.018-1.042l3.75-3.75-1.543-1.543A.25.25 0 0 1 10.604 1"></path></svg></span></a> is a specification language for domain models that compiles to verified TypeScript, organised around <em>deciders</em>: a state, the commands decided on it, and the Events that evolve it.</p>
+<ul>
+<li><em>Borrowed:</em> <code>require … else reject "…"</code> for a condition and the message the command is rejected with, required in both languages, <code>type X = string</code>, and <code>X[]</code> for lists.</li>
+<li><em>Different:</em> a decider groups commands around one state, which is what an Aggregate does. The DCB notation deliberately has no such grouping: an <a href="#entities">entity</a> only names projections, and each command's boundary is derived from what it reads, not from what it belongs to.</li>
+</ul>
+<p>Both use <code>@annotation(…)</code> for metadata, as does the notation.</p>
+<p>What is new is mostly what DCB requires: Tags marked on the Events (<code>tag courseId: CourseId</code>) and named by the projections that are kept by them, reads that give a value for each of those Tags (<code>CourseCapacity(courseId)</code>), and the derived "Consistency boundary".</p>
+<p>The descriptions above reflect both languages as of October 2026.</p>
+<h2 id="try-it">Try it</h2>
+<ul>
+<li>Every example on this website has an "<span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V5h14m0-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m-9 5v8l5-4z"></path></svg></span> Open in Playground" button. The <a href="/playground/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V5h14m0-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m-9 5v8l5-4z"></path></svg></span> DCB Playground</a> shows a model as pages or as text, in the DCB notation. The text can be edited and applied, and its help links back to this page</li>
+<li>The <a href="reference/">reference</a> lists every keyword</li>
+<li>The <a href="../examples/course-subscriptions/">course subscriptions</a> example uses the same domain as this page</li>
+</ul>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden="">
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+    
+      <div class="comments">
+        <details>
+          <summary>Toggle comments</summary>
+          <div class="md-grid">
+            <script src="https://giscus.app/client.js" data-repo="dcb-events/dcb-events.github.io" data-repo-id="R_kgDONmo9Nw" data-category-id="DIC_kwDONmo9N84CpJa9" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark_dimmed" data-lang="en" data-loading="lazy" crossorigin="anonymous" async="">
+            </script>
+          </div>
+        </details>
+      </div>
+    
+    
+      
+        
+        <nav class="md-footer__inner md-grid" aria-label="Footer">
+          
+            
+            <a href="../specification/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Specification">
+              <div class="md-footer__button md-icon">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+              </div>
+              <div class="md-footer__title">
+                <span class="md-footer__direction">
+                  Previous
+                </span>
+                <div class="md-ellipsis">
+                  Specification
+                </div>
+              </div>
+            </a>
+          
+          
+            
+            <a href="reference/" class="md-footer__link md-footer__link--next" aria-label="Next: Reference">
+              <div class="md-footer__title">
+                <span class="md-footer__direction">
+                  Next
+                </span>
+                <div class="md-ellipsis">
+                  Reference
+                </div>
+              </div>
+              <div class="md-footer__button md-icon">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+              </div>
+            </a>
+          
+        </nav>
+      
+    
+    <div class="md-footer-meta md-typeset">
+      <div class="md-footer-meta__inner md-grid">
+        <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      © 2026 – Except where otherwise noted, content on this site is licensed under a <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative Commons Attribution-ShareAlike 4.0 International license</a>
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+        
+          
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/dcb-events/dcb-events.github.io" target="_blank" rel="noopener" title="DCB on GitHub" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"></path></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="https://discord.gg/hmfHwuxMft" target="_blank" rel="noopener" title="Join the DCB Discord server" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.317 4.37a19.8 19.8 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.3 18.3 0 0 0-5.487 0 13 13 0 0 0-.617-1.25.08.08 0 0 0-.079-.037A19.7 19.7 0 0 0 3.677 4.37a.1.1 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.08.08 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.08.08 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13 13 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10 10 0 0 0 .372-.292.07.07 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.07.07 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.08.08 0 0 0 .084.028 19.8 19.8 0 0 0 6.002-3.03.08.08 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.06.06 0 0 0-.031-.03M8.02 15.33c-1.182 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418m7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418"></path></svg>
+    </a>
+  
+</div>
+        
+      </div>
+    </div>
+  </footer>  
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["announce.dismiss", "navigation.footer", "navigation.tabs", "navigation.indexes", "navigation.sections", "navigation.top", "navigation.tracking", "search.highlight", "search.suggest", "content.tooltips", "content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
