@@ -65,28 +65,21 @@ A query language introduces substantial complexity on both the implementation an
 For example: A query to determine whether a username is claimed for the [Unique username example](../examples/unique-username.md) could look like this:
 
 ```
-(
-  (
-    event.type IN ("AccountRegistered", "AccountClosed")
-    AND
-    event.data.username == "<username>"
-  )
-  OR (
-    event.type == "UsernameChanged"
-    AND
-    event.data.newUsername == "<username>"
-  )
-)
+event.type IN ("AccountRegistered", "AccountClosed", "UsernameReleased", "UsernameClaimed")
+AND
+event.data.username == "<username>"
 ```
 
 while the corresponding DCB query would be:
 
 ```json
 [{
-  "event_types": ["AccountRegistered", "AccountClosed", "UsernameChanged"],
+  "event_types": ["AccountRegistered", "AccountClosed", "UsernameReleased", "UsernameClaimed"],
   "tags": ["<username-tag>"]
 }]
 ```
+
+The two only look this similar because every event names the property `username`. As soon as one of them calls it differently (e.g. a single `UsernameChanged` event with `oldUsername` and `newUsername`), the payload query has to spell out a path per event type, while the tag stays the same.
 
 ### Performance Challenges
 
