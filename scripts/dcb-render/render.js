@@ -331,14 +331,12 @@ function notationHtml(source, parentSource = null) {
   return `<pre class="dcb-notation"><code>${body}</code></pre>`;
 }
 
-// "CourseId:courseId" → CourseId:{courseId}; "ProductId:each(items.productId)" (one tag per
-// list element) → ProductId:{items.productId} per element
+// "CourseId:{courseId}" as it is; "ProductId:{each items.productId}" (one tag per list element)
+// → ProductId:{items.productId} per element
 const tagHtml = (tag) => {
-  const at = tag.indexOf(':');
-  if (at < 0) return `<code>${escapeHtml(tag)}</code>`;
-  const each = /^each\((.*)\)$/.exec(tag.slice(at + 1));
-  const value = each ? each[1] : tag.slice(at + 1);
-  return `<code>${escapeHtml(tag.slice(0, at))}:{${escapeHtml(value)}}</code>${each ? ' per element' : ''}`;
+  const each = /^([^:]*):\{each (.*)\}$/.exec(tag);
+  if (!each) return `<code>${escapeHtml(tag)}</code>`;
+  return `<code>${escapeHtml(each[1])}:{${escapeHtml(each[2])}}</code> per element`;
 };
 const listHtml = (values, render, empty) => (values.length ? values.map(render).join(', ') : empty);
 
