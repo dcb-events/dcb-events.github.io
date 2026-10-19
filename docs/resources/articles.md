@@ -1,3 +1,7 @@
+### Thoughts on Dynamic Consistency Boundary [:octicons-link-external-16:](https://event-driven.io/en/dynamic_consistency_boundary/){:target="_blank" .small}
+
+_Author: **Oskar Dudycz**, Published: **October 2026**_
+
 ### I would like to talk to you about Aggregates [:octicons-link-external-16:](https://www.linkedin.com/pulse/i-would-like-talk-you-aggregates-bastian-waidelich-jlsje/){:target="_blank" .small}
 
 _Author: **Bastian Waidelich**, Published: **June 2026**_
