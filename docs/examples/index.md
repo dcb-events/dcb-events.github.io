@@ -25,6 +25,10 @@ Some constraints apply to the relation between two entities, like "a customer ma
 
 Entities that move through a fixed set of states can be guarded by the state of other entities without merging them, see the [bike rental](bike-rental.md) example.
 
+## Following references
+
+A decision may depend on entities it only learns about from the state it reads, like the borrower of a book copy. Reads can build on each other, so the consistency boundary follows the references, see the [library loans](library-loans.md) example.
+
 ## Enforcing global uniqueness
 
 Enforcing globally unique values is one of the evergreen-topics of eventual consistent applications. The [unique username](unique-username.md) example demonstrates how easy this is with DCB.
