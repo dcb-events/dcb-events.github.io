@@ -316,7 +316,7 @@ function highlight(text) {
   return runs;
 }
 
-function notationHtml(source, parentSource = null) {
+function notationHtml(source, parentSource = null, { foldScenarios = false } = {}) {
   const lines = [[]];
   for (const [cls, text] of highlight(source)) {
     text.split('\n').forEach((part, i) => {
@@ -324,11 +324,90 @@ function notationHtml(source, parentSource = null) {
       if (part) lines[lines.length - 1].push(cls ? `<span class="dcb-hl-${cls}">${escapeHtml(part)}</span>` : escapeHtml(part));
     });
   }
-  const changed = parentSource ? changedLines(parentSource.split('\n'), source.split('\n')) : new Set();
-  const body = lines
-    .map((parts, i) => `<span class="dcb-line${changed.has(i + 1) ? ' dcb-line--changed' : ''}">${parts.join('')}</span>`)
-    .join('\n');
-  return `<pre class="dcb-notation"><code>${body}</code></pre>`;
+  const text = source.split('\n');
+  const changed = parentSource ? changedLines(parentSource.split('\n'), text) : new Set();
+  let items = lines.map((parts, i) => ({
+    html: `<span class="dcb-line${changed.has(i + 1) ? ' dcb-line--changed' : ''}">${parts.join('')}</span>`,
+    text: text[i],
+    changed: changed.has(i + 1),
+    lines: 1,
+  }));
+  if (foldScenarios) items = foldScenarioGroups(items);
+  if (changed.size) items = foldUnchanged(items);
+  const body = joinItems(items);
+  // The copy button copies what is shown, unless told otherwise: the folded lines, too.
+  const copy = body.includes('dcb-fold') ? ` data-copy="${escapeHtml(source)}"` : '';
+  return `<pre class="dcb-notation"${copy}><code>${body}</code></pre>`;
+}
+
+// A run of lines folded into a <details> that expands on click, as one item.
+function fold(items, summary, modifier) {
+  const changed = items.some((item) => item.changed);
+  const classes = ['dcb-fold', `dcb-fold--${modifier}`, ...(changed ? ['dcb-fold--changed'] : [])].join(' ');
+  return {
+    html: `<details class="${classes}"><summary>${summary}</summary>${joinItems(items)}</details>`,
+    text: '',
+    changed,
+    lines: items.reduce((sum, item) => sum + item.lines, 0),
+    block: true,
+  };
+}
+
+const marker = '<span class="dcb-fold__marker"></span>';
+
+// Joins items by line breaks. A <details> is a block of its own: the lines next to it are not
+// joined to it by a line break, which would show as an empty line – except an empty line
+// before it, which needs one to show at all.
+function joinItems(items) {
+  return items.map((item, n) => {
+    const previous = items[n - 1];
+    const joint = n > 0 && (item.block ? !previous.block && previous.text.trim() === '' : !previous.block);
+    return (joint ? '\n' : '') + item.html;
+  }).join('');
+}
+
+// Folds the `scenarios { … }` group of each command, so a model reads as its definitions first.
+function foldScenarioGroups(items) {
+  const out = [];
+  for (let i = 0; i < items.length; i++) {
+    const open = /^(\s*)scenarios \{\s*$/.exec(items[i].text);
+    const close = open && items.findIndex((item, j) => j > i && item.text.trimEnd() === `${open[1]}}`);
+    if (!open || close < 0) { out.push(items[i]); continue; }
+    const group = items.slice(i, close + 1);
+    const count = group.filter((item) => /^\s*scenario "/.test(item.text)).length;
+    out.push(fold(group, `${open[1]}${marker}${count} scenario${count === 1 ? '' : 's'}`, 'scenarios'));
+    i = close;
+  }
+  return out;
+}
+
+// Lines kept visible around a change, and the fewest lines worth folding away.
+const FOLD_CONTEXT = 2;
+const FOLD_MINIMUM = 4;
+
+// Folds each long run of items that did not change, so a block that extends another shows
+// what it changes first. Closing braces after a fold are folded with it, they say nothing on
+// their own.
+function foldUnchanged(items) {
+  const out = [];
+  let i = 0;
+  while (i < items.length) {
+    if (items[i].changed) { out.push(items[i++]); continue; }
+    let end = i;
+    while (end < items.length && !items[end].changed) end++;
+    const from = i === 0 ? 0 : i + FOLD_CONTEXT;
+    let to = end === items.length ? end : end - FOLD_CONTEXT;
+    while (to < end && /^\s*}\s*$/.test(items[to].text)) to++;
+    const hidden = items.slice(from, Math.max(from, to));
+    const count = hidden.reduce((sum, item) => sum + item.lines, 0);
+    if (count < FOLD_MINIMUM) {
+      out.push(...items.slice(i, end));
+    } else {
+      out.push(...items.slice(i, from), fold(hidden, `${marker}${count} unchanged lines`, 'unchanged'), ...items.slice(to, end));
+    }
+    i = end;
+  }
+  return out;
 }
 
 // "CourseId:{courseId}" as it is; "ProductId:{each items.productId}" (one tag per list element)
@@ -401,7 +480,7 @@ function renderExcerpt(block, parents) {
     out.push(...lines.slice(range.first - 1, range.last));
     previousWasLine = oneLine;
   }
-  return { notationHtml: notationHtml(out.join('\n')) };
+  return { notationHtml: notationHtml(out.join('\n'), null, { foldScenarios: true }) };
 }
 
 // ---------- main ----------
@@ -445,7 +524,7 @@ function renderBlock(block, parents) {
   return {
     id: block.id,
     source,
-    notationHtml: notationHtml(source, parentSource),
+    notationHtml: notationHtml(source, parentSource, { foldScenarios: true }),
     boundaryHtml: boundaryHtml(model),
     link: shareLink(model, block.surface),
     warnings,
