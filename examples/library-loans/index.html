@@ -1,0 +1,3049 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="DCB – A simpler and more flexible approach to consistency in event-driven systems">
+      
+      
+      
+        <link rel="canonical" href="https://dcb.events/examples/library-loans/">
+      
+      
+        <link rel="prev" href="../bike-rental/">
+      
+      
+        <link rel="next" href="../invoice-number/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Library loans - Dynamic Consistency Boundaries</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/css/custom.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  
+
+  <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="deep-orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#library-loans-example" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+              <button class="md-banner__button md-icon" aria-label="Don't show this again">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+              </button>
+            
+            
+  <div class="dcb-announce-bar">
+    <a href="https://discord.gg/hmfHwuxMft" target="_blank" rel="noopener" class="dcb-announce">
+      <span class="dcb-announce__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.317 4.37a19.8 19.8 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.3 18.3 0 0 0-5.487 0 13 13 0 0 0-.617-1.25.08.08 0 0 0-.079-.037A19.7 19.7 0 0 0 3.677 4.37a.1.1 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.08.08 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.08.08 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13 13 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10 10 0 0 0 .372-.292.07.07 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.07.07 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.08.08 0 0 0 .084.028 19.8 19.8 0 0 0 6.002-3.03.08.08 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.06.06 0 0 0-.031-.03M8.02 15.33c-1.182 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418m7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418"></path></svg>
+      </span>
+      Join the DCB Discord server
+    </a>
+    <span class="dcb-announce__divider"></span>
+    <a href="https://luma.com/dcb.events" target="_blank" rel="noopener" class="dcb-announce">
+      <span class="dcb-announce__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 10v2H7v-2zm4 0v2h-2v-2zm4 0v2h-2v-2zm2-7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h1V1h2v2h8V1h2v2zm0 16V8H5v11zM9 14v2H7v-2zm4 0v2h-2v-2zm4 0v2h-2v-2z"></path></svg>
+      </span>
+      Join the DCB Campfire meetup
+    </a>
+  </div>
+
+          </div>
+          
+            <script>var el=document.querySelector("[data-md-component=announce]");if(el){var content=el.querySelector(".md-typeset");__md_hash(content.innerHTML)===__md_get("__announce")&&(el.hidden=!0)}</script>
+          
+        </aside>
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Dynamic Consistency Boundaries" class="md-header__button md-logo" aria-label="Dynamic Consistency Boundaries" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Dynamic Consistency Boundaries
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Library loans
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="deep-orange" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="deep-orange" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    <a href="../../playground/" class="md-header__button md-icon" title="DCB Playground" aria-label="DCB Playground">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V5h14m0-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m-9 5v8l5-4z"></path></svg>
+    </a>
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required="">
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix="">
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../.." class="md-tabs__link">
+          
+  
+  
+    
+  
+  DCB
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Examples
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../topics/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Related topics
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../resources/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Resources
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../faq/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../about/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  About
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Dynamic Consistency Boundaries" class="md-nav__button md-logo" aria-label="Dynamic Consistency Boundaries" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    Dynamic Consistency Boundaries
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix="">
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../.." class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DCB
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    DCB
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m23.5 17-5 5-3.5-3.5 1.5-1.5 2 2 3.5-3.5zM6 2a2 2 0 0 0-2 2v16c0 1.11.89 2 2 2h7.81c-.36-.62-.61-1.3-.73-2H6V4h7v5h5v4.08c.33-.05.67-.08 1-.08.34 0 .67.03 1 .08V8l-6-6M8 12v2h8v-2m-8 4v2h5v-2Z"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Specification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_3">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../notation/" class="md-nav__link ">
+              
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 3a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2H3v2h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h2v-2H8v-5a2 2 0 0 0-2-2 2 2 0 0 0 2-2V5h2V3m6 0a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1v2h-1a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-2v-2h2v-5a2 2 0 0 1 2-2 2 2 0 0 1-2-2V5h-2V3z"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    DCB notation
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1_3" id="__nav_1_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    DCB notation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notation/reference/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5.81 2C4.83 2.09 4 3 4 4v16c0 1.05.95 2 2 2h12c1.05 0 2-.95 2-2V4a2 2 0 0 0-2-2h-6v7L9.5 7.5 7 9V2H5.81M12 13h1a1 1 0 0 1 1 1v4h-1v-2h-1v2h-1v-4a1 1 0 0 1 1-1m0 1v1h1v-1zm3 1h3v1l-2 3h2v1h-3v-1l2-3h-2z"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked="">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Examples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../course-subscriptions/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 3 1 9l11 6 9-4.91V17h2V9M5 13.18v4L12 21l7-3.82v-4L12 17z"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Course subscriptions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../unique-username/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M224 248a120 120 0 1 0 0-240 120 120 0 1 0 0 240m-29.7 56C95.8 304 16 383.8 16 482.3c0 16.4 13.3 29.7 29.7 29.7h356.6c16.4 0 29.7-13.3 29.7-29.7 0-98.5-79.8-178.3-178.3-178.3z"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Unique username
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../product-reviews/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 15.4V6.1l1.71 4.03 4.38.37-3.32 2.89.99 4.28M22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.45 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03z"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Product reviews
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bike-rental/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 10c-.56 0-1.09.11-1.59.28L14.46 4.5H11V6h2.54l.88 1.72L12 13.13l-1.77-4.18c.27-.1.51-.37.51-.7 0-.41-.33-.75-.74-.75H8c-.42 0-.76.34-.76.75S7.58 9 8 9h.61l2.25 5.25h-.94C9.56 11.85 7.5 10 5 10c-2.76 0-5 2.24-5 5s2.24 5 5 5c2.5 0 4.56-1.85 4.92-4.25h2.58l2.79-6.32.79 1.53A4.98 4.98 0 0 0 14 15c0 2.76 2.24 5 5 5s5-2.24 5-5-2.24-5-5-5M5 18.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5c1.67 0 3.07 1.18 3.41 2.75H4v1.5h4.41A3.495 3.495 0 0 1 5 18.5m14 0c-1.93 0-3.5-1.57-3.5-3.5 0-1.08.5-2.03 1.27-2.67l1.8 3.52 1.32-.72-1.79-3.5c.29-.07.59-.13.9-.13 1.93 0 3.5 1.57 3.5 3.5s-1.57 3.5-3.5 3.5"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Bike rental
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 21.5c-1.35-.85-3.8-1.5-5.5-1.5-1.65 0-3.35.3-4.75 1.05-.1.05-.15.05-.25.05-.25 0-.5-.25-.5-.5V6c.6-.45 1.25-.75 2-1 1.11-.35 2.33-.5 3.5-.5 1.95 0 4.05.4 5.5 1.5 1.45-1.1 3.55-1.5 5.5-1.5 1.17 0 2.39.15 3.5.5.75.25 1.4.55 2 1v14.6c0 .25-.25.5-.5.5-.1 0-.15 0-.25-.05-1.4-.75-3.1-1.05-4.75-1.05-1.7 0-4.15.65-5.5 1.5M12 8v11.5c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5V7c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5m1 3.5c1.11-.68 2.6-1 4.5-1 .91 0 1.76.09 2.5.28V9.23c-.87-.15-1.71-.23-2.5-.23q-2.655 0-4.5.84zm4.5.17c-1.71 0-3.21.26-4.5.79v1.69c1.11-.65 2.6-.99 4.5-.99 1.04 0 1.88.08 2.5.24v-1.5c-.87-.16-1.71-.23-2.5-.23m2.5 2.9c-.87-.16-1.71-.24-2.5-.24-1.83 0-3.33.27-4.5.8v1.69c1.11-.66 2.6-.99 4.5-.99 1.04 0 1.88.08 2.5.24z"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Library loans
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 21.5c-1.35-.85-3.8-1.5-5.5-1.5-1.65 0-3.35.3-4.75 1.05-.1.05-.15.05-.25.05-.25 0-.5-.25-.5-.5V6c.6-.45 1.25-.75 2-1 1.11-.35 2.33-.5 3.5-.5 1.95 0 4.05.4 5.5 1.5 1.45-1.1 3.55-1.5 5.5-1.5 1.17 0 2.39.15 3.5.5.75.25 1.4.55 2 1v14.6c0 .25-.25.5-.5.5-.1 0-.15 0-.25-.05-1.4-.75-3.1-1.05-4.75-1.05-1.7 0-4.15.65-5.5 1.5M12 8v11.5c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5V7c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5m1 3.5c1.11-.68 2.6-1 4.5-1 .91 0 1.76.09 2.5.28V9.23c-.87-.15-1.71-.23-2.5-.23q-2.655 0-4.5.84zm4.5.17c-1.71 0-3.21.26-4.5.79v1.69c1.11-.65 2.6-.99 4.5-.99 1.04 0 1.88.08 2.5.24v-1.5c-.87-.16-1.71-.23-2.5-.23m2.5 2.9c-.87-.16-1.71-.24-2.5-.24-1.83 0-3.33.27-4.5.8v1.69c1.11-.66 2.6-.99 4.5-.99 1.04 0 1.88.08 2.5.24z"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Library loans
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#challenge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Challenge
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#traditional-approaches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Traditional approaches
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dcb-approach" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DCB approach
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DCB approach">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#feature-1-lending-copies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feature 1: Lending copies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#feature-2-renewing-loans" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feature 2: Renewing loans
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#feature-3-reservations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feature 3: Reservations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conclusion
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../invoice-number/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M9 4.75A.75.75 0 0 1 9.75 4h4a.75.75 0 0 1 .53 1.28l-1.89 1.892c.312.076.604.18.867.319.742.391 1.244 1.063 1.244 2.005 0 .653-.231 1.208-.629 1.627-.386.408-.894.653-1.408.777-1.01.243-2.225.063-3.124-.527a.751.751 0 0 1 .822-1.254c.534.35 1.32.474 1.951.322.306-.073.53-.201.67-.349.129-.136.218-.32.218-.596 0-.308-.123-.509-.444-.678-.373-.197-.98-.318-1.806-.318a.75.75 0 0 1-.53-1.28l1.72-1.72H9.75A.75.75 0 0 1 9 4.75m-3.587 5.763c-.35-.05-.77.113-.983.572a.75.75 0 1 1-1.36-.632c.508-1.094 1.589-1.565 2.558-1.425 1 .145 1.872.945 1.872 2.222 0 1.433-1.088 2.192-1.79 2.681-.308.216-.571.397-.772.573H7a.75.75 0 0 1 0 1.5H3.75a.75.75 0 0 1-.75-.75c0-.69.3-1.211.67-1.61.348-.372.8-.676 1.15-.92.8-.56 1.18-.904 1.18-1.474 0-.473-.267-.69-.587-.737M5.604.089A.75.75 0 0 1 6 .75v4.77h.711a.75.75 0 0 1 0 1.5H3.759a.75.75 0 0 1 0-1.5H4.5V2.15l-.334.223a.75.75 0 0 1-.832-1.248l1.5-1a.75.75 0 0 1 .77-.037Z"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Invoice number
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dynamic-product-price/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5.5 7A1.5 1.5 0 0 1 4 5.5 1.5 1.5 0 0 1 5.5 4 1.5 1.5 0 0 1 7 5.5 1.5 1.5 0 0 1 5.5 7m15.91 4.58-9-9C12.05 2.22 11.55 2 11 2H4c-1.11 0-2 .89-2 2v7c0 .55.22 1.05.59 1.41l8.99 9c.37.36.87.59 1.42.59s1.05-.23 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.56-.23-1.06-.59-1.42"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Dynamic product price
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../event-sourced-aggregate/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.25 2c.19 0 .36.11.44.26l2.22 3.96.09.28-.09.28-2.22 3.96c-.08.15-.25.26-.44.26h-4.5c-.19 0-.36-.11-.44-.26L3.09 6.78 3 6.5l.09-.28 2.22-3.96c.08-.15.25-.26.44-.26zm0 11c.19 0 .36.11.44.26l2.22 3.96.09.28-.09.28-2.22 3.96c-.08.15-.25.26-.44.26h-4.5c-.19 0-.36-.11-.44-.26l-2.22-3.96L3 17.5l.09-.28 2.22-3.96c.08-.15.25-.26.44-.26zm9.25-5.5c.19 0 .36.11.44.26l2.22 3.96.09.28-.09.28-2.22 3.96c-.08.15-.25.26-.44.26H15c-.19 0-.36-.11-.44-.26l-2.22-3.96-.09-.28.09-.28 2.22-3.96c.08-.15.25-.26.44-.26z"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Event-Sourced Aggregate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../opt-in-token/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19c0-3.31 2.69-6 6-6 1.1 0 2.12.3 3 .81V6a2 2 0 0 0-2-2H4c-1.11 0-2 .89-2 2v12a2 2 0 0 0 2 2h9.09c-.05-.33-.09-.66-.09-1M4 8V6l8 5 8-5v2l-8 5zm13.75 14.16-2.75-3L16.16 18l1.59 1.59L21.34 16l1.16 1.41z"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Opt-In Token
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../prevent-record-duplication/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 0H9C7.9 0 7 .9 7 2v16c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V2c0-1.1-.9-2-2-2m0 18H9V2h10zM3 4v18c0 1.1.9 2 2 2h12v-2H5V4zm11 2c-1.1 0-2 .9-2 2 0 .4.1.7.3 1H12c-1.1 0-2 .9-2 2s.9 2 2 2c.6 0 1.1-.3 1.5-.7l-1 2.7h3l-1-2.7c.4.4.9.7 1.5.7 1.1 0 2-.9 2-2s-.9-2-2-2h-.3c.2-.3.3-.6.3-1 0-1.1-.9-2-2-2"></path></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Prevent record duplication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../topics/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Related topics
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Related topics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../topics/aggregates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Aggregates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../topics/projections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Projections
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../topics/tags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tags
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../resources/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resources
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Resources
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../resources/libraries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Implementations and tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../resources/media/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../resources/articles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Articles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#challenge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Challenge
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#traditional-approaches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Traditional approaches
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dcb-approach" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DCB approach
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DCB approach">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#feature-1-lending-copies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feature 1: Lending copies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#feature-2-renewing-loans" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feature 2: Renewing loans
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#feature-3-reservations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feature 3: Reservations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conclusion
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="library-loans-example">Library loans example</h1>
+<p>Sometimes a command doesn't know up front everything it has to check, because part of it only follows from the state it reads.
+This example shows how a decision can read state that depends on other state it read, and still be a single consistency boundary.</p>
+<h2 id="challenge">Challenge</h2>
+<p>The goal is an application for a library, with the following hard constraints:</p>
+<ul>
+<li>A copy of a book can only be lent while it is available, and a member can borrow at most three copies at a time</li>
+<li>A loan can be renewed at most twice, and only while the borrower is not suspended</li>
+<li>A loan can't be renewed while a member has reserved the book</li>
+</ul>
+<p>A loan is renewed by scanning the copy, so the renewal only knows the copy. The borrower and the book have to be looked up from the copy before their constraints can be checked.</p>
+<h2 id="traditional-approaches">Traditional approaches</h2>
+<p>The renewal affects the copy, but depends on the borrower and the book, which live elsewhere:</p>
+<ul>
+<li>
+<p><strong>Copy Aggregate:</strong> Let the copy enforce its loans and check the borrower and the reservations against a <dfn title="Representation of data tailored for specific read operations, often denormalized for performance">Read Model</dfn></p>
+<blockquote>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8V4l8 8-8 8v-4H4V8z"></path></svg></span> A member suspended, or a book reserved, while the loan is renewed doesn't prevent the renewal</p>
+</blockquote>
+</li>
+<li>
+<p><strong>Larger Aggregate:</strong> Make the copy part of a book Aggregate that also holds the reservations</p>
+<blockquote>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8V4l8 8-8 8v-4H4V8z"></path></svg></span> Every loan, return and reservation of a popular book competes for the same stream, and the borrower's suspension is still outside of it</p>
+</blockquote>
+</li>
+<li>
+<p><strong>Eventual consistency:</strong> Renew the loan and revoke the renewal after the fact if the member was suspended</p>
+<blockquote>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8V4l8 8-8 8v-4H4V8z"></path></svg></span> This is of course a potential solution, with or without DCB, but it falls outside the scope of these examples</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="dcb-approach">DCB approach</h2>
+<p>The <code>CopyLent</code> Event is tagged with the copy <em>and</em> the member, so a projection of the copy can tell its borrower. A command can read that projection first and then use its value as the Tag of another read.</p>
+<h3 id="feature-1-lending-copies">Feature 1: Lending copies</h3>
+<p>This example covers lending and returning copies. Both commands read the copy and the member by the command's properties, nothing is chained yet. The <code>CopyBorrowerId</code> projection records who borrowed a copy, so that only the borrower can return it.</p>
+<div class="dcb-example"><div class="dcb-example__actions"><a class="md-button" href="/notation/" title="What is this notation?" aria-label="What is this notation?"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11 18h2v-2h-2zm1-16A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m0-14a4 4 0 0 0-4 4h2a2 2 0 0 1 2-2 2 2 0 0 1 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5a4 4 0 0 0-4-4"></path></svg></a><a class="md-button md-button--primary" href="/playground/#model=H4sIAAAAAAAAA-1Y247jNgz9FUPoozXji5zYedudtmiB2W3RBvtS5IGW6MRbR0pleRbBIP9eyHYSO_e5zxZ9jCyRPIeHFJV78kPJZzgHMiIzYxbl6Ppa8PQK71Ca8rr5Vl7PlcDi-s73rr6WShKXCJ5-smtfUJe5kmREfO_KIy6RMEcyIrd5qkEvnUKBLIlLeFUaNR8vF_gjZrnMTa5kSUZ_3a8P3KjF8ldBXLIO556Y5cJ-KY3O5ZSsXJKXY5iSkdEVrtzNyY9K_f24k59wnqJ-yNmJS2pmToD4IASKsboBA4WaEpcstFqgNjn2tvI13vbzctz43fCQl78trAMoyCiDokS7dJuXpv3ZwZGuGdixtWHmrK2JSwxMbYDbwFqrk44jG9wtSvMqqObb7OxY6-TtUcg2lnex_YGm0hLFfwefFaw0uVn2FTupfX5FbhdOVaTc6rh1s8-FgWmfBuv1DooK2-VUqQJBkp3YXVK7heKL3btZnIEUBerGV11txyrLkgamaT8lWlXeNZaaWt1J7keltfrW8vp4ML3knEAjq6I4AaYto6MQ2t2_t8ro6mVlgXVtdWR71J4Np0dJg-NWgbxRVR3LLicdgW5Z2cDf5SWXBqeoz9HiPYyTXHKN82a9ReJfCF_ggaN1RXA1n4MUR3T_QQhrtSu0DMFUuhbF99bWU1VJAXrZFD1XUnQQF5iZX0CKP3NRS27bE47W__0aot0OGuZoUH_ugV-tVjZmFDkHU0uj_NmGQ1yisW_fyUsHCo0glk4uHTNDh7cObfCLKi3ycoYXXLLrUC4McXO9HdjTflmtevVyi7LWRU8Ot-148x3dFu9DEGNdHdODVGZPC-4FoR3o74-L7af5wixPBAd3kBeQFng-rmNN9n6bzwOhdTr9TnAFluV4Vl-lOp_OOo7DfryN401tpTU3pWNmGtHhamGVerLC1mPeg-vqUmDd2mo6-P_V9WwS_qzMORUXNsGvWVj4TwVFua_cUzI5HL4N3THKAanMDLXT7D-t5-5o_4KantinJErQudodL3JBRiSMEhFBllAMBFIWhAOaYDykEY-HWZqFyTDIOq9olMIBue04tnRtUtsJpn8tTfM7lOenZgEGusAJ97evvRFJfbKyML7NrLF7Anpa2Smq3D-zpYXM7SmXmPaQqgxXNYR1QizxzZ8KdYRmW6ttpzkc1q6LST381lT6nkiYiEIqOIsoS9KMJin36CBLWRwnmLHBcJfKmj_HzMAcuWnOUPt8vDS67tMyufxC3LDAvDgQiYgpF5FP2SAGmoIfUyYGKYsjnqXIT7NQNPy_tKTcg7P--awHzyrHB9Leueq3uouHIWTDlEbABpR5PtI48iKasiCMIp5kkZ_sMa7b9vNaBfwUto8_r147Wy_XPALPC1PmBxQT36eMY0xTn0VUQBAFcRDEQwj3kpipSpvZG6XwAhtBz8aBVF5gI-zZCB9lg_VssCfI8SFSDp5wNjyklrMyZs_XdC6a1zfqFcgSzpKE-sPhgLLYZxSCxKciYYPBMAkgQ3-r3qaAHWjmpj319obvd9CCXnv-eFB_22kjnhdAnAWC4iDOKONhRNM4Aer5aRZEcShSwQ4kYm8K2buDXyopb3aTNs-NTv_1hc8yRiMMEsoEZjSOBzHNfC_2PRZxD6JjxB0Z_9-zpt9siDn2VFpNVv8Cdge4EPsbAAA" target="_blank" rel="noopener" title="Open this model in the DCB Playground" aria-label="Open in Playground"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V5h14m0-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m-9 5v8l5-4z"></path></svg><span class="dcb-example__label">Open in Playground</span></a></div><div class="tabbed-set tabbed-alternate"><input checked="checked" id="__dcb_1_1" name="__dcb_1" type="radio"><input id="__dcb_1_2" name="__dcb_1" type="radio"><div class="tabbed-labels"><label for="__dcb_1_1">DCB notation</label><label for="__dcb_1_2">Consistency boundary</label></div><div class="tabbed-content"><div class="tabbed-block"><pre class="dcb-notation" data-copy="model &quot;Library loans&quot;
+
+// Types
+tag type CopyId = string
+tag type BookId = string
+tag type MemberId = string
+
+// Events
+event CopyAddedToCatalog { tag copyId: CopyId, tag bookId: BookId }
+event CopyLent { tag copyId: CopyId, tag memberId: MemberId }
+event CopyReturned { tag copyId: CopyId, tag memberId: MemberId }
+
+// Projections
+projection CopyInCatalog (tag copyId: CopyId): boolean = false {
+  on CopyAddedToCatalog =&gt; set true
+}
+
+projection CopyBorrowerId (tag copyId: CopyId): MemberId = null {
+  on CopyLent =&gt; set event.data.memberId
+  on CopyReturned =&gt; set null
+}
+
+projection MemberLoanCount (tag memberId: MemberId): integer = 0 {
+  on CopyLent =&gt; increment 1
+  on CopyReturned =&gt; decrement 1
+}
+
+// Commands
+@feature(&quot;Catalog&quot;)
+command AddCopyToCatalog(copyId: CopyId, bookId: BookId) {
+  require CopyInCatalog(copyId) is false
+    else reject &quot;Copy is already in the catalog&quot;
+
+  emit CopyAddedToCatalog { copyId, bookId }
+}
+
+@feature(&quot;Loans&quot;)
+command LendCopy(copyId: CopyId, memberId: MemberId) {
+  require CopyInCatalog(copyId) is true
+    else reject &quot;Copy is not in the catalog&quot;
+  require CopyBorrowerId(copyId) is empty
+    else reject &quot;Copy is not available&quot;
+  require MemberLoanCount(memberId) &lt; 3
+    else reject &quot;Member already borrows three copies&quot;
+
+  emit CopyLent { copyId, memberId }
+
+  scenarios {
+    scenario &quot;Lend an available copy&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      when LendCopy { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      then CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+    }
+
+    scenario &quot;Lend a copy that is not in the catalog&quot; {
+      when LendCopy { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      then rejected &quot;Copy is not in the catalog&quot;
+    }
+
+    scenario &quot;Lend a copy that is lent&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m2&quot; }
+      when LendCopy { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      then rejected &quot;Copy is not available&quot;
+    }
+
+    scenario &quot;Lend a returned copy&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m2&quot; }
+      and CopyReturned { copyId: &quot;c1&quot;, memberId: &quot;m2&quot; }
+      when LendCopy { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      then CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+    }
+
+    scenario &quot;Lend a fourth copy&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyAddedToCatalog { copyId: &quot;c2&quot;, bookId: &quot;b2&quot; }
+      and CopyAddedToCatalog { copyId: &quot;c3&quot;, bookId: &quot;b3&quot; }
+      and CopyAddedToCatalog { copyId: &quot;c4&quot;, bookId: &quot;b4&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      and CopyLent { copyId: &quot;c2&quot;, memberId: &quot;m1&quot; }
+      and CopyLent { copyId: &quot;c3&quot;, memberId: &quot;m1&quot; }
+      when LendCopy { copyId: &quot;c4&quot;, memberId: &quot;m1&quot; }
+      then rejected &quot;Member already borrows three copies&quot;
+    }
+  }
+}
+
+@feature(&quot;Loans&quot;)
+command ReturnCopy(copyId: CopyId, memberId: MemberId) {
+  require CopyBorrowerId(copyId) is not empty
+    else reject &quot;Copy is not lent&quot;
+  require CopyBorrowerId(copyId) == memberId
+    else reject &quot;Copy is lent to another member&quot;
+
+  emit CopyReturned { copyId, memberId }
+
+  scenarios {
+    scenario &quot;Return a lent copy&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      when ReturnCopy { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      then CopyReturned { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+    }
+
+    scenario &quot;Return a copy that is not lent&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      when ReturnCopy { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      then rejected &quot;Copy is not lent&quot;
+    }
+
+    scenario &quot;Return a copy lent to another member&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m2&quot; }
+      when ReturnCopy { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      then rejected &quot;Copy is lent to another member&quot;
+    }
+  }
+}
+"><code><span class="dcb-line"><span class="dcb-hl-keyword">model</span> <span class="dcb-hl-string">"Library loans"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Types</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">tag</span> <span class="dcb-hl-keyword">type</span> <span class="dcb-hl-type">CopyId</span> = <span class="dcb-hl-type">string</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">tag</span> <span class="dcb-hl-keyword">type</span> <span class="dcb-hl-type">BookId</span> = <span class="dcb-hl-type">string</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">tag</span> <span class="dcb-hl-keyword">type</span> <span class="dcb-hl-type">MemberId</span> = <span class="dcb-hl-type">string</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Events</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { <span class="dcb-hl-keyword">tag</span> copyId: <span class="dcb-hl-type">CopyId</span>, <span class="dcb-hl-keyword">tag</span> bookId: <span class="dcb-hl-type">BookId</span> }</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">CopyLent</span> { <span class="dcb-hl-keyword">tag</span> copyId: <span class="dcb-hl-type">CopyId</span>, <span class="dcb-hl-keyword">tag</span> memberId: <span class="dcb-hl-type">MemberId</span> }</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">CopyReturned</span> { <span class="dcb-hl-keyword">tag</span> copyId: <span class="dcb-hl-type">CopyId</span>, <span class="dcb-hl-keyword">tag</span> memberId: <span class="dcb-hl-type">MemberId</span> }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Projections</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CopyInCatalog</span> (<span class="dcb-hl-keyword">tag</span> copyId: <span class="dcb-hl-type">CopyId</span>): <span class="dcb-hl-type">boolean</span> = <span class="dcb-hl-keyword">false</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">true</span></span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CopyBorrowerId</span> (<span class="dcb-hl-keyword">tag</span> copyId: <span class="dcb-hl-type">CopyId</span>): <span class="dcb-hl-type">MemberId</span> = <span class="dcb-hl-keyword">null</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CopyLent</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">event</span>.data.memberId</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CopyReturned</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">null</span></span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">MemberLoanCount</span> (<span class="dcb-hl-keyword">tag</span> memberId: <span class="dcb-hl-type">MemberId</span>): <span class="dcb-hl-type">integer</span> = <span class="dcb-hl-number">0</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CopyLent</span> =&gt; <span class="dcb-hl-keyword">increment</span> <span class="dcb-hl-number">1</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CopyReturned</span> =&gt; <span class="dcb-hl-keyword">decrement</span> <span class="dcb-hl-number">1</span></span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Commands</span></span>
+<span class="dcb-line"><span class="dcb-hl-annotation">@</span><span class="dcb-hl-annotation">feature</span>(<span class="dcb-hl-string">"Catalog"</span>)</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">AddCopyToCatalog</span>(copyId: <span class="dcb-hl-type">CopyId</span>, bookId: <span class="dcb-hl-type">BookId</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CopyInCatalog</span>(copyId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">false</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Copy is already in the catalog"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId, bookId }</span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-annotation">@</span><span class="dcb-hl-annotation">feature</span>(<span class="dcb-hl-string">"Loans"</span>)</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">LendCopy</span>(copyId: <span class="dcb-hl-type">CopyId</span>, memberId: <span class="dcb-hl-type">MemberId</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CopyInCatalog</span>(copyId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">true</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Copy is not in the catalog"</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CopyBorrowerId</span>(copyId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">empty</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Copy is not available"</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">MemberLoanCount</span>(memberId) &lt; <span class="dcb-hl-number">3</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Member already borrows three copies"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">CopyLent</span> { copyId, memberId }</span>
+<span class="dcb-line"></span>
+<details class="dcb-fold dcb-fold--scenarios"><summary>  <span class="dcb-fold__marker"></span>5 scenarios</summary><span class="dcb-line">  <span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Lend an available copy"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">LendCopy</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Lend a copy that is not in the catalog"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">LendCopy</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Copy is not in the catalog"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Lend a copy that is lent"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m2"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">LendCopy</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Copy is not available"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Lend a returned copy"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m2"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyReturned</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m2"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">LendCopy</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Lend a fourth copy"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c2"</span>, bookId: <span class="dcb-hl-string">"b2"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c3"</span>, bookId: <span class="dcb-hl-string">"b3"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c4"</span>, bookId: <span class="dcb-hl-string">"b4"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c2"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c3"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">LendCopy</span> { copyId: <span class="dcb-hl-string">"c4"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Member already borrows three copies"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line">  }</span></details><span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-annotation">@</span><span class="dcb-hl-annotation">feature</span>(<span class="dcb-hl-string">"Loans"</span>)</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">ReturnCopy</span>(copyId: <span class="dcb-hl-type">CopyId</span>, memberId: <span class="dcb-hl-type">MemberId</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CopyBorrowerId</span>(copyId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">not</span> <span class="dcb-hl-keyword">empty</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Copy is not lent"</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CopyBorrowerId</span>(copyId) == memberId</span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Copy is lent to another member"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">CopyReturned</span> { copyId, memberId }</span>
+<span class="dcb-line"></span>
+<details class="dcb-fold dcb-fold--scenarios"><summary>  <span class="dcb-fold__marker"></span>3 scenarios</summary><span class="dcb-line">  <span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Return a lent copy"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">ReturnCopy</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">CopyReturned</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Return a copy that is not lent"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">ReturnCopy</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Copy is not lent"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Return a copy lent to another member"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m2"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">ReturnCopy</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Copy is lent to another member"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line">  }</span></details><span class="dcb-line">}</span>
+<span class="dcb-line"></span></code></pre></div><div class="tabbed-block"><div class="dcb-boundary"><p class="dcb-boundary__command"><code>AddCopyToCatalog</code> <span class="dcb-boundary__summary">reads 1 type, 1 tag</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>CopyInCatalog(copyId)</code></td><td><code>CopyAddedToCatalog</code></td><td><code>CopyId:{copyId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>CopyId:{copyId}</code>, <code>BookId:{bookId}</code></p><p class="dcb-boundary__command"><code>LendCopy</code> <span class="dcb-boundary__summary">reads 3 types, 2 tags</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>CopyInCatalog(copyId)</code></td><td><code>CopyAddedToCatalog</code></td><td><code>CopyId:{copyId}</code></td></tr><tr><td><code>CopyBorrowerId(copyId)</code></td><td><code>CopyLent</code>, <code>CopyReturned</code></td><td><code>CopyId:{copyId}</code></td></tr><tr><td><code>MemberLoanCount(memberId)</code></td><td><code>CopyLent</code>, <code>CopyReturned</code></td><td><code>MemberId:{memberId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>CopyId:{copyId}</code>, <code>MemberId:{memberId}</code></p><p class="dcb-boundary__command"><code>ReturnCopy</code> <span class="dcb-boundary__summary">reads 2 types, 1 tag</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>CopyBorrowerId(copyId)</code></td><td><code>CopyLent</code>, <code>CopyReturned</code></td><td><code>CopyId:{copyId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>CopyId:{copyId}</code>, <code>MemberId:{memberId}</code></p></div></div></div></div></div>
+<h3 id="feature-2-renewing-loans">Feature 2: Renewing loans</h3>
+<p>This example extends the previous one, so that a loan can be renewed at most twice, and not by a suspended member.</p>
+<p><code>RenewLoan</code> only knows the copy. It reads the copy's borrower, and then whether <em>that</em> member is suspended:</p>
+<div class="dcb-snippet"><pre class="dcb-notation"><code><span class="dcb-line"><span class="dcb-hl-flow">alias</span> borrowerId = <span class="dcb-hl-type">CopyBorrowerId</span>(copyId)</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">MemberIsSuspended</span>(borrowerId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">false</span></span></code></pre></div>
+<p>The "Consistency boundary" tab shows the Query Items for the copy and for the borrower: if the member is suspended in the meantime, the renewal fails. Other members are not part of the Query, although the command couldn't know up front which member it would read.</p>
+<div class="dcb-example"><div class="dcb-example__actions"><a class="md-button" href="/notation/" title="What is this notation?" aria-label="What is this notation?"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11 18h2v-2h-2zm1-16A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m0-14a4 4 0 0 0-4 4h2a2 2 0 0 1 2-2 2 2 0 0 1 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5a4 4 0 0 0-4-4"></path></svg></a><a class="md-button md-button--primary" href="/playground/#model=H4sIAAAAAAAAA-1a34-rthL-V5DVx_gsYGMgb-1pr26lbW91uupLlQf_GBJaYnLB2dVqlf-9MpAEEkjY7CZnW_VxAdsz3zfzzXiyL-ibUi5gydEULYxZldO7OyXFJ3gEbcq7-l15t8wVZHePnvvpjzLXaIKUFD_ZZ79BUaa5RlPkuZ9cNEGaLwFN0X0qCl48O1nOdYkmSK5Lky8fnlfwPSSpTk2a6xJNf3_ZLvicr55_VGiCtua8IPO8sm9KU6R6jjYTlJYPfI6mpljDZrJb-V2e_3nZyp9gKaB4zdrZBFXInHDiW6VAPeSfueFZPkcTtCryFRQmhc6ncutv8_r5oT53h0Na_m9lD-AZmiY8K8E-uk9L0_zZ8kNsETjYa4fM2b1mE2T43Bq4N6zZddY6yBp3D9rcxKvlnp2D3Vq8XeTZbudD376AWRca1D_Rv_uc6y-g4emq7h2bMztKuF_X5Qq0OmHHu0PTi0i91xdIdWm4-UrmWEXRJjXPXUmZVUf9AdI-OCWZei80ze7HbBo-7xJpT33k2RqaxyLPM-AaHZg8QdWxPPvNfrt7uOBaZVDUZ1VyOCR9Fitu6vpQgpWNx3qnWkwPsu-7vCjypwbOy53pcHLCG73OshPONDo36ELz9S9NQLTDZGMda-_V0pXB_aw5m-PwtGn7OV9Xthxi0orLPSo79w9xSbWBORTnYHFfh0mqZQHL-nnjiTfSfQU9S48lWcMTz8o3hcR1XO_Q57ad7mrtWbiOWf-xbIvk23h_h-Q-1u3TmT05XNoR2cG1jU5aB2S-XHKtBpTvW6UsJ22pSYCbdVHFwN-t8xL5WitePNeyL3OtWh5nkJj_cq1-TVUlOvuqMFgBXrYu2s95wZdgoPi54_xms7E2g0olN1WGlP-x5qAJKqC7v5OWDs8K4OrZSbVjFuDI5kBr_GotsrRcwIg-eGvKSBN3HWjPN82bzaaTO_egq7johMN9cwP5GzV0HyMgHor1UDzo3BzFwmSEaT0V_jLbfliuzPMJ4_gjTzMuMjhv11CZfdnz2WNaq9YfGJdBWT4sKr0t0vmidTDp2lsfvMstUWFTOmZRADgyX9lIPZlh25vYq_NqrGPt3Kpr-L_Z9W4h_HNuzkVxZgm-ZWLB_9d1q3UQuafCpN98a7pjcofr3CygcOrvT8dz-_Z9o5jW8GQj-KYh3Q3BF8SzlJdVTWtx-H4Mn4_xHgOuG61HPf0lsTqss37XRsun88T3XUxRd-aOeUrl6ALR15F3S0QfjOParC23Fslyd8pgrhxMcl6ZKt0UaJyqfeykQf1oOBE-gB6PZWZ88e7np6nUrUZ4BEs9s64OU5cJVnON-pevE13qni4rS6Op6g4CL-RqZn9KAM2LND-8u6YKTRFTYUQlY1ipWGKahBRHxCeYuyoOQuEFvhStX1FAK4frfTtr-0Krwc31uHvnmaePoM8P5RQ3vC0VSHr7af8UCQ9VReNpYTd7QbyYr-3Aojxes4cFLe2qCTLNonxtZF65sAXcglr_qFRZaPZVs2lj-806PGJWzdYqKEkkw0iFCrsuYZhGxMexcgG7SkVRzOLA8-NDKCv8HLPgZuAacwba98OlDtguLLPxt60dCnEYSVe5DDPwGKYyCrHgJMIBE4KE1GUiZqdRyGr8rx1Sk9552nnW_XcNx1fC3rpH7hCnLHalp0LMuQJMQxbhWIUcc0b9gAmPEN87QrxoettbJfBb0B6e3t6areuJRxBRX0QJw9RTHqYhKCx8T-I4Ub5SJI4YJUckJvm6MIuvROGIPfzOHj1UjtiDdPYgF-1BO3vQN4Tja0LZf8Na0hctZ8OYvp_ojBoG7aI3jCPpskhhKWIPU0oYFr4rsesGEYsAgHot0a8T2OH1pfwoejuTnQ8gQbfuP16lbwcyojwWhqEX4NgNXEyJH9h2TmI39EAAcxn3oh4ijrqQoxp8LVK-WiWtpwN74IgPEDPAingxpjJWOJYqwRArJl2AgIT-EHADs6WPHNNfrYkZmsPtiGA0prEUErMksReSQGCeMB9HIRCfhjSMBG8ToeHJKkk9NGsDvh-lfQC8x4b6JZrRHb_02dKRCC8SgpMwxJRwhmnACBZMRDjgEReMhH7gJscAj1GIqyB-OWpvEwRPBQokSOxTL8DUTRiO48TDEZEJsJAEJKb9cehwxyzSQjkmXcJHD8rBfxLoj6NXfn5V8s7NUfdX0sT1Y1clmDMvwpQTgqMEGI5D7hKfcC7lEJV54vD9xKZf2T8yp8dDv-0W76dOI6gaGCjvGeIqCjzbrDApMQ3dAAt7BWKuK2lMiPT8Hk2qGHpapBkclJPuMf80tsbW7hvUkpgFUiifY18KganVR5GoACcUYqIok0D8U7XEZm_VEfA5Tz98Ab-uVr5lynGLVvCK4TTb_AWchbQf9y8AAA" target="_blank" rel="noopener" title="Open this model in the DCB Playground" aria-label="Open in Playground"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V5h14m0-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m-9 5v8l5-4z"></path></svg><span class="dcb-example__label">Open in Playground</span></a></div><div class="tabbed-set tabbed-alternate"><input checked="checked" id="__dcb_3_1" name="__dcb_3" type="radio"><input id="__dcb_3_2" name="__dcb_3" type="radio"><div class="tabbed-labels"><label for="__dcb_3_1">DCB notation</label><label for="__dcb_3_2">Consistency boundary</label></div><div class="tabbed-content"><div class="tabbed-block"><pre class="dcb-notation" data-copy="model &quot;Library loans&quot;
+
+// Types
+tag type CopyId = string
+tag type BookId = string
+tag type MemberId = string
+
+// Events
+event CopyAddedToCatalog { tag copyId: CopyId, tag bookId: BookId }
+event CopyLent { tag copyId: CopyId, tag memberId: MemberId }
+event CopyReturned { tag copyId: CopyId, tag memberId: MemberId }
+event LoanRenewed { tag copyId: CopyId }
+event MemberSuspended { tag memberId: MemberId }
+event MemberReinstated { tag memberId: MemberId }
+
+// Projections
+projection CopyInCatalog (tag copyId: CopyId): boolean = false {
+  on CopyAddedToCatalog =&gt; set true
+}
+
+projection CopyBorrowerId (tag copyId: CopyId): MemberId = null {
+  on CopyLent =&gt; set event.data.memberId
+  on CopyReturned =&gt; set null
+}
+
+projection MemberLoanCount (tag memberId: MemberId): integer = 0 {
+  on CopyLent =&gt; increment 1
+  on CopyReturned =&gt; decrement 1
+}
+
+projection CopyRenewals (tag copyId: CopyId): integer = 0 {
+  on CopyLent =&gt; set 0
+  on LoanRenewed =&gt; increment 1
+}
+
+projection MemberIsSuspended (tag memberId: MemberId): boolean = false {
+  on MemberSuspended =&gt; set true
+  on MemberReinstated =&gt; set false
+}
+
+// Commands
+@feature(&quot;Catalog&quot;)
+command AddCopyToCatalog(copyId: CopyId, bookId: BookId) {
+  require CopyInCatalog(copyId) is false
+    else reject &quot;Copy is already in the catalog&quot;
+
+  emit CopyAddedToCatalog { copyId, bookId }
+}
+
+@feature(&quot;Loans&quot;)
+command LendCopy(copyId: CopyId, memberId: MemberId) {
+  require CopyInCatalog(copyId) is true
+    else reject &quot;Copy is not in the catalog&quot;
+  require CopyBorrowerId(copyId) is empty
+    else reject &quot;Copy is not available&quot;
+  require MemberLoanCount(memberId) &lt; 3
+    else reject &quot;Member already borrows three copies&quot;
+
+  emit CopyLent { copyId, memberId }
+
+  scenarios {
+    scenario &quot;Lend an available copy&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      when LendCopy { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      then CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+    }
+
+    scenario &quot;Lend a copy that is not in the catalog&quot; {
+      when LendCopy { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      then rejected &quot;Copy is not in the catalog&quot;
+    }
+
+    scenario &quot;Lend a copy that is lent&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m2&quot; }
+      when LendCopy { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      then rejected &quot;Copy is not available&quot;
+    }
+
+    scenario &quot;Lend a returned copy&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m2&quot; }
+      and CopyReturned { copyId: &quot;c1&quot;, memberId: &quot;m2&quot; }
+      when LendCopy { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      then CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+    }
+
+    scenario &quot;Lend a fourth copy&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyAddedToCatalog { copyId: &quot;c2&quot;, bookId: &quot;b2&quot; }
+      and CopyAddedToCatalog { copyId: &quot;c3&quot;, bookId: &quot;b3&quot; }
+      and CopyAddedToCatalog { copyId: &quot;c4&quot;, bookId: &quot;b4&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      and CopyLent { copyId: &quot;c2&quot;, memberId: &quot;m1&quot; }
+      and CopyLent { copyId: &quot;c3&quot;, memberId: &quot;m1&quot; }
+      when LendCopy { copyId: &quot;c4&quot;, memberId: &quot;m1&quot; }
+      then rejected &quot;Member already borrows three copies&quot;
+    }
+  }
+}
+
+@feature(&quot;Loans&quot;)
+command ReturnCopy(copyId: CopyId, memberId: MemberId) {
+  require CopyBorrowerId(copyId) is not empty
+    else reject &quot;Copy is not lent&quot;
+  require CopyBorrowerId(copyId) == memberId
+    else reject &quot;Copy is lent to another member&quot;
+
+  emit CopyReturned { copyId, memberId }
+
+  scenarios {
+    scenario &quot;Return a lent copy&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      when ReturnCopy { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      then CopyReturned { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+    }
+
+    scenario &quot;Return a copy that is not lent&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      when ReturnCopy { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      then rejected &quot;Copy is not lent&quot;
+    }
+
+    scenario &quot;Return a copy lent to another member&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m2&quot; }
+      when ReturnCopy { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      then rejected &quot;Copy is lent to another member&quot;
+    }
+  }
+}
+
+@feature(&quot;Loans&quot;)
+command RenewLoan(copyId: CopyId) {
+  alias borrowerId = CopyBorrowerId(copyId)
+
+  require borrowerId is not empty
+    else reject &quot;Copy is not lent&quot;
+  require CopyRenewals(copyId) &lt; 2
+    else reject &quot;Loan was already renewed twice&quot;
+  require MemberIsSuspended(borrowerId) is false
+    else reject &quot;Borrower is suspended&quot;
+
+  emit LoanRenewed { copyId }
+
+  scenarios {
+    scenario &quot;Renew a loan&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      when RenewLoan { copyId: &quot;c1&quot; }
+      then LoanRenewed { copyId: &quot;c1&quot; }
+    }
+
+    scenario &quot;Renew a copy that is not lent&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      when RenewLoan { copyId: &quot;c1&quot; }
+      then rejected &quot;Copy is not lent&quot;
+    }
+
+    scenario &quot;Renew a loan a third time&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      and LoanRenewed { copyId: &quot;c1&quot; }
+      and LoanRenewed { copyId: &quot;c1&quot; }
+      when RenewLoan { copyId: &quot;c1&quot; }
+      then rejected &quot;Loan was already renewed twice&quot;
+    }
+
+    scenario &quot;Renew a loan of a suspended member&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      and MemberSuspended { memberId: &quot;m1&quot; }
+      when RenewLoan { copyId: &quot;c1&quot; }
+      then rejected &quot;Borrower is suspended&quot;
+    }
+
+    scenario &quot;Renew a loan while another member is suspended&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      and MemberSuspended { memberId: &quot;m2&quot; }
+      when RenewLoan { copyId: &quot;c1&quot; }
+      then LoanRenewed { copyId: &quot;c1&quot; }
+    }
+
+    scenario &quot;Renew a copy that was lent again&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      and LoanRenewed { copyId: &quot;c1&quot; }
+      and LoanRenewed { copyId: &quot;c1&quot; }
+      and CopyReturned { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m2&quot; }
+      when RenewLoan { copyId: &quot;c1&quot; }
+      then LoanRenewed { copyId: &quot;c1&quot; }
+    }
+  }
+}
+
+@feature(&quot;Members&quot;)
+command SuspendMember(memberId: MemberId) {
+  require MemberIsSuspended(memberId) is false
+    else reject &quot;Member is already suspended&quot;
+
+  emit MemberSuspended { memberId }
+}
+
+@feature(&quot;Members&quot;)
+command ReinstateMember(memberId: MemberId) {
+  require MemberIsSuspended(memberId) is true
+    else reject &quot;Member is not suspended&quot;
+
+  emit MemberReinstated { memberId }
+}
+"><code><details class="dcb-fold dcb-fold--unchanged"><summary><span class="dcb-fold__marker"></span>9 unchanged lines</summary><span class="dcb-line"><span class="dcb-hl-keyword">model</span> <span class="dcb-hl-string">"Library loans"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Types</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">tag</span> <span class="dcb-hl-keyword">type</span> <span class="dcb-hl-type">CopyId</span> = <span class="dcb-hl-type">string</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">tag</span> <span class="dcb-hl-keyword">type</span> <span class="dcb-hl-type">BookId</span> = <span class="dcb-hl-type">string</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">tag</span> <span class="dcb-hl-keyword">type</span> <span class="dcb-hl-type">MemberId</span> = <span class="dcb-hl-type">string</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Events</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { <span class="dcb-hl-keyword">tag</span> copyId: <span class="dcb-hl-type">CopyId</span>, <span class="dcb-hl-keyword">tag</span> bookId: <span class="dcb-hl-type">BookId</span> }</span></details><span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">CopyLent</span> { <span class="dcb-hl-keyword">tag</span> copyId: <span class="dcb-hl-type">CopyId</span>, <span class="dcb-hl-keyword">tag</span> memberId: <span class="dcb-hl-type">MemberId</span> }</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">CopyReturned</span> { <span class="dcb-hl-keyword">tag</span> copyId: <span class="dcb-hl-type">CopyId</span>, <span class="dcb-hl-keyword">tag</span> memberId: <span class="dcb-hl-type">MemberId</span> }</span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">LoanRenewed</span> { <span class="dcb-hl-keyword">tag</span> copyId: <span class="dcb-hl-type">CopyId</span> }</span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">MemberSuspended</span> { <span class="dcb-hl-keyword">tag</span> memberId: <span class="dcb-hl-type">MemberId</span> }</span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">MemberReinstated</span> { <span class="dcb-hl-keyword">tag</span> memberId: <span class="dcb-hl-type">MemberId</span> }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Projections</span></span><details class="dcb-fold dcb-fold--unchanged"><summary><span class="dcb-fold__marker"></span>13 unchanged lines</summary><span class="dcb-line"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CopyInCatalog</span> (<span class="dcb-hl-keyword">tag</span> copyId: <span class="dcb-hl-type">CopyId</span>): <span class="dcb-hl-type">boolean</span> = <span class="dcb-hl-keyword">false</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">true</span></span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CopyBorrowerId</span> (<span class="dcb-hl-keyword">tag</span> copyId: <span class="dcb-hl-type">CopyId</span>): <span class="dcb-hl-type">MemberId</span> = <span class="dcb-hl-keyword">null</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CopyLent</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">event</span>.data.memberId</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CopyReturned</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">null</span></span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">MemberLoanCount</span> (<span class="dcb-hl-keyword">tag</span> memberId: <span class="dcb-hl-type">MemberId</span>): <span class="dcb-hl-type">integer</span> = <span class="dcb-hl-number">0</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CopyLent</span> =&gt; <span class="dcb-hl-keyword">increment</span> <span class="dcb-hl-number">1</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CopyReturned</span> =&gt; <span class="dcb-hl-keyword">decrement</span> <span class="dcb-hl-number">1</span></span>
+<span class="dcb-line">}</span></details><span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CopyRenewals</span> (<span class="dcb-hl-keyword">tag</span> copyId: <span class="dcb-hl-type">CopyId</span>): <span class="dcb-hl-type">integer</span> = <span class="dcb-hl-number">0</span> {</span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CopyLent</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-number">0</span></span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">LoanRenewed</span> =&gt; <span class="dcb-hl-keyword">increment</span> <span class="dcb-hl-number">1</span></span>
+<span class="dcb-line dcb-line--changed">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">MemberIsSuspended</span> (<span class="dcb-hl-keyword">tag</span> memberId: <span class="dcb-hl-type">MemberId</span>): <span class="dcb-hl-type">boolean</span> = <span class="dcb-hl-keyword">false</span> {</span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">MemberSuspended</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">true</span></span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">MemberReinstated</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">false</span></span>
+<span class="dcb-line dcb-line--changed">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Commands</span></span><details class="dcb-fold dcb-fold--unchanged"><summary><span class="dcb-fold__marker"></span>91 unchanged lines</summary><span class="dcb-line"><span class="dcb-hl-annotation">@</span><span class="dcb-hl-annotation">feature</span>(<span class="dcb-hl-string">"Catalog"</span>)</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">AddCopyToCatalog</span>(copyId: <span class="dcb-hl-type">CopyId</span>, bookId: <span class="dcb-hl-type">BookId</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CopyInCatalog</span>(copyId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">false</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Copy is already in the catalog"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId, bookId }</span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-annotation">@</span><span class="dcb-hl-annotation">feature</span>(<span class="dcb-hl-string">"Loans"</span>)</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">LendCopy</span>(copyId: <span class="dcb-hl-type">CopyId</span>, memberId: <span class="dcb-hl-type">MemberId</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CopyInCatalog</span>(copyId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">true</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Copy is not in the catalog"</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CopyBorrowerId</span>(copyId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">empty</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Copy is not available"</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">MemberLoanCount</span>(memberId) &lt; <span class="dcb-hl-number">3</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Member already borrows three copies"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">CopyLent</span> { copyId, memberId }</span>
+<span class="dcb-line"></span>
+<details class="dcb-fold dcb-fold--scenarios"><summary>  <span class="dcb-fold__marker"></span>5 scenarios</summary><span class="dcb-line">  <span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Lend an available copy"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">LendCopy</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Lend a copy that is not in the catalog"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">LendCopy</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Copy is not in the catalog"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Lend a copy that is lent"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m2"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">LendCopy</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Copy is not available"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Lend a returned copy"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m2"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyReturned</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m2"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">LendCopy</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Lend a fourth copy"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c2"</span>, bookId: <span class="dcb-hl-string">"b2"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c3"</span>, bookId: <span class="dcb-hl-string">"b3"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c4"</span>, bookId: <span class="dcb-hl-string">"b4"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c2"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c3"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">LendCopy</span> { copyId: <span class="dcb-hl-string">"c4"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Member already borrows three copies"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line">  }</span></details><span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-annotation">@</span><span class="dcb-hl-annotation">feature</span>(<span class="dcb-hl-string">"Loans"</span>)</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">ReturnCopy</span>(copyId: <span class="dcb-hl-type">CopyId</span>, memberId: <span class="dcb-hl-type">MemberId</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CopyBorrowerId</span>(copyId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">not</span> <span class="dcb-hl-keyword">empty</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Copy is not lent"</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CopyBorrowerId</span>(copyId) == memberId</span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Copy is lent to another member"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">CopyReturned</span> { copyId, memberId }</span>
+<span class="dcb-line"></span>
+<details class="dcb-fold dcb-fold--scenarios"><summary>  <span class="dcb-fold__marker"></span>3 scenarios</summary><span class="dcb-line">  <span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Return a lent copy"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">ReturnCopy</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">CopyReturned</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Return a copy that is not lent"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">ReturnCopy</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Copy is not lent"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Return a copy lent to another member"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m2"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">ReturnCopy</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Copy is lent to another member"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line">  }</span></details><span class="dcb-line">}</span></details><span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-annotation">@</span><span class="dcb-hl-annotation">feature</span>(<span class="dcb-hl-string">"Loans"</span>)</span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">RenewLoan</span>(copyId: <span class="dcb-hl-type">CopyId</span>) {</span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">alias</span> borrowerId = <span class="dcb-hl-type">CopyBorrowerId</span>(copyId)</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">require</span> borrowerId <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">not</span> <span class="dcb-hl-keyword">empty</span></span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Copy is not lent"</span></span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CopyRenewals</span>(copyId) &lt; <span class="dcb-hl-number">2</span></span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Loan was already renewed twice"</span></span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">MemberIsSuspended</span>(borrowerId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">false</span></span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Borrower is suspended"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">LoanRenewed</span> { copyId }</span>
+<span class="dcb-line"></span>
+<details class="dcb-fold dcb-fold--scenarios dcb-fold--changed"><summary>  <span class="dcb-fold__marker"></span>6 scenarios</summary><span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Renew a loan"</span> {</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">RenewLoan</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">LoanRenewed</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line dcb-line--changed">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Renew a copy that is not lent"</span> {</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">RenewLoan</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Copy is not lent"</span></span>
+<span class="dcb-line dcb-line--changed">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Renew a loan a third time"</span> {</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">LoanRenewed</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">LoanRenewed</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">RenewLoan</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Loan was already renewed twice"</span></span>
+<span class="dcb-line dcb-line--changed">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Renew a loan of a suspended member"</span> {</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">MemberSuspended</span> { memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">RenewLoan</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Borrower is suspended"</span></span>
+<span class="dcb-line dcb-line--changed">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Renew a loan while another member is suspended"</span> {</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">MemberSuspended</span> { memberId: <span class="dcb-hl-string">"m2"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">RenewLoan</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">LoanRenewed</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line dcb-line--changed">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Renew a copy that was lent again"</span> {</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">LoanRenewed</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">LoanRenewed</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyReturned</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m2"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">RenewLoan</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">LoanRenewed</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line dcb-line--changed">    }</span>
+<span class="dcb-line dcb-line--changed">  }</span></details><span class="dcb-line dcb-line--changed">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-annotation">@</span><span class="dcb-hl-annotation">feature</span>(<span class="dcb-hl-string">"Members"</span>)</span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">SuspendMember</span>(memberId: <span class="dcb-hl-type">MemberId</span>) {</span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">MemberIsSuspended</span>(memberId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">false</span></span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Member is already suspended"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">MemberSuspended</span> { memberId }</span>
+<span class="dcb-line dcb-line--changed">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-annotation">@</span><span class="dcb-hl-annotation">feature</span>(<span class="dcb-hl-string">"Members"</span>)</span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">ReinstateMember</span>(memberId: <span class="dcb-hl-type">MemberId</span>) {</span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">MemberIsSuspended</span>(memberId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">true</span></span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Member is not suspended"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">MemberReinstated</span> { memberId }</span>
+<span class="dcb-line dcb-line--changed">}</span>
+<span class="dcb-line"></span></code></pre></div><div class="tabbed-block"><div class="dcb-boundary"><p class="dcb-boundary__command"><code>AddCopyToCatalog</code> <span class="dcb-boundary__summary">reads 1 type, 1 tag</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>CopyInCatalog(copyId)</code></td><td><code>CopyAddedToCatalog</code></td><td><code>CopyId:{copyId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>CopyId:{copyId}</code>, <code>BookId:{bookId}</code></p><p class="dcb-boundary__command"><code>LendCopy</code> <span class="dcb-boundary__summary">reads 3 types, 2 tags</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>CopyInCatalog(copyId)</code></td><td><code>CopyAddedToCatalog</code></td><td><code>CopyId:{copyId}</code></td></tr><tr><td><code>CopyBorrowerId(copyId)</code></td><td><code>CopyLent</code>, <code>CopyReturned</code></td><td><code>CopyId:{copyId}</code></td></tr><tr><td><code>MemberLoanCount(memberId)</code></td><td><code>CopyLent</code>, <code>CopyReturned</code></td><td><code>MemberId:{memberId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>CopyId:{copyId}</code>, <code>MemberId:{memberId}</code></p><p class="dcb-boundary__command"><code>ReturnCopy</code> <span class="dcb-boundary__summary">reads 2 types, 1 tag</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>CopyBorrowerId(copyId)</code></td><td><code>CopyLent</code>, <code>CopyReturned</code></td><td><code>CopyId:{copyId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>CopyId:{copyId}</code>, <code>MemberId:{memberId}</code></p><p class="dcb-boundary__command"><code>RenewLoan</code> <span class="dcb-boundary__summary">reads 5 types, 2 tags, in 2 queries</span></p><table><thead><tr><th>Query</th><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td>1</td><td><code>borrowerId</code></td><td><code>CopyLent</code>, <code>CopyReturned</code></td><td><code>CopyId:{copyId}</code></td></tr><tr><td>1</td><td><code>CopyRenewals(copyId)</code></td><td><code>CopyLent</code>, <code>LoanRenewed</code></td><td><code>CopyId:{copyId}</code></td></tr><tr><td>2</td><td><code>MemberIsSuspended(borrowerId)</code></td><td><code>MemberReinstated</code>, <code>MemberSuspended</code></td><td><code>MemberId:{borrowerId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> all Query Items above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>CopyId:{copyId}</code></p><p class="dcb-boundary__command"><code>SuspendMember</code> <span class="dcb-boundary__summary">reads 2 types, 1 tag</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>MemberIsSuspended(memberId)</code></td><td><code>MemberReinstated</code>, <code>MemberSuspended</code></td><td><code>MemberId:{memberId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>MemberId:{memberId}</code></p><p class="dcb-boundary__command"><code>ReinstateMember</code> <span class="dcb-boundary__summary">reads 2 types, 1 tag</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>MemberIsSuspended(memberId)</code></td><td><code>MemberReinstated</code>, <code>MemberSuspended</code></td><td><code>MemberId:{memberId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>MemberId:{memberId}</code></p></div></div></div></div></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The Query is built in two steps: the copy's borrower is read first, and decides which member is read. Both end up in the same append condition. If the copy is returned and lent to another member in the meantime, the borrower that was read is no longer the right one, but the Query Item for the copy catches that, too.</p>
+</div>
+<h3 id="feature-3-reservations">Feature 3: Reservations</h3>
+<p>This example extends the previous one, so that a loan can't be renewed while a member has reserved the book.</p>
+<p>Reservations are made for a book, not for a copy. The copy knows its book from <code>CopyAddedToCatalog</code>, so <code>RenewLoan</code> reads the book's reservations through the copy, like the borrower:</p>
+<div class="dcb-example"><div class="dcb-example__actions"><a class="md-button" href="/notation/" title="What is this notation?" aria-label="What is this notation?"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11 18h2v-2h-2zm1-16A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m0-14a4 4 0 0 0-4 4h2a2 2 0 0 1 2-2 2 2 0 0 1 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5a4 4 0 0 0-4-4"></path></svg></a><a class="md-button md-button--primary" href="/playground/#model=H4sIAAAAAAAAA-1aS2_jOBL-K4awR7ObkiiJym2mdxc7QGZ20RPMZZFDkSzZmpUlr0QnCIL89wEl2dbTlh07nQ76aFksVtX31YNFPVt_K-QSV2DdWEut18XN589Kik_4gKkuPlf_FZ9XmcLk84NNP_1ZZKk1t5QUv5pnf2BexFlq3Vg2_UStuZXCCq0b6zYWOeRPsySDtLDmltwUOlvdPa3x7xjFaazjLC2sm_8-bxd8ydZPvyhrbm3Vebb009r8U-g8ThfWy9yKiztYWDc63-DLfLfy5yz733krf8WVwPyUtfdzq_TMASN-UgrVXfYFNCTZwppb6zxbY65jbL0qt_bWfz_dVfvu_BAX_16bDSCxbiJICjSPbuNC1z8bdoitBzqydp45Kut-bmlYGAX3itVS7xsbGeVuMdVvYtVqj05HWgO3syzbSe7a9hX1Jk9RfUT7bjNIv2KKj1c1r6_OfS_gft8Ua0zVAT0u7ppBj1SyvmKcFhr0N1fHROtXLDB_OKDK60P9igTcKTdoX2UbGGFfIJWYJB_JTlMZUh3rp3ZpuC_3_BOleXCo9KX7glFv049KDYt2QJpdHyDZYP1YZFmCkFod3edWuS0kf5h3dw-XkKoE82qvsqyNlTDjtBI4UxjRpP-HSlJVFDtZ9Ocsz7PH2q_nG9MC54A16SZJDhhT16tRE-q3_1Mzo8mXF2NYU1ajPozKM-q89NOMSb9fsk2pS9cnDYLuvbIzv-uXONW4wPyYW-hpPolTmeOqel5bYk80X-HA0n5pTfERkuJVlLiO6S34aNPods086q4-6r8UzWL3OtwvENz9-ns4sufdpa1iObq2Tpi9tFBnzfPxb2T_8xPC9OzWTw115n95GS7cUOX2vomiYXvblglZz0DRtdEUlkELO11E0zZYG9hPz3wjhbspOsdV9oATRZfFUmarFaRqpCT-pJSBqolShKA3eUmO7-1oJbJNqiB_qmCTWaoaFicY6X9Bqn6PVem4fbsw2ho8b000r0MOK9SY_9Yy_uXlxeiMKpagy9RZ_NOoY82tHNvyZ3ExgyRHUE-zOJ3pJc5kvaFRfr0RSVwssdey9A-6W1Umqrg7Yg68swu0VqTdYlryokWH23rE8B2d2N4HIe7yzRgf0kz3uDCfoNpA63eebv9YrfXTAeXgAeIERILH9Rrrv573eA6o1shXHeUSLIq7ZVmI83ixbGzstvWtNt7Flih9U8z0MkecyWxtmHowwrajlpPjaqph7eOZae5-RNfFKPxbpo-xODEAv2Vg4f83VQ_eYe4hmgyrb1Sf6WwGaaaXmM-q9w_zuTleeyNOp_hoGPymlG5T8NmCJIairGkNDC-H8HGODyhwXbb2DnvncHU8zzptHQ2es0fYdzF5dWSb6cdYTi4QQ0e1dokYcuO0NmuLrfFksdvlqGKjB4vnZufUJ1LrnDXN9dMqsBFtbMi3B4zRcO9Mm0-M9nYU17hUMLUiuXo0HsvvoKRMJdf0_mOYYnWz0ejlG0QbQ2lgHt9C6rycW48IfuB1oNHew2Uy62So2pcVF8CqjGMT1i2cOknnOxrRnw_8tGQ7ekxtYy6zVEOcntxppbgoBVQjnwOHiW0GLo9oRotx5nTvlVqsOW7aeZ1XNShq-PMHv94DvwYYtYQqB53AqLGbvCsy6958ooEp5HHWHRnGyrqxXJ-zyGGC2EoJwhxXEs5tQWxPIaLLJPeDxtcpmKoZpPspgjmOm2annkq2R02L-AHT42NkBRqa7Y0l7f1XFDeWsK2yV39cGmHPFuSLjblAKPpr9m6xVmbV3NL1omyjZVaasAXGOL76WKfUUO8PK_X0YFit7hb35cS3dKUdRq7PfY8ENmWEuXZAhG1TQn3qAUgXuEO7riz9N9NL0CPToyOuvZxfKoa33XI_fci18wIq6oAXusS1XY-wwEXCbeoQJpUvRUSFB0e8kFT-vzal5oP3W8dRdy5KxxPd3hjf7TwecttmNvWIzSgQhtInoWQ2cbzAEYyFNg9Ez-N5PVJ4qwB-jbfHb1PfGq3rJQ-XhoFgjBPBOScMuSLgICPU9XzmeWHkc-iBGGWbXC-_EYQTZDgtGQNQTpDhtmS4Z8lgLRnsFXQ8hcrOK9a6Q2w5SmN2uaQzaQa_L32u8gKhIoJO5BImAkXApYpQ6jPOQuCg3D17qwCeQTUL7bG3NVB_BynorfuPk_JbJ41I9AIKriBe6ClTCwThIvSI4m6AQSQdbocDQPS6kF4NvhYo36ySVkPZneO4dJTnKUFcikCYHYaEhx4lYLthGIRURdwfc9zISP89c_qbNTFj1x97IDyq0OQOjzuKMO5HBITDiQhtD0PbRRlAE4gUH00mqe4qmg7f32C8A39Ppfo5OaM9Mh7SpZUiBMPQkb4kkSspYZ4fEC6UIKFADDwmfe5EfQdPyRBX8fj5XntdQvB86lDXdkhoM9vwkBGOHifSk4o6yEPmecM8nMFML-NczXS8wvdOytGP9oZ5dOLrVwXv2PXVvjuBKFSgPAOlR5gLNhERdYijOFPC8ezQc0agzKIZ7KfMw5n9PWPav6jYirhcdpoA1cg93v4Iq2zKqeMTR1FBmPKAhBE6RKLjCwQ_omogJ5UIPS7jBDvlpL3NR0Nrau1-g1rCXRTclox4XgiERW5AOHU5iQIaSj_AEJl9qJaY6C07AlhA_O4L-HVz5WumHG_RCr4BnVToIkScEnBCjzDKQyIEpyREX4QRR-q47FCi3o3iRXUx972wqXPTtF3f3OuSmE1K2N0PFnYgsYBFDjgRUcKNCFOcG3wi4oPvSEcCdWG0MYo05uXcON_fhJRJQDauQz40asc_D782-heNWAQMXeUigcAOCbPBJiGEplVmtkIqfMnGWqt24RZdwn0gHnQHge8Av_uXvwCfps1AwT4AAA" target="_blank" rel="noopener" title="Open this model in the DCB Playground" aria-label="Open in Playground"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V5h14m0-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m-9 5v8l5-4z"></path></svg><span class="dcb-example__label">Open in Playground</span></a></div><div class="tabbed-set tabbed-alternate"><input checked="checked" id="__dcb_4_1" name="__dcb_4" type="radio"><input id="__dcb_4_2" name="__dcb_4" type="radio"><div class="tabbed-labels"><label for="__dcb_4_1">DCB notation</label><label for="__dcb_4_2">Consistency boundary</label></div><div class="tabbed-content"><div class="tabbed-block"><pre class="dcb-notation" data-copy="model &quot;Library loans&quot;
+
+// Types
+tag type CopyId = string
+tag type BookId = string
+tag type MemberId = string
+
+// Events
+event CopyAddedToCatalog { tag copyId: CopyId, tag bookId: BookId }
+event CopyLent { tag copyId: CopyId, tag memberId: MemberId }
+event CopyReturned { tag copyId: CopyId, tag memberId: MemberId }
+event LoanRenewed { tag copyId: CopyId }
+event MemberSuspended { tag memberId: MemberId }
+event MemberReinstated { tag memberId: MemberId }
+event BookReserved { tag bookId: BookId, tag memberId: MemberId }
+event ReservationCancelled { tag bookId: BookId, tag memberId: MemberId }
+
+// Projections
+projection CopyInCatalog (tag copyId: CopyId): boolean = false {
+  on CopyAddedToCatalog =&gt; set true
+}
+
+projection CopyBorrowerId (tag copyId: CopyId): MemberId = null {
+  on CopyLent =&gt; set event.data.memberId
+  on CopyReturned =&gt; set null
+}
+
+projection MemberLoanCount (tag memberId: MemberId): integer = 0 {
+  on CopyLent =&gt; increment 1
+  on CopyReturned =&gt; decrement 1
+}
+
+projection CopyRenewals (tag copyId: CopyId): integer = 0 {
+  on CopyLent =&gt; set 0
+  on LoanRenewed =&gt; increment 1
+}
+
+projection MemberIsSuspended (tag memberId: MemberId): boolean = false {
+  on MemberSuspended =&gt; set true
+  on MemberReinstated =&gt; set false
+}
+
+projection CopyBookId (tag copyId: CopyId): BookId = null {
+  on CopyAddedToCatalog =&gt; set event.data.bookId
+}
+
+projection BookReservations (tag bookId: BookId): MemberId[] = [] {
+  on BookReserved =&gt; append event.data.memberId
+  on ReservationCancelled =&gt; remove event.data.memberId
+}
+
+// Commands
+@feature(&quot;Catalog&quot;)
+command AddCopyToCatalog(copyId: CopyId, bookId: BookId) {
+  require CopyInCatalog(copyId) is false
+    else reject &quot;Copy is already in the catalog&quot;
+
+  emit CopyAddedToCatalog { copyId, bookId }
+}
+
+@feature(&quot;Loans&quot;)
+command LendCopy(copyId: CopyId, memberId: MemberId) {
+  require CopyInCatalog(copyId) is true
+    else reject &quot;Copy is not in the catalog&quot;
+  require CopyBorrowerId(copyId) is empty
+    else reject &quot;Copy is not available&quot;
+  require MemberLoanCount(memberId) &lt; 3
+    else reject &quot;Member already borrows three copies&quot;
+
+  emit CopyLent { copyId, memberId }
+
+  scenarios {
+    scenario &quot;Lend an available copy&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      when LendCopy { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      then CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+    }
+
+    scenario &quot;Lend a copy that is not in the catalog&quot; {
+      when LendCopy { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      then rejected &quot;Copy is not in the catalog&quot;
+    }
+
+    scenario &quot;Lend a copy that is lent&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m2&quot; }
+      when LendCopy { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      then rejected &quot;Copy is not available&quot;
+    }
+
+    scenario &quot;Lend a returned copy&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m2&quot; }
+      and CopyReturned { copyId: &quot;c1&quot;, memberId: &quot;m2&quot; }
+      when LendCopy { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      then CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+    }
+
+    scenario &quot;Lend a fourth copy&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyAddedToCatalog { copyId: &quot;c2&quot;, bookId: &quot;b2&quot; }
+      and CopyAddedToCatalog { copyId: &quot;c3&quot;, bookId: &quot;b3&quot; }
+      and CopyAddedToCatalog { copyId: &quot;c4&quot;, bookId: &quot;b4&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      and CopyLent { copyId: &quot;c2&quot;, memberId: &quot;m1&quot; }
+      and CopyLent { copyId: &quot;c3&quot;, memberId: &quot;m1&quot; }
+      when LendCopy { copyId: &quot;c4&quot;, memberId: &quot;m1&quot; }
+      then rejected &quot;Member already borrows three copies&quot;
+    }
+  }
+}
+
+@feature(&quot;Loans&quot;)
+command ReturnCopy(copyId: CopyId, memberId: MemberId) {
+  require CopyBorrowerId(copyId) is not empty
+    else reject &quot;Copy is not lent&quot;
+  require CopyBorrowerId(copyId) == memberId
+    else reject &quot;Copy is lent to another member&quot;
+
+  emit CopyReturned { copyId, memberId }
+
+  scenarios {
+    scenario &quot;Return a lent copy&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      when ReturnCopy { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      then CopyReturned { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+    }
+
+    scenario &quot;Return a copy that is not lent&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      when ReturnCopy { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      then rejected &quot;Copy is not lent&quot;
+    }
+
+    scenario &quot;Return a copy lent to another member&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m2&quot; }
+      when ReturnCopy { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      then rejected &quot;Copy is lent to another member&quot;
+    }
+  }
+}
+
+@feature(&quot;Loans&quot;)
+command RenewLoan(copyId: CopyId) {
+  alias borrowerId = CopyBorrowerId(copyId)
+
+  require borrowerId is not empty
+    else reject &quot;Copy is not lent&quot;
+  require CopyRenewals(copyId) &lt; 2
+    else reject &quot;Loan was already renewed twice&quot;
+  require MemberIsSuspended(borrowerId) is false
+    else reject &quot;Borrower is suspended&quot;
+  require BookReservations(CopyBookId(copyId)) is empty
+    else reject &quot;Book is reserved&quot;
+
+  emit LoanRenewed { copyId }
+
+  scenarios {
+    scenario &quot;Renew a loan&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      when RenewLoan { copyId: &quot;c1&quot; }
+      then LoanRenewed { copyId: &quot;c1&quot; }
+    }
+
+    scenario &quot;Renew a copy that is not lent&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      when RenewLoan { copyId: &quot;c1&quot; }
+      then rejected &quot;Copy is not lent&quot;
+    }
+
+    scenario &quot;Renew a loan a third time&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      and LoanRenewed { copyId: &quot;c1&quot; }
+      and LoanRenewed { copyId: &quot;c1&quot; }
+      when RenewLoan { copyId: &quot;c1&quot; }
+      then rejected &quot;Loan was already renewed twice&quot;
+    }
+
+    scenario &quot;Renew a loan of a suspended member&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      and MemberSuspended { memberId: &quot;m1&quot; }
+      when RenewLoan { copyId: &quot;c1&quot; }
+      then rejected &quot;Borrower is suspended&quot;
+    }
+
+    scenario &quot;Renew a loan while another member is suspended&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      and MemberSuspended { memberId: &quot;m2&quot; }
+      when RenewLoan { copyId: &quot;c1&quot; }
+      then LoanRenewed { copyId: &quot;c1&quot; }
+    }
+
+    scenario &quot;Renew a copy that was lent again&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      and LoanRenewed { copyId: &quot;c1&quot; }
+      and LoanRenewed { copyId: &quot;c1&quot; }
+      and CopyReturned { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m2&quot; }
+      when RenewLoan { copyId: &quot;c1&quot; }
+      then LoanRenewed { copyId: &quot;c1&quot; }
+    }
+
+    scenario &quot;Renew a loan of a reserved book&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      and BookReserved { bookId: &quot;b1&quot;, memberId: &quot;m2&quot; }
+      when RenewLoan { copyId: &quot;c1&quot; }
+      then rejected &quot;Book is reserved&quot;
+    }
+
+    scenario &quot;Renew a loan after the reservation was cancelled&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      and BookReserved { bookId: &quot;b1&quot;, memberId: &quot;m2&quot; }
+      and ReservationCancelled { bookId: &quot;b1&quot;, memberId: &quot;m2&quot; }
+      when RenewLoan { copyId: &quot;c1&quot; }
+      then LoanRenewed { copyId: &quot;c1&quot; }
+    }
+
+    scenario &quot;Renew a loan while another book is reserved&quot; {
+      given CopyAddedToCatalog { copyId: &quot;c1&quot;, bookId: &quot;b1&quot; }
+      and CopyLent { copyId: &quot;c1&quot;, memberId: &quot;m1&quot; }
+      and BookReserved { bookId: &quot;b2&quot;, memberId: &quot;m2&quot; }
+      when RenewLoan { copyId: &quot;c1&quot; }
+      then LoanRenewed { copyId: &quot;c1&quot; }
+    }
+  }
+}
+
+@feature(&quot;Members&quot;)
+command SuspendMember(memberId: MemberId) {
+  require MemberIsSuspended(memberId) is false
+    else reject &quot;Member is already suspended&quot;
+
+  emit MemberSuspended { memberId }
+}
+
+@feature(&quot;Members&quot;)
+command ReinstateMember(memberId: MemberId) {
+  require MemberIsSuspended(memberId) is true
+    else reject &quot;Member is not suspended&quot;
+
+  emit MemberReinstated { memberId }
+}
+
+@feature(&quot;Reservations&quot;)
+command ReserveBook(bookId: BookId, memberId: MemberId) {
+  require BookReservations(bookId) not contains memberId
+    else reject &quot;Member already reserved the book&quot;
+
+  emit BookReserved { bookId, memberId }
+}
+
+@feature(&quot;Reservations&quot;)
+command CancelReservation(bookId: BookId, memberId: MemberId) {
+  require BookReservations(bookId) contains memberId
+    else reject &quot;Member has not reserved the book&quot;
+
+  emit ReservationCancelled { bookId, memberId }
+}
+"><code><details class="dcb-fold dcb-fold--unchanged"><summary><span class="dcb-fold__marker"></span>12 unchanged lines</summary><span class="dcb-line"><span class="dcb-hl-keyword">model</span> <span class="dcb-hl-string">"Library loans"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Types</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">tag</span> <span class="dcb-hl-keyword">type</span> <span class="dcb-hl-type">CopyId</span> = <span class="dcb-hl-type">string</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">tag</span> <span class="dcb-hl-keyword">type</span> <span class="dcb-hl-type">BookId</span> = <span class="dcb-hl-type">string</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">tag</span> <span class="dcb-hl-keyword">type</span> <span class="dcb-hl-type">MemberId</span> = <span class="dcb-hl-type">string</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Events</span></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { <span class="dcb-hl-keyword">tag</span> copyId: <span class="dcb-hl-type">CopyId</span>, <span class="dcb-hl-keyword">tag</span> bookId: <span class="dcb-hl-type">BookId</span> }</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">CopyLent</span> { <span class="dcb-hl-keyword">tag</span> copyId: <span class="dcb-hl-type">CopyId</span>, <span class="dcb-hl-keyword">tag</span> memberId: <span class="dcb-hl-type">MemberId</span> }</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">CopyReturned</span> { <span class="dcb-hl-keyword">tag</span> copyId: <span class="dcb-hl-type">CopyId</span>, <span class="dcb-hl-keyword">tag</span> memberId: <span class="dcb-hl-type">MemberId</span> }</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">LoanRenewed</span> { <span class="dcb-hl-keyword">tag</span> copyId: <span class="dcb-hl-type">CopyId</span> }</span></details><span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">MemberSuspended</span> { <span class="dcb-hl-keyword">tag</span> memberId: <span class="dcb-hl-type">MemberId</span> }</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">MemberReinstated</span> { <span class="dcb-hl-keyword">tag</span> memberId: <span class="dcb-hl-type">MemberId</span> }</span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">BookReserved</span> { <span class="dcb-hl-keyword">tag</span> bookId: <span class="dcb-hl-type">BookId</span>, <span class="dcb-hl-keyword">tag</span> memberId: <span class="dcb-hl-type">MemberId</span> }</span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-keyword">event</span> <span class="dcb-hl-type">ReservationCancelled</span> { <span class="dcb-hl-keyword">tag</span> bookId: <span class="dcb-hl-type">BookId</span>, <span class="dcb-hl-keyword">tag</span> memberId: <span class="dcb-hl-type">MemberId</span> }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Projections</span></span><details class="dcb-fold dcb-fold--unchanged"><summary><span class="dcb-fold__marker"></span>23 unchanged lines</summary><span class="dcb-line"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CopyInCatalog</span> (<span class="dcb-hl-keyword">tag</span> copyId: <span class="dcb-hl-type">CopyId</span>): <span class="dcb-hl-type">boolean</span> = <span class="dcb-hl-keyword">false</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">true</span></span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CopyBorrowerId</span> (<span class="dcb-hl-keyword">tag</span> copyId: <span class="dcb-hl-type">CopyId</span>): <span class="dcb-hl-type">MemberId</span> = <span class="dcb-hl-keyword">null</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CopyLent</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">event</span>.data.memberId</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CopyReturned</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">null</span></span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">MemberLoanCount</span> (<span class="dcb-hl-keyword">tag</span> memberId: <span class="dcb-hl-type">MemberId</span>): <span class="dcb-hl-type">integer</span> = <span class="dcb-hl-number">0</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CopyLent</span> =&gt; <span class="dcb-hl-keyword">increment</span> <span class="dcb-hl-number">1</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CopyReturned</span> =&gt; <span class="dcb-hl-keyword">decrement</span> <span class="dcb-hl-number">1</span></span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CopyRenewals</span> (<span class="dcb-hl-keyword">tag</span> copyId: <span class="dcb-hl-type">CopyId</span>): <span class="dcb-hl-type">integer</span> = <span class="dcb-hl-number">0</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CopyLent</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-number">0</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">LoanRenewed</span> =&gt; <span class="dcb-hl-keyword">increment</span> <span class="dcb-hl-number">1</span></span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">MemberIsSuspended</span> (<span class="dcb-hl-keyword">tag</span> memberId: <span class="dcb-hl-type">MemberId</span>): <span class="dcb-hl-type">boolean</span> = <span class="dcb-hl-keyword">false</span> {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">MemberSuspended</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">true</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">MemberReinstated</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">false</span></span>
+<span class="dcb-line">}</span></details><span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">CopyBookId</span> (<span class="dcb-hl-keyword">tag</span> copyId: <span class="dcb-hl-type">CopyId</span>): <span class="dcb-hl-type">BookId</span> = <span class="dcb-hl-keyword">null</span> {</span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> =&gt; <span class="dcb-hl-keyword">set</span> <span class="dcb-hl-keyword">event</span>.data.bookId</span>
+<span class="dcb-line dcb-line--changed">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-keyword">projection</span> <span class="dcb-hl-type">BookReservations</span> (<span class="dcb-hl-keyword">tag</span> bookId: <span class="dcb-hl-type">BookId</span>): <span class="dcb-hl-type">MemberId</span>[] = [] {</span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">BookReserved</span> =&gt; <span class="dcb-hl-keyword">append</span> <span class="dcb-hl-keyword">event</span>.data.memberId</span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">on</span> <span class="dcb-hl-type">ReservationCancelled</span> =&gt; <span class="dcb-hl-keyword">remove</span> <span class="dcb-hl-keyword">event</span>.data.memberId</span>
+<span class="dcb-line dcb-line--changed">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-comment">// Commands</span></span><details class="dcb-fold dcb-fold--unchanged"><summary><span class="dcb-fold__marker"></span>100 unchanged lines</summary><span class="dcb-line"><span class="dcb-hl-annotation">@</span><span class="dcb-hl-annotation">feature</span>(<span class="dcb-hl-string">"Catalog"</span>)</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">AddCopyToCatalog</span>(copyId: <span class="dcb-hl-type">CopyId</span>, bookId: <span class="dcb-hl-type">BookId</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CopyInCatalog</span>(copyId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">false</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Copy is already in the catalog"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId, bookId }</span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-annotation">@</span><span class="dcb-hl-annotation">feature</span>(<span class="dcb-hl-string">"Loans"</span>)</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">LendCopy</span>(copyId: <span class="dcb-hl-type">CopyId</span>, memberId: <span class="dcb-hl-type">MemberId</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CopyInCatalog</span>(copyId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">true</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Copy is not in the catalog"</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CopyBorrowerId</span>(copyId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">empty</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Copy is not available"</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">MemberLoanCount</span>(memberId) &lt; <span class="dcb-hl-number">3</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Member already borrows three copies"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">CopyLent</span> { copyId, memberId }</span>
+<span class="dcb-line"></span>
+<details class="dcb-fold dcb-fold--scenarios"><summary>  <span class="dcb-fold__marker"></span>5 scenarios</summary><span class="dcb-line">  <span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Lend an available copy"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">LendCopy</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Lend a copy that is not in the catalog"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">LendCopy</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Copy is not in the catalog"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Lend a copy that is lent"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m2"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">LendCopy</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Copy is not available"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Lend a returned copy"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m2"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyReturned</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m2"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">LendCopy</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Lend a fourth copy"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c2"</span>, bookId: <span class="dcb-hl-string">"b2"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c3"</span>, bookId: <span class="dcb-hl-string">"b3"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c4"</span>, bookId: <span class="dcb-hl-string">"b4"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c2"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c3"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">LendCopy</span> { copyId: <span class="dcb-hl-string">"c4"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Member already borrows three copies"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line">  }</span></details><span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-annotation">@</span><span class="dcb-hl-annotation">feature</span>(<span class="dcb-hl-string">"Loans"</span>)</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">ReturnCopy</span>(copyId: <span class="dcb-hl-type">CopyId</span>, memberId: <span class="dcb-hl-type">MemberId</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CopyBorrowerId</span>(copyId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">not</span> <span class="dcb-hl-keyword">empty</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Copy is not lent"</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CopyBorrowerId</span>(copyId) == memberId</span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Copy is lent to another member"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">CopyReturned</span> { copyId, memberId }</span>
+<span class="dcb-line"></span>
+<details class="dcb-fold dcb-fold--scenarios"><summary>  <span class="dcb-fold__marker"></span>3 scenarios</summary><span class="dcb-line">  <span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Return a lent copy"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">ReturnCopy</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">CopyReturned</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Return a copy that is not lent"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">ReturnCopy</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Copy is not lent"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Return a copy lent to another member"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m2"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">ReturnCopy</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Copy is lent to another member"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line">  }</span></details><span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-annotation">@</span><span class="dcb-hl-annotation">feature</span>(<span class="dcb-hl-string">"Loans"</span>)</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">RenewLoan</span>(copyId: <span class="dcb-hl-type">CopyId</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">alias</span> borrowerId = <span class="dcb-hl-type">CopyBorrowerId</span>(copyId)</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> borrowerId <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">not</span> <span class="dcb-hl-keyword">empty</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Copy is not lent"</span></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">CopyRenewals</span>(copyId) &lt; <span class="dcb-hl-number">2</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Loan was already renewed twice"</span></span></details><span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">MemberIsSuspended</span>(borrowerId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">false</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Borrower is suspended"</span></span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">BookReservations</span>(<span class="dcb-hl-type">CopyBookId</span>(copyId)) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">empty</span></span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Book is reserved"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">LoanRenewed</span> { copyId }</span>
+<span class="dcb-line"></span>
+<details class="dcb-fold dcb-fold--scenarios dcb-fold--changed"><summary>  <span class="dcb-fold__marker"></span>9 scenarios</summary><span class="dcb-line">  <span class="dcb-hl-flow">scenarios</span> {</span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Renew a loan"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">RenewLoan</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">LoanRenewed</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Renew a copy that is not lent"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">RenewLoan</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Copy is not lent"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Renew a loan a third time"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">LoanRenewed</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">LoanRenewed</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">RenewLoan</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Loan was already renewed twice"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Renew a loan of a suspended member"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">MemberSuspended</span> { memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">RenewLoan</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Borrower is suspended"</span></span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Renew a loan while another member is suspended"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">MemberSuspended</span> { memberId: <span class="dcb-hl-string">"m2"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">RenewLoan</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">LoanRenewed</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Renew a copy that was lent again"</span> {</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">LoanRenewed</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">LoanRenewed</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyReturned</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m2"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">RenewLoan</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">LoanRenewed</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Renew a loan of a reserved book"</span> {</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">BookReserved</span> { bookId: <span class="dcb-hl-string">"b1"</span>, memberId: <span class="dcb-hl-string">"m2"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">RenewLoan</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-keyword">rejected</span> <span class="dcb-hl-string">"Book is reserved"</span></span>
+<span class="dcb-line dcb-line--changed">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Renew a loan after the reservation was cancelled"</span> {</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">BookReserved</span> { bookId: <span class="dcb-hl-string">"b1"</span>, memberId: <span class="dcb-hl-string">"m2"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">ReservationCancelled</span> { bookId: <span class="dcb-hl-string">"b1"</span>, memberId: <span class="dcb-hl-string">"m2"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">RenewLoan</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">LoanRenewed</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line dcb-line--changed">    }</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-flow">scenario</span> <span class="dcb-hl-string">"Renew a loan while another book is reserved"</span> {</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">given</span> <span class="dcb-hl-type">CopyAddedToCatalog</span> { copyId: <span class="dcb-hl-string">"c1"</span>, bookId: <span class="dcb-hl-string">"b1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">CopyLent</span> { copyId: <span class="dcb-hl-string">"c1"</span>, memberId: <span class="dcb-hl-string">"m1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-keyword">and</span> <span class="dcb-hl-type">BookReserved</span> { bookId: <span class="dcb-hl-string">"b2"</span>, memberId: <span class="dcb-hl-string">"m2"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">when</span> <span class="dcb-hl-type">RenewLoan</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line dcb-line--changed">      <span class="dcb-hl-flow">then</span> <span class="dcb-hl-type">LoanRenewed</span> { copyId: <span class="dcb-hl-string">"c1"</span> }</span>
+<span class="dcb-line dcb-line--changed">    }</span>
+<span class="dcb-line">  }</span></details><span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<details class="dcb-fold dcb-fold--unchanged"><summary><span class="dcb-fold__marker"></span>15 unchanged lines</summary><span class="dcb-line"><span class="dcb-hl-annotation">@</span><span class="dcb-hl-annotation">feature</span>(<span class="dcb-hl-string">"Members"</span>)</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">SuspendMember</span>(memberId: <span class="dcb-hl-type">MemberId</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">MemberIsSuspended</span>(memberId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">false</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Member is already suspended"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">MemberSuspended</span> { memberId }</span>
+<span class="dcb-line">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line"><span class="dcb-hl-annotation">@</span><span class="dcb-hl-annotation">feature</span>(<span class="dcb-hl-string">"Members"</span>)</span>
+<span class="dcb-line"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">ReinstateMember</span>(memberId: <span class="dcb-hl-type">MemberId</span>) {</span>
+<span class="dcb-line">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">MemberIsSuspended</span>(memberId) <span class="dcb-hl-keyword">is</span> <span class="dcb-hl-keyword">true</span></span>
+<span class="dcb-line">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Member is not suspended"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">MemberReinstated</span> { memberId }</span>
+<span class="dcb-line">}</span></details><span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-annotation">@</span><span class="dcb-hl-annotation">feature</span>(<span class="dcb-hl-string">"Reservations"</span>)</span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">ReserveBook</span>(bookId: <span class="dcb-hl-type">BookId</span>, memberId: <span class="dcb-hl-type">MemberId</span>) {</span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">BookReservations</span>(bookId) <span class="dcb-hl-keyword">not</span> <span class="dcb-hl-keyword">contains</span> memberId</span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Member already reserved the book"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">BookReserved</span> { bookId, memberId }</span>
+<span class="dcb-line dcb-line--changed">}</span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-annotation">@</span><span class="dcb-hl-annotation">feature</span>(<span class="dcb-hl-string">"Reservations"</span>)</span>
+<span class="dcb-line dcb-line--changed"><span class="dcb-hl-keyword">command</span> <span class="dcb-hl-type">CancelReservation</span>(bookId: <span class="dcb-hl-type">BookId</span>, memberId: <span class="dcb-hl-type">MemberId</span>) {</span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">require</span> <span class="dcb-hl-type">BookReservations</span>(bookId) <span class="dcb-hl-keyword">contains</span> memberId</span>
+<span class="dcb-line dcb-line--changed">    <span class="dcb-hl-keyword">else</span> <span class="dcb-hl-keyword">reject</span> <span class="dcb-hl-string">"Member has not reserved the book"</span></span>
+<span class="dcb-line"></span>
+<span class="dcb-line dcb-line--changed">  <span class="dcb-hl-flow">emit</span> <span class="dcb-hl-type">ReservationCancelled</span> { bookId, memberId }</span>
+<span class="dcb-line dcb-line--changed">}</span>
+<span class="dcb-line"></span></code></pre></div><div class="tabbed-block"><div class="dcb-boundary"><p class="dcb-boundary__command"><code>AddCopyToCatalog</code> <span class="dcb-boundary__summary">reads 1 type, 1 tag</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>CopyInCatalog(copyId)</code></td><td><code>CopyAddedToCatalog</code></td><td><code>CopyId:{copyId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>CopyId:{copyId}</code>, <code>BookId:{bookId}</code></p><p class="dcb-boundary__command"><code>LendCopy</code> <span class="dcb-boundary__summary">reads 3 types, 2 tags</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>CopyInCatalog(copyId)</code></td><td><code>CopyAddedToCatalog</code></td><td><code>CopyId:{copyId}</code></td></tr><tr><td><code>CopyBorrowerId(copyId)</code></td><td><code>CopyLent</code>, <code>CopyReturned</code></td><td><code>CopyId:{copyId}</code></td></tr><tr><td><code>MemberLoanCount(memberId)</code></td><td><code>CopyLent</code>, <code>CopyReturned</code></td><td><code>MemberId:{memberId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>CopyId:{copyId}</code>, <code>MemberId:{memberId}</code></p><p class="dcb-boundary__command"><code>ReturnCopy</code> <span class="dcb-boundary__summary">reads 2 types, 1 tag</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>CopyBorrowerId(copyId)</code></td><td><code>CopyLent</code>, <code>CopyReturned</code></td><td><code>CopyId:{copyId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>CopyId:{copyId}</code>, <code>MemberId:{memberId}</code></p><p class="dcb-boundary__command"><code>RenewLoan</code> <span class="dcb-boundary__summary">reads 8 types, 3 tags, in 2 queries</span></p><table><thead><tr><th>Query</th><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td>1</td><td><code>borrowerId</code></td><td><code>CopyLent</code>, <code>CopyReturned</code></td><td><code>CopyId:{copyId}</code></td></tr><tr><td>1</td><td><code>CopyRenewals(copyId)</code></td><td><code>CopyLent</code>, <code>LoanRenewed</code></td><td><code>CopyId:{copyId}</code></td></tr><tr><td>2</td><td><code>MemberIsSuspended(borrowerId)</code></td><td><code>MemberReinstated</code>, <code>MemberSuspended</code></td><td><code>MemberId:{borrowerId}</code></td></tr><tr><td>2</td><td><code>BookReservations(CopyBookId(copyId))</code></td><td><code>BookReserved</code>, <code>ReservationCancelled</code></td><td><code>BookId:{CopyBookId(copyId)}</code></td></tr><tr><td>1</td><td><code>CopyBookId(copyId)</code></td><td><code>CopyAddedToCatalog</code></td><td><code>CopyId:{copyId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> all Query Items above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>CopyId:{copyId}</code></p><p class="dcb-boundary__command"><code>SuspendMember</code> <span class="dcb-boundary__summary">reads 2 types, 1 tag</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>MemberIsSuspended(memberId)</code></td><td><code>MemberReinstated</code>, <code>MemberSuspended</code></td><td><code>MemberId:{memberId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>MemberId:{memberId}</code></p><p class="dcb-boundary__command"><code>ReinstateMember</code> <span class="dcb-boundary__summary">reads 2 types, 1 tag</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>MemberIsSuspended(memberId)</code></td><td><code>MemberReinstated</code>, <code>MemberSuspended</code></td><td><code>MemberId:{memberId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>MemberId:{memberId}</code></p><p class="dcb-boundary__command"><code>ReserveBook</code> <span class="dcb-boundary__summary">reads 2 types, 1 tag</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>BookReservations(bookId)</code></td><td><code>BookReserved</code>, <code>ReservationCancelled</code></td><td><code>BookId:{bookId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>BookId:{bookId}</code>, <code>MemberId:{memberId}</code></p><p class="dcb-boundary__command"><code>CancelReservation</code> <span class="dcb-boundary__summary">reads 2 types, 1 tag</span></p><table><thead><tr><th>Query Item</th><th>Event Types</th><th>Tags</th></tr></thead><tbody><tr><td><code>BookReservations(bookId)</code></td><td><code>BookReserved</code>, <code>ReservationCancelled</code></td><td><code>BookId:{bookId}</code></td></tr></tbody></table><p><code>AppendCondition</code>: <code>failIfEventsMatch</code> the Query above, <code>after</code> the position of the last Event read</p><p class="dcb-boundary__writes">Tags of the appended events: <code>BookId:{bookId}</code>, <code>MemberId:{memberId}</code></p></div></div></div></div></div>
+<p>The renewal now reads state of three different things, two of them by a Tag it only learns while deciding: the copy by its own identifier, the borrower and the book by the copy's state. A reservation for another book, or the suspension of another member, does not affect it.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>This example demonstrates how a command can read state whose identifiers follow from other state it read. The Query is as deep as the chain of reads, but still only as wide as the constraints it checks, so the decision needs no denormalized Read Model and no Aggregate that holds the copy, the member and the book together.</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden="">
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+    
+      <div class="comments">
+        <details>
+          <summary>Toggle comments</summary>
+          <div class="md-grid">
+            <script src="https://giscus.app/client.js" data-repo="dcb-events/dcb-events.github.io" data-repo-id="R_kgDONmo9Nw" data-category-id="DIC_kwDONmo9N84CpJa9" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="dark_dimmed" data-lang="en" data-loading="lazy" crossorigin="anonymous" async="">
+            </script>
+          </div>
+        </details>
+      </div>
+    
+    
+      
+        
+        <nav class="md-footer__inner md-grid" aria-label="Footer">
+          
+            
+            <a href="../bike-rental/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Bike rental">
+              <div class="md-footer__button md-icon">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+              </div>
+              <div class="md-footer__title">
+                <span class="md-footer__direction">
+                  Previous
+                </span>
+                <div class="md-ellipsis">
+                  Bike rental
+                </div>
+              </div>
+            </a>
+          
+          
+            
+            <a href="../invoice-number/" class="md-footer__link md-footer__link--next" aria-label="Next: Invoice number">
+              <div class="md-footer__title">
+                <span class="md-footer__direction">
+                  Next
+                </span>
+                <div class="md-ellipsis">
+                  Invoice number
+                </div>
+              </div>
+              <div class="md-footer__button md-icon">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+              </div>
+            </a>
+          
+        </nav>
+      
+    
+    <div class="md-footer-meta md-typeset">
+      <div class="md-footer-meta__inner md-grid">
+        <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      © 2026 – Except where otherwise noted, content on this site is licensed under a <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative Commons Attribution-ShareAlike 4.0 International license</a>
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+        
+          
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/dcb-events/dcb-events.github.io" target="_blank" rel="noopener" title="DCB on GitHub" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"></path></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="https://discord.gg/hmfHwuxMft" target="_blank" rel="noopener" title="Join the DCB Discord server" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.317 4.37a19.8 19.8 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.3 18.3 0 0 0-5.487 0 13 13 0 0 0-.617-1.25.08.08 0 0 0-.079-.037A19.7 19.7 0 0 0 3.677 4.37a.1.1 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.08.08 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.08.08 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13 13 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10 10 0 0 0 .372-.292.07.07 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.07.07 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.08.08 0 0 0 .084.028 19.8 19.8 0 0 0 6.002-3.03.08.08 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.06.06 0 0 0-.031-.03M8.02 15.33c-1.182 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418m7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418"></path></svg>
+    </a>
+  
+</div>
+        
+      </div>
+    </div>
+  </footer>  
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["announce.dismiss", "navigation.footer", "navigation.tabs", "navigation.indexes", "navigation.sections", "navigation.top", "navigation.tracking", "search.highlight", "search.suggest", "content.tooltips", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
