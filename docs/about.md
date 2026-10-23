@@ -43,7 +43,7 @@ Software Engineer at Particular Software
 /// caption
 ***Paul Grimshaw***
 
-Head of Software Engineering for Asset Management at Kraken
+Exited CTO & founder (Sennen → Kraken) · Now building AI agent guardrails @ bounded.dev · Energy data systems
 
 [:fontawesome-brands-github:](https://github.com/PaulGrimshaw){:target="_blank"} | 
 [:fontawesome-brands-linkedin:](https://www.linkedin.com/in/pkgrimshaw){:target="_blank"} |
