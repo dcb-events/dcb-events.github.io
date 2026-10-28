@@ -1,3 +1,7 @@
+### Tag it and bag it: A DCB profile for reliable government registers [:octicons-link-external-16:](https://uitbetrouwbarebron.nl/achtergronden/artikelen/2026-10-22-dcb-in-registers/){:target="_blank" .small}
+
+_Authors: **Maarten-Jan van Gool** and **Marc van Andel**, Published: **October 2026**_
+
 ### Thoughts on Dynamic Consistency Boundary [:octicons-link-external-16:](https://event-driven.io/en/dynamic_consistency_boundary/){:target="_blank" .small}
 
 _Author: **Oskar Dudycz**, Published: **October 2026**_
