@@ -20,6 +20,10 @@ No: while DCB allows to define very specific consistency boundaries, those are a
 
 No. DCB makes it easier to switch between the consistency models, but it is still important to think about strong vs eventual consistency and their implications to the behavior of the system.
 
+## Does it replace Sagas and Process Managers
+
+In some cases it _can_, mainly when processes stem from a purely technical requirement (e.g. to synchronize Aggregates). But they are still a very useful tool to coordinate business processes and DCB is not trying to replace them entirely nor to make any claims when (not) to use them.
+
 ## Why do you want to kill Aggregates?
 
 The idea of DCB started with the goal of killing the Aggregate [:octicons-link-external-16:](https://sara.event-thinking.io/2023/04/kill-aggregate-chapter-1-I-am-here-to-kill-the-aggregate.html){:target="_blank" .small}.
