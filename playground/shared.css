@@ -1,0 +1,523 @@
+/* Base shared by every interface alternative. Each alternative adds its
+   own layout on top; nothing here decides how a slice is arranged. */
+
+:root {
+  /* The real height of .topbar (disclaimer + app-bar), kept current by
+     JS – see `syncTopbarHeight`. Everything that docks under it reads
+     this instead of a guessed constant, so a taller disclaimer (a
+     narrow screen wrapping its text to two lines) never leaves a gap
+     or an overlap. */
+  --topbar-h: 86px;
+  --command: #2563eb;
+  --command-soft: #eff6ff;
+  --event: #f97316;
+  --event-soft: #fff7ed;
+  --entity: #16a34a;
+  --entity-soft: #f0fdf4;
+  /* Projections share the entity green: a standalone projection and an
+     entity property are the same thing – folded state – and a second
+     colour would suggest a distinction the model does not make. */
+  --projection: var(--entity);
+  --projection-soft: var(--entity-soft);
+  /* A kind's colour as text. The kind colours above are tuned for
+     borders and fills, and as text on the light page orange and green
+     fall below a readable contrast (2.8:1, 3.3:1); text takes the
+     chips' own darker shades instead. The dark theme maps these back to
+     the kind colours, which read fine on dark. */
+  --event-text: #9a3412;
+  --entity-text: #166534;
+  --projection-text: var(--entity-text);
+  /* Constraints. Fuchsia rather than a shade of the entity green: a
+     rule is not a kind of thing in the model, it is the gate in front
+     of one, and it should not read as belonging to whatever it guards. */
+  --rule: #c026d3;
+  --rule-soft: #fdf4ff;
+  --type: #6b7280;
+  --type-soft: #f9fafb;
+  /* The interface's own colour – buttons, focus, hover, the selected
+     tab – and deliberately not one of the kinds above: chrome painted
+     command blue reads as "this is about a command". dcb.events teal
+     (Material's teal, a step darker for contrast on white), so the
+     playground and the site it lives on read as one place. */
+  --accent: #007a6c;
+  --accent-strong: #00594f;
+  --accent-soft: #e6f4f2;
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  /* A modal, lifted off the page: a shade off the page's own white, so
+     its edge reads even where the page behind is white too, over a
+     dimmed and blurred page (`--scrim`). */
+  --elevated: #fbfcfd;
+  --scrim: rgba(15, 23, 42, .38);
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --text: #0f172a;
+  --muted: #64748b;
+  --danger: #dc2626;
+  --danger-soft: #fef2f2;
+  /* Beside a scenarios group in the code: a region, not a kind, so
+     not a kind colour. */
+  --scenario-stripe: #cbd5e1;
+  /* Compare's marks: what one side has that the other has not. A
+     state, not a kind, so no kind colour – and told apart by glyph and
+     lightness as well as hue. */
+  --added: #15803d;
+  --added-soft: #f0fdf4;
+  --added-word: #bbf7d0;
+  --removed: #b91c1c;
+  --removed-soft: #fef2f2;
+  --removed-word: #fecaca;
+  --changed: #92400e;
+  --changed-soft: #fef3c7;
+  /* JSON's own syntax colours – not kinds, so not kind colours. */
+  --json-key: #0f5e8c;
+  --json-string: #a3421a;
+  --json-number: #6d28d9;
+  --radius: 8px;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+}
+
+/* The same palette after dark. Every colour above is a token and every
+   rule below this line reads one, so the theme is this block and
+   nothing else – except the handful of places where a chip needed a
+   border and a text colour of its own, which are re-stated here. */
+body.f-dark {
+  color-scheme: dark;
+  --command: #60a5fa;
+  --command-soft: #16243d;
+  --event: #fb923c;
+  --event-soft: #2d1c0d;
+  --entity: #4ade80;
+  --entity-soft: #0f2a1c;
+  --event-text: var(--event);
+  --entity-text: var(--entity);
+  /* An alias resolves where it is declared, on :root – restated here,
+     or the dark page would get the light values behind it. */
+  --projection: var(--entity);
+  --projection-soft: var(--entity-soft);
+  --projection-text: var(--entity-text);
+  --rule: #e879f9;
+  --rule-soft: #2a1130;
+  --type: #94a3b8;
+  --type-soft: #172030;
+  --accent: #00ccb8;
+  --accent-strong: #5eead4;
+  --accent-soft: #0b2a2a;
+  --bg: #0b1220;
+  --surface: #131c2e;
+  --elevated: #1b263d;
+  --scrim: rgba(2, 6, 15, .62);
+  --border: #22304a;
+  --border-strong: #3a4b69;
+  --text: #e2e8f0;
+  --muted: #93a3b8;
+  --danger: #f87171;
+  --danger-soft: #2d1414;
+  --scenario-stripe: #3a4b69;
+  --added: #4ade80;
+  --added-soft: #0f2a1c;
+  --added-word: #14532d;
+  --removed: #f87171;
+  --removed-soft: #2d1414;
+  --removed-word: #7f1d1d;
+  --changed: #fbbf24;
+  --changed-soft: #2d2410;
+  --json-key: #7dd3fc;
+  --json-string: #fdba74;
+  --json-number: #c4b5fd;
+}
+body.f-dark .chip.command { border-color: #1e40af; color: #bfdbfe; }
+body.f-dark .chip.event { border-color: #9a3412; color: #fed7aa; }
+body.f-dark .chip.entity, body.f-dark .chip.projection { border-color: #166534; color: #bbf7d0; }
+body.f-dark .chip.rule { border-color: #86198f; color: #f5d0fe; }
+body.f-dark .btn.primary { color: #06121f; }
+body.f-dark .btn.primary:hover { color: #06121f; }
+body.f-dark .advanced { background: #101827; }
+body.f-dark #toast { background: #1e293b; color: var(--text); }
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+h1, h2, h3, h4 { margin: 0; font-weight: 600; }
+h1 { font-size: 16px; }
+h2 { font-size: 15px; }
+h3 { font-size: 13px; }
+h4 { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
+p { margin: 0 0 10px; }
+code, .mono { font-family: var(--mono); font-size: 12px; }
+
+/* ---------- app chrome ---------- */
+
+/* The disclaimer sits above the bar rather than inside it, so it
+   scrolls with nothing and stays put – the two stick together as one
+   unit rather than each claiming top:0 for itself. */
+.topbar { position: sticky; top: 0; z-index: 20; }
+
+.disclaimer {
+  text-align: center; font-size: 11.5px; font-weight: 700; letter-spacing: .01em;
+  padding: 5px 12px;
+  background: #fef3c7; color: #92400e; border-bottom: 1px solid #fde68a;
+}
+body.f-dark .disclaimer { background: #2d2408; color: #fcd34d; border-bottom-color: #4a3b0f; }
+.disclaimer a { color: inherit; margin-left: 4px; }
+
+.app-bar {
+  display: flex; align-items: center; gap: 16px;
+  padding: 10px 18px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.app-bar .spacer { flex: 1; }
+/* The mark is the way to the site the playground lives on – in a new
+   tab, so the model being worked on stays open behind it. */
+.brand-home { flex: none; display: block; border-radius: 6px; }
+.brand-home:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* The playground's name and the open model, one button – see
+   `paintPage`. Plain text rather than a .btn, so it reads as the bar's
+   title; the caret says it opens something. */
+.model-switch {
+  display: flex; align-items: center; gap: 8px; min-width: 0;
+  border: 0; background: none; padding: 4px 6px; margin: 0 0 0 -6px; font: inherit; color: inherit;
+  cursor: pointer; border-radius: 6px;
+}
+.model-switch .brand-title { font-size: 16px; font-weight: 600; white-space: nowrap; }
+.model-switch .sep { color: var(--border-strong); }
+.model-switch .model-name { font-size: 14px; font-weight: 500; }
+.model-switch .caret { display: flex; color: var(--muted); }
+.model-switch:hover .brand-title, .model-switch:hover .model-name, .model-switch:hover .caret { color: var(--accent); }
+.model-switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.brand-mark { flex: none; width: 22px; height: 22px; display: block; }
+
+/* The name as a field, on a linked copy's first change – see
+   `namePromptField`. In the accent, so the bar's one changed part
+   reads as the thing being asked about; the note under it is an
+   anchored card, not a dialog, because nothing waits on it. */
+.name-prompt { position: relative; display: flex; align-items: center; gap: 8px; min-width: 0; }
+.name-prompt .brand-title { font-size: 16px; font-weight: 600; white-space: nowrap; }
+.name-prompt .sep { color: var(--border-strong); }
+.app-bar .name-prompt-input {
+  width: 240px; min-width: 0; padding: 4px 8px; font-size: 14px; font-weight: 500;
+  border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.name-prompt-pop {
+  position: absolute; top: calc(100% + 10px); left: 0; z-index: 21;
+  width: 340px; max-width: calc(100vw - 20px); box-sizing: border-box;
+  padding: 14px 16px; background: var(--elevated);
+  border: 1px solid var(--border-strong); border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, .25);
+}
+.name-prompt-pop p { margin: 4px 0 12px; font-size: 13px; color: var(--muted); }
+.name-prompt-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+.app-bar #model-switch, .app-bar #tools, .app-bar #jump, .app-bar #actions {
+  display: flex; align-items: center; gap: 4px;
+}
+/* Most of the time there is no loose end to report – an empty #tools
+   should not still cost the bar two gaps either side of nothing. */
+.app-bar #tools:empty { display: none; }
+/* display:inline-block so max-width actually clips it – a plain
+   inline box ignores max-width entirely, which desktop had enough
+   room to never expose. */
+.app-bar .model-name {
+  display: inline-block; max-width: 220px; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom;
+}
+
+/* Import/export, theme and Settings – icon only, same footprint as the
+   undo/redo buttons they sit next to. */
+.app-bar .icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; flex: none; padding: 0; font-size: 15px;
+  border: 1px solid transparent; border-radius: 6px;
+  background: transparent; color: var(--muted); cursor: pointer;
+}
+.app-bar .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+.app-bar .icon-btn svg { width: 16px; height: 16px; }
+/* The rail's own toggle – only meaningful once the rail is off-canvas,
+   so it stays out of the bar entirely above that breakpoint. The ⋯
+   menu likewise: above it, its four rows are buttons in the bar. */
+.app-bar .menu-btn, .app-bar .more { display: none; }
+.app-bar .more { position: relative; }
+.more-catcher { position: fixed; inset: 0; z-index: 30; }
+.more-panel {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 31; min-width: 220px;
+  background: var(--elevated); border: 1px solid var(--border-strong); border-radius: 10px;
+  padding: 5px; box-shadow: 0 12px 32px rgba(15, 23, 42, .25);
+}
+.more-item {
+  display: flex; align-items: center; gap: 11px; width: 100%; min-height: 44px;
+  padding: 0 11px; border: 0; border-radius: 7px; background: none; text-align: left;
+  font: inherit; font-size: 14px; color: var(--text); cursor: pointer;
+}
+.more-item:hover, .more-item:focus-visible { background: var(--accent-soft); color: var(--accent); }
+.more-icon { display: flex; flex: none; color: var(--muted); }
+.more-icon svg { width: 18px; height: 18px; }
+
+/* The trigger that opens quick open – a button that looks like a
+   search field but only ever holds a placeholder; the field itself
+   lives in the palette that pops over the page. Fixed height, rather
+   than one padding happens to produce, so it lines up exactly with the
+   icon buttons it sits beside. */
+.app-bar .trigger {
+  display: flex; align-items: center; gap: 7px; max-width: 260px;
+  height: 30px; padding: 0 9px; border: 1px solid var(--border); border-radius: 6px;
+  background: var(--bg); color: var(--muted); font: inherit; font-size: 12.5px;
+  cursor: pointer;
+}
+.app-bar .trigger:hover { border-color: var(--border-strong); color: var(--text); background: var(--surface); }
+.app-bar .trigger svg { flex: none; width: 14px; height: 14px; }
+.app-bar .trigger .label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.app-bar .trigger kbd { margin-left: auto; flex: none; font-size: 10px; color: var(--muted); }
+
+/* ---------- narrow screens ----------
+   One breakpoint, everything the bar and the rail need to keep working
+   down to a 320px phone: the rail becomes a drawer (see .rail below),
+   its toggle appears, the bar keeps only what is used while modelling
+   – the model, the surface toggle (icons only), quick open – and folds
+   import/export, help, theme and Settings behind ⋯ (`moreMenu`). Touch
+   targets grow to the ~40px a finger actually needs – the desktop 30px
+   stays for a mouse. Every dialog goes fullscreen here; that lives
+   with .modal in index.html. */
+@media (max-width: 760px) {
+  .app-bar .menu-btn, .app-bar .more { display: inline-flex; }
+  .app-bar #actions > .icon-btn { display: none; }
+  /* The site is a footer link away; the bar cannot spare its width. */
+  .app-bar .brand-home { display: none; }
+  .app-bar { gap: 4px; padding: 8px 10px; }
+  /* The spacer's job falls to the name's margin, so it does not cost
+     the bar a gap for a box that is empty. */
+  .app-bar .spacer { display: none; }
+  .app-bar #model-switch { margin-right: auto; }
+  /* The name field gives like the name does; its note spans the
+     screen under the bar rather than hanging off a field that may sit
+     anywhere in it. */
+  .name-prompt .brand-title, .name-prompt .sep { display: none; }
+  .app-bar .name-prompt-input { width: 100%; }
+  .name-prompt-pop { position: fixed; top: calc(var(--topbar-h) + 6px); left: 10px; right: 10px; width: auto; }
+  .model-switch .brand-title:has(+ .sep), .model-switch .sep { display: none; }
+  /* The name is the one part of the bar that gives: everything else
+     keeps its size and the name ellipsizes into whatever is left. Flex
+     shrinking rather than a vw budget, because the rest of the bar is
+     not fixed – the Problems count comes and goes – and a budget
+     written down once drifts the moment a control is added (one did,
+     and the bar ran 190px past a phone's edge). */
+  .app-bar #model-switch, .app-bar .model-switch, .app-bar .model-name { min-width: 0; }
+  .app-bar #tools, .app-bar #jump, .app-bar #actions { flex: none; }
+  .app-bar .icon-btn, .app-bar .trigger { width: 40px; height: 40px; }
+  .app-bar .icon-btn svg { width: 18px; height: 18px; }
+  .app-bar .trigger { padding: 0; justify-content: center; }
+  .app-bar .trigger svg { width: 17px; height: 17px; }
+  .app-bar .trigger .label, .app-bar .trigger kbd { display: none; }
+}
+
+/* ---------- generic bits ---------- */
+
+/* A shortcut, as `kbd` in index.html spells it for this platform. */
+kbd {
+  font-family: var(--mono); font-size: .85em; white-space: nowrap;
+  border: 1px solid var(--border); border-radius: 4px; padding: 0 4px;
+}
+
+.btn {
+  font: inherit; font-size: 13px;
+  padding: 7px 14px; border-radius: 6px;
+  border: 1px solid var(--border-strong); background: var(--surface);
+  color: var(--text); cursor: pointer;
+}
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); color: #fff; }
+.btn.ghost { border-color: transparent; color: var(--muted); }
+.btn.ghost:hover { border-color: var(--border-strong); }
+.btn.tiny { padding: 4px 10px; font-size: 12px; }
+.btn.danger:hover { border-color: var(--danger); color: var(--danger); }
+/* A button with nothing left to do stays where it is rather than
+   disappearing: where undo lives should not move as you use it. */
+.btn:disabled { opacity: .35; cursor: default; }
+.btn:disabled:hover { border-color: transparent; color: var(--muted); }
+
+.chip {
+  display: inline-block; padding: 3px 10px; border-radius: 999px;
+  font-size: 12px; font-family: var(--mono);
+  background: var(--type-soft); border: 1px solid var(--border);
+}
+.chip.command { background: var(--command-soft); border-color: #bfdbfe; color: #1e40af; }
+.chip.event { background: var(--event-soft); border-color: #fed7aa; color: #9a3412; }
+.chip.entity, .chip.projection { background: var(--entity-soft); border-color: #bbf7d0; color: #166534; }
+.chip.rule { background: var(--rule-soft); border-color: #f5d0fe; color: #86198f; }
+/* No value yet. Drawn as an absence – dashed, unfilled, italic – so it
+   never reads as a value someone typed. `""` and `[]` are values and
+   are drawn as values; this is the one that is not, and the whole
+   point of the distinction is that you can see it. */
+.chip.unset {
+  background: transparent; border-style: dashed; color: var(--muted);
+  font-style: italic; font-family: inherit;
+}
+
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.tiny { font-size: 11px; }
+.empty { color: var(--muted); font-size: 12px; font-style: italic; }
+
+input[type=text], select, textarea {
+  font: inherit; font-size: 14px;
+  padding: 8px 11px; border: 1px solid var(--border-strong);
+  border-radius: 5px; background: var(--surface); color: var(--text);
+}
+input[type=text]:focus, select:focus, textarea:focus {
+  outline: none; border-color: var(--accent);
+}
+/* What is not a value does not look like one (`pick`): an unanswered
+   placeholder and a chosen "none" are muted in the closed face, the
+   none italic too, and a picker with nothing to offer is a slot – a
+   dashed edge on the page's ground – not a control. The options are
+   reset so a native list does not inherit the muting. */
+select:has(> option.placeholder:checked),
+select:has(> option.none:checked) { color: var(--muted); }
+select:has(> option.none:checked) { font-style: italic; }
+select:disabled {
+  color: var(--muted); background: var(--bg);
+  border-style: dashed; cursor: not-allowed;
+}
+select option { color: var(--text); font-style: normal; }
+select option.none { color: var(--muted); font-style: italic; }
+select option.action { color: var(--accent); }
+/* Every dropdown is a customizable <select> where the browser has one
+   (`appearance: base-select`) – all of them, not just the ones with
+   something to show, because a styled picker beside a native one in
+   the same row reads as two different widgets. What it buys: options
+   that carry markup (a mark re-fronted, a token in monospace, a
+   context span shown only once picked – see `pick`), group headings
+   that read as headings, and a popover in the page's palette. A
+   browser without it gets the native control and the options' plain
+   text, which every caller keeps readable on its own. */
+@supports (appearance: base-select) {
+  select, ::picker(select) { appearance: base-select; }
+  select { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+  select::picker-icon { color: var(--muted); font-size: 10px; }
+  ::picker(select) {
+    border: 1px solid var(--border-strong); border-radius: var(--radius);
+    background: var(--surface); color: var(--text); font-size: 13px;
+    padding: 4px; margin-top: 3px; box-shadow: 0 10px 28px -12px rgba(15, 23, 42, .45);
+  }
+  option { display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 4px; }
+  option:hover, option:focus-visible { background: var(--accent-soft); outline: none; }
+  option:checked { font-weight: 600; }
+  /* A fixed checkmark column, so every name – and every heading over
+     them – starts at the same x: 8px padding, 14px column, 4px gap.
+     A heading's label carries 4px of the browser's own, hence 22. */
+  option::checkmark { color: var(--accent); width: 14px; flex: none; }
+  option:disabled { color: var(--muted); }
+  /* `hidden` alone does not keep an option out of this picker. */
+  option.placeholder { display: none; }
+  /* A heading sits over the names, not over the checkmark column, so
+     the eye runs straight down them, and is set apart from them in
+     every way at once – small capitals, muted, tracked – since an
+     alias heading ("already read", "course") is otherwise a word like
+     the rows under it. Groups and the rows ruled off with an <hr>
+     (`pick`: a leading none, the actions) share one hairline. */
+  optgroup {
+    font-size: 10.5px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--muted); padding: 8px 0 2px 22px;
+  }
+  optgroup option {
+    margin-left: -22px; font-size: 13px; font-weight: 400;
+    text-transform: none; letter-spacing: normal; color: var(--text);
+  }
+  optgroup option:checked { font-weight: 600; }
+  optgroup + optgroup, option + optgroup, optgroup + option {
+    border-top: 1px solid var(--border); margin-top: 4px;
+  }
+  select hr { border: 0; border-top: 1px solid var(--border); margin: 4px 2px; }
+  option.action { font-weight: 500; }
+  option.action::checkmark { display: none; }
+  option.action .plus { display: inline-block; width: 14px; flex: none; font-weight: 600; }
+  option .hint {
+    margin-left: auto; padding-left: 12px;
+    font-family: var(--mono); font-size: 11px; font-weight: 400; color: var(--muted);
+  }
+  selectedcontent .hint { display: none; }
+  selectedcontent { display: flex; align-items: center; gap: 4px; }
+  option .icon, selectedcontent .icon { order: -1; }
+  /* A token option (`pick`'s fourth element): monospace, short in the
+     open list where its group heading carries the context, whole in
+     the closed face where nothing else does. */
+  .token { font-family: var(--mono); font-size: 12px; }
+  option .ctx { display: none; }
+  selectedcontent .ctx { display: inline; }
+}
+input.inline {
+  border: 0; border-bottom: 1px dashed var(--border-strong);
+  border-radius: 0; padding: 3px 4px; background: transparent;
+  font-family: var(--mono);
+}
+input.inline:focus { border-bottom-color: var(--accent); }
+
+/* ---------- advanced disclosure ---------- */
+
+.advanced {
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  background: #fbfcfe;
+  margin-top: 10px;
+}
+.advanced > summary {
+  cursor: pointer; padding: 7px 12px;
+  font-size: 11px; text-transform: uppercase; letter-spacing: .07em;
+  color: var(--muted); list-style: none;
+}
+.advanced > summary::-webkit-details-marker { display: none; }
+.advanced > summary::before { content: "▸ "; }
+.advanced[open] > summary::before { content: "▾ "; }
+.advanced > div { padding: 0 12px 12px; }
+
+/* ---------- toast ---------- */
+
+#toast {
+  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+  background: var(--text); color: #fff; padding: 9px 16px;
+  border-radius: 6px; font-size: 12px; z-index: 100;
+  box-shadow: 0 6px 20px rgba(15,23,42,.25);
+}
+/* A refusal wears the same diagnostic dress as the problems – tinted
+   panel, hairline red border, ⚠ – not a solid red shout. The colours
+   are the advisory/issue hardcodes (see index.html), restated for dark
+   below like the chips'; the dark rule must outrank `body.f-dark
+   #toast` above, which is what flattened error toasts to grey. */
+#toast.err {
+  background: var(--danger-soft); color: #991b1b; border: 1px solid #fca5a5;
+  display: flex; gap: 8px; align-items: baseline;
+}
+#toast.err::before { content: '⚠'; }
+body.f-dark #toast.err { background: #2d1414; color: #fecaca; border-color: #7f1d1d; }
+
+/* ---------- the scripted-handler editor ---------- */
+
+/* The Monaco host. The frame matches the textareas around it; the
+   height is set by the widget, tracking the code's own height. */
+.script-editor {
+  border: 1px solid var(--border); border-radius: 5px;
+  overflow: hidden; background: var(--bg);
+}
+.script-editor:focus-within { border-color: var(--accent); }
+
+/* ---------- chooser ---------- */
+
+.chooser { max-width: 860px; margin: 0 auto; padding: 34px 20px 60px; }
+.chooser .lead { color: var(--muted); margin-bottom: 26px; }
+.alt {
+  display: block; text-decoration: none; color: inherit;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface); padding: 16px 18px; margin-bottom: 12px;
+}
+.alt:hover { border-color: var(--accent); }
+.alt h2 { margin-bottom: 4px; }
+.alt .answer { font-size: 12px; color: var(--muted); margin-top: 8px; }
+.alt .answer b { color: var(--text); font-weight: 600; }
