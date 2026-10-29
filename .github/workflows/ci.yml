@@ -47,7 +47,9 @@ jobs:
         run: PYTHONPATH=. mkdocs gh-deploy --force
 
       - name: Notify Discord
-        if: success()
+        if: >-
+          success() &&
+          !contains(github.event.head_commit.message, '[skip-discord]')
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           SITE_URL: https://dcb.events
