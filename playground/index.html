@@ -609,7 +609,10 @@ window.DCB_PLAYGROUND_HOST = { theme: (function () {
   }
   .peditor .pusage-block { padding: 10px 12px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
   .peditor .pusage-block:last-child { border-bottom: 0; }
-  .peditor .pquery { font-family: var(--mono); font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; }
+  .peditor .pquery { display: inline-flex; align-items: center; gap: 4px; }
+  /* The column is on the right: its popover opens leftwards, into the
+     editor, rather than off the page. */
+  .peditor .pusage .qpop .qpanel { left: auto; right: -10px; }
   .peditor .linkish { background: none; border: 0; padding: 0; font: inherit; font-size: 12px; color: var(--text); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
   .peditor .linkish:hover { color: var(--accent); }
   .pswitch { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; padding: 4px 0; font-size: 11px; color: var(--muted); cursor: pointer; }
@@ -1871,22 +1874,31 @@ window.DCB_PLAYGROUND_HOST = { theme: (function () {
   }
   .surface button + button { border-left: 1px solid var(--border); }
   .surface button.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-  .surface.muted button { opacity: .55; }
-  .surface.muted button.on { background: var(--bg); color: var(--muted); }
   .surface button:not(.on):hover { color: var(--text); background: var(--bg); }
   /* Each label is as wide as its bold self, so turning on does not
      shift the bar: a hidden bold copy holds the width. */
   .surface .label { display: inline-grid; }
   .surface .label::after { content: attr(data-text); font-weight: 600; visibility: hidden; height: 0; overflow: hidden; }
-  .surface-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--event); }
+  .surface-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--event); flex: none; }
   .surface-icon { display: flex; }
   .surface-icon svg { width: 14px; height: 14px; display: block; }
-  /* Icons alone on a phone, and the Problems button down to its count –
-     the width goes to the model's name (shared.css). */
+  .unapplied-btn { display: inline-flex; align-items: center; gap: 6px; }
+  /* Beside the switch, a header's name gives way first – the switch
+     keeps its size, the name is cut short. */
+  .head-row { flex: 1; min-width: 0; }
+  .slice > header .row > .name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .code-kind {
+    font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--muted); flex: none;
+  }
+  /* The code bar sits at the right, so its hint opens leftwards. */
+  .code-bar .hint .hpanel { left: auto; right: -10px; }
+  /* Icons alone on a phone, and the bar's buttons down to their marks –
+     the width goes to the name beside them. */
   @media (max-width: 760px) {
     .surface { height: 40px; }
     .surface button { padding: 0 8px; }
-    .surface .label, .problems-btn .label { display: none; }
+    .surface .label, .problems-btn .label, .unapplied-btn .label { display: none; }
     .surface-icon svg { width: 17px; height: 17px; }
   }
   /* The tools over the text, quiet and to the right; what follows the
@@ -1927,6 +1939,22 @@ window.DCB_PLAYGROUND_HOST = { theme: (function () {
     font-size: 12.5px; line-height: 19px; tab-size: 2; white-space: pre; overflow: auto;
   }
   .code-problems { margin-top: 10px; }
+  /* The split: the page's header over both columns, the page on the
+     left as it is anywhere, the code on the right held under the
+     header while the page scrolls – its text takes what the column has
+     left after the toolbar, the strip and the problems. No max-width:
+     each column is half of what the window gives. */
+  .slice.split-view { max-width: none; }
+  .split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+  .split-page { min-width: 0; }
+  .split-code {
+    position: sticky; top: calc(var(--topbar-h) + var(--split-head, 60px) + 12px); min-width: 0;
+    height: calc(100vh - var(--topbar-h) - var(--split-head, 60px) - 28px);
+    display: flex; flex-direction: column;
+  }
+  .split-code .code-box { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .split-code .code-editor, .split-code .code-text { flex: 1; height: auto; min-height: 0; }
+  .split-code .code-problems { flex: none; max-height: 30%; overflow: auto; }
   .code-problems .issue .mono { color: var(--muted); font-size: 11px; }
   .code-problems .issue .why { flex: 1; white-space: pre-line; }
   .diag-mark.err { color: var(--danger); }
@@ -1993,10 +2021,12 @@ window.DCB_PLAYGROUND_HOST = { theme: (function () {
 
 const state = {
   view: 'overview',         // 'overview' | 'slice' | 'entity' | 'types' | 'projections' | 'events' | …
-  // The main area shows the model as code instead of its pages – see
-  // `renderCode`. Remembered per browser, like the other view choices;
-  // the key is spelled out because SURFACE_KEY is declared further down.
-  code: localStorage.getItem('dcb-playground:surface') === 'code',
+  // The main area shows the model as code – see `renderCode` – instead
+  // of its pages, or with `split` beside them (`renderSplit`).
+  // Remembered per browser, like the other view choices; the key is
+  // spelled out because SURFACE_KEY is declared further down.
+  code: ['code', 'split'].includes(localStorage.getItem('dcb-playground:surface')),
+  split: localStorage.getItem('dcb-playground:surface') === 'split',
   slice: null,
   sel: null,                // the row being attended to
   adder: null,              // which "add another" is unfolded
@@ -2148,7 +2178,7 @@ const linkedEnvelopes = new WeakSet();
 function switchToModel(id) {
   if (addressModelId && id !== addressModelId) dropAddressLink();
   setActiveModelId(id);
-  loadSession(id);
+  session.open(id);
   setPendingFeatures([]);
   state.namePrompt = null;
   state.slice = null;
@@ -2291,7 +2321,7 @@ function modelsModal() {
                 switchToModel(rest[0]);
               } else {
                 clearActiveModelId();
-                sessionReset();
+                session.reset();
                 setPendingFeatures([]);
                 state.slice = null; state.view = 'slice';
               }
@@ -2364,7 +2394,7 @@ const MORE_ICON_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden=
   + '<circle cx="19" cy="12" r="2"></circle></svg>';
 
 // The surface toggle's marks, beside its words – and in place of them
-// on a phone, where the bar cannot spare the width (shared.css).
+// on a phone, where the header cannot spare the width.
 const VISUAL_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
   + 'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
   + '<rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect>'
@@ -2372,26 +2402,41 @@ const VISUAL_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentCol
 const CODE_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
   + 'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
   + '<polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>';
+const SPLIT_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+  + 'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+  + '<rect x="3" y="4" width="18" height="16" rx="2"></rect><line x1="12" y1="4" x2="12" y2="20"></line></svg>';
 
-// Pages or code – two surfaces over one model, see `renderCode`. The
-// dot says a text is waiting to be applied, wherever you are.
-// On a page the code does not follow it is muted, not gone: it still
-// says and sets the surface, and still carries the dot.
+// Pages, code, or both side by side – surfaces over one model, see
+// `renderCode` and `renderSplit`. It sits in the header of the pages
+// the code follows (`CODE_FOLLOWS`) and nowhere else: the Overview,
+// the sandbox and the cross-cutting pages have no code to switch to,
+// and a switch in the bar said they did. Every surface shares that
+// header, so it stays where it was. One control of three, not two
+// toggles: two can both be off. Split is offered only where it fits
+// (`splitFits`); the dot says a text is waiting to be applied.
 function surfaceToggle(model) {
   const waiting = codeView.modelId === model.id && codeDirty();
-  const muted = !codeFollowsPage();
-  const hint = muted ? ' – no code view for this page; applies on definition pages' : '';
-  return h('span', { class: 'surface' + (muted ? ' muted' : ''), role: 'group', 'aria-label': 'Show the model as' },
-    h('button', {
-      type: 'button', class: state.code ? '' : 'on', 'aria-pressed': state.code ? 'false' : 'true',
-      title: 'The model as pages' + hint, 'aria-label': 'Visual', onclick: leaveCode,
-    }, h('span', { class: 'surface-icon' }, svg(VISUAL_ICON_SVG)), h('span', { class: 'label', 'data-text': 'Visual' }, 'Visual')),
-    h('button', {
-      type: 'button', class: state.code ? 'on' : '', 'aria-pressed': state.code ? 'true' : 'false',
-      title: (waiting ? 'The model as code – edited, not applied' : 'The model as code') + hint,
-      'aria-label': 'Code', onclick: enterCode,
-    }, h('span', { class: 'surface-icon' }, svg(CODE_ICON_SVG)), h('span', { class: 'label', 'data-text': 'Code' }, 'Code'),
-    waiting ? h('span', { class: 'surface-dot' }) : null));
+  const shown = splitShown() ? 'split' : codeShown() ? 'code' : 'visual';
+  const button = (surface, label, icon, title, onclick, extra) => h('button', {
+    type: 'button', class: shown === surface ? 'on' : '', 'aria-pressed': shown === surface ? 'true' : 'false',
+    title, 'aria-label': label, onclick,
+  }, h('span', { class: 'surface-icon' }, svg(icon)), h('span', { class: 'label', 'data-text': label }, label), extra);
+  return h('span', { class: 'surface', role: 'group', 'aria-label': 'Show the model as' },
+    button('visual', 'Visual', VISUAL_ICON_SVG, 'The model as pages', leaveCode),
+    splitFits() ? button('split', 'Split', SPLIT_ICON_SVG, 'The page and its code side by side', enterSplit) : null,
+    button('code', 'Code', CODE_ICON_SVG, waiting ? 'The model as code – edited, not applied' : 'The model as code',
+      enterCode, waiting ? h('span', { class: 'surface-dot' }) : null));
+}
+
+// The one trace of the code in the bar: a text typed and not applied,
+// while the code is not on screen – on a page the switch is not on, it
+// would otherwise be forgotten. It leads back to where it was left.
+function unappliedCodeButton(model) {
+  if (codeShown() || codeView.modelId !== model.id || !codeDirty()) return null;
+  return h('button', {
+    class: 'btn ghost unapplied-btn', type: 'button', title: 'Code typed and not applied yet – open it',
+    'aria-label': 'Unapplied code', onclick: resumeCode,
+  }, h('span', { class: 'surface-dot' }), h('span', { class: 'label' }, 'Unapplied code'));
 }
 
 // Light or dark – the one interface choice that sits in the bar rather
@@ -3007,7 +3052,8 @@ const HELP_VIDEO = { id: '9II9RcaYYBk' };
 // pages say that where it is done. Cards on Getting started.
 const HELP_FEATURES = [
   { name: 'Visual and Code',
-    what: 'Edit a model through its pages, or as text in the Code view – two spellings of the same model.' },
+    what: 'Edit a model through its pages, or as text in the Code view – two spellings of the same model. '
+      + 'On a wide screen, Split shows a page and its code side by side.' },
   { name: 'Derived boundaries',
     what: 'Every command shows the queries it issues and the append condition its rules lead to.' },
   { name: 'Scenarios',
@@ -3084,7 +3130,8 @@ const HELP_FAQ = [
   { question: 'Should I use the Visual or the Code view?', answer: [
     'Whichever you prefer – they are two spellings of the same model, and a change in one shows '
       + 'in the other. The pages guide you through each definition; the code is faster once you '
-      + 'know the notation.'] },
+      + 'know the notation. Split, in the same switch, shows both: the page follows the definition '
+      + 'your cursor is in, and clicking into the page applies what you typed.'] },
   { question: 'Can I generate production code from my model?', answer: [
     'Not yet. The playground is for exploring a design quickly – trying out events, commands and '
       + 'their boundaries before writing any code. A code export may come later; until then, the '
@@ -3479,13 +3526,10 @@ function renderImportExportModal() {
 // – one history across every model, so undoing in model A could take
 // back an edit just made in B.
 //
-// A step is therefore not a position but a count: the model's last `n`
-// events, the newest of which still has to be the one the step ended
-// with (`stamp`). Positions move whenever another model's step is taken
-// out or the log is compacted; a model's own tail moves only when the
-// model itself changes. That is the one case a step is refused: the
-// model was changed elsewhere since – another tab, say – and undoing
-// here would take that change with it.
+// What a step is and how a history moves lives in model.js
+// (`markHistories`, `travelHistory`, `historyFloor`, `historyVersions`),
+// over plain values; this keeps the histories in storage, batches a
+// gesture's appends and says what happened.
 //
 // The histories are this tab's, in sessionStorage: undoing in one tab
 // used to take back the other's last edit. Creating, importing and
@@ -3502,9 +3546,6 @@ const UNDO_KEY = 'dcb-playground:undo:' + EVENT_LOG_KEY.split(':').pop();
 const BOOT_KEY = 'dcb-playground:booting';
 // Where the history was kept while it was shared; nothing reads it.
 localStorage.removeItem(UNDO_KEY);
-
-// Steps kept per model; the oldest falls off.
-const HISTORY_LIMIT = 60;
 
 function undoLog() {
   try {
@@ -3524,30 +3565,11 @@ function saveUndoLog(next) {
     toast('This history will not survive a reload: this tab’s storage is full.', true);
   }
 }
-function modelHistory(log, modelId) {
-  return log.models[modelId] || (log.models[modelId] = { done: [], undone: [] });
-}
 
 function changedElsewhere(modelId) {
   const model = projectState()[modelId];
   return `${model ? model.name : 'This model'} was changed elsewhere since – undoing here would take `
     + 'that change too, so the earlier changes can no longer be undone.';
-}
-
-// An event as a step remembers it – by when it was written and what it
-// was, not by its sequence number, which a compaction or another
-// model's undo renumbers while the event itself is kept.
-function eventStamp(event) {
-  return event ? `${event.timestamp} ${event.type} ${event.data && event.data.name || ''}` : '';
-}
-function ofModel(event, modelId) {
-  return !!event.data && event.data['dcb-model-id'] === modelId;
-}
-// Where in the log each of a model's events sits, oldest first.
-function modelPositions(events, modelId) {
-  const at = [];
-  events.forEach((event, i) => { if (ofModel(event, modelId)) at.push(i); });
-  return at;
 }
 
 // What a change was, read off what it appended. `event-definition-updated`
@@ -3571,49 +3593,11 @@ function changeLabel(appended) {
 // an agent's tool call the same way and marks its steps as the agent's.
 let undoBatch = null;
 
-// What a step changed, as the History page lists it – capped, since a
-// whole model applied as code can be hundreds of events.
-function changesOfStep(group) {
-  return group.slice(0, 40).map((event) => ({
-    type: event.type, name: event.data.name || null, from: event.data['previous-name'] || null,
-  }));
-}
-
 function takeUndoMark(appended, agent, via) {
   const log = undoLog();
-  const byModel = new Map();
-  for (const event of appended) {
-    const id = event.data && event.data['dcb-model-id'];
-    if (!id) continue;
-    if (!byModel.has(id)) byModel.set(id, []);
-    byModel.get(id).push(event);
-  }
-  for (const [id, group] of byModel) {
-    if (group.some((event) => event.type === 'dcb-model-deleted')) {
-      delete log.models[id];
-      offerRestore(id, group.find((event) => event.type === 'dcb-model-deleted'));
-      continue;
-    }
-    if (group.some((event) => event.type === 'dcb-model-created')) {
-      delete log.models[id];
-      continue;
-    }
-    const history = modelHistory(log, id);
-    const last = group[group.length - 1];
-    history.done.push({
-      n: group.length, stamp: eventStamp(last), label: changeLabel(group),
-      time: last.timestamp, agent: !!agent, via: via || null, changes: changesOfStep(group),
-    });
-    // Redoing after a new change would mean putting back entries the
-    // model has moved on from, so the branch is dropped – on an agent's
-    // append exactly as on a button's.
-    history.undone = [];
-    if (history.done.length > HISTORY_LIMIT) {
-      history.done.shift();
-      history.trimmed = true;
-    }
-  }
+  const deleted = markHistories(log, appended, { agent, via, label: changeLabel });
   saveUndoLog(log);
+  for (const [id, event] of deleted) offerRestore(id, event);
 }
 
 onAppend((at, appended) => {
@@ -3681,58 +3665,25 @@ function markStepVia(via) {
 // and the history was dropped.
 function travel(modelId, delta) {
   const log = undoLog();
-  const history = log.models[modelId];
-  if (!history) return 0;
-  let events = loadEvents();
-  let moved = 0;
-  const refuse = () => {
-    delete log.models[modelId];
-    log.restarted = { ...log.restarted, [modelId]: new Date().toISOString() };
-    saveUndoLog(log);
+  const result = travelHistory(log, loadEvents(), modelId, delta);
+  saveUndoLog(log);
+  if (result.refused) {
     toast(changedElsewhere(modelId), true);
     return null;
-  };
-  while (delta < 0 && history.done.length) {
-    const mark = history.done[history.done.length - 1];
-    const at = modelPositions(events, modelId);
-    if (at.length < mark.n || eventStamp(events[at[at.length - 1]]) !== mark.stamp) return refuse();
-    const out = new Set(at.slice(-mark.n));
-    const removed = events.filter((event, i) => out.has(i));
-    events = events.filter((event, i) => !out.has(i));
-    const left = at.length > mark.n ? events[modelPositions(events, modelId).pop()] : null;
-    history.done.pop();
-    const { n, stamp, ...about } = mark;
-    history.undone.push({
-      events: removed.map(({ timestamp, type, data }) => ({ timestamp, type, data })),
-      base: eventStamp(left), ...about,
-    });
-    delta++; moved--;
   }
-  while (delta > 0 && history.undone.length) {
-    const step = history.undone[history.undone.length - 1];
-    const at = modelPositions(events, modelId);
-    const now = at.length ? eventStamp(events[at[at.length - 1]]) : '';
-    if (now !== step.base) return refuse();
-    events = [...events, ...step.events];
-    history.undone.pop();
-    const { events: replayed, base, ...about } = step;
-    history.done.push({ n: replayed.length, stamp: eventStamp(replayed[replayed.length - 1]), ...about });
-    delta--; moved++;
-  }
-  if (moved) {
-    writeEventLog(events.map((event, i) => ({ ...event, sequence: i })));
+  if (result.moved) {
+    writeEventLog(result.events);
     dropAddressLink();
     closeForms();
   }
-  saveUndoLog(log);
-  return moved;
+  return result.moved;
 }
 
 function undo() {
   const id = activeModelId();
-  const history = id && undoLog().models[id];
-  if (!history || !history.done.length) return toast('Nothing to undo.');
-  const label = history.done[history.done.length - 1].label;
+  const { done } = historySteps(undoLog(), id);
+  if (!id || !done.length) return toast('Nothing to undo.');
+  const label = done[done.length - 1].label;
   if (travel(id, -1)) {
     toast('Undone – ' + label);
     render();
@@ -3741,9 +3692,9 @@ function undo() {
 
 function redo() {
   const id = activeModelId();
-  const history = id && undoLog().models[id];
-  if (!history || !history.undone.length) return toast('Nothing to redo.');
-  const label = history.undone[history.undone.length - 1].label;
+  const { undone } = historySteps(undoLog(), id);
+  if (!id || !undone.length) return toast('Nothing to redo.');
+  const label = undone[undone.length - 1].label;
   if (travel(id, 1)) {
     toast('Redone – ' + label);
     render();
@@ -3780,15 +3731,8 @@ function restoreDeleted(modelId, stamp) {
 // not considered: a step that loses its events is refused, as after any
 // change made elsewhere.
 setCompactionFloor((events) => {
-  const ats = [events.length];
-  for (const [id, history] of Object.entries(undoLog().models)) {
-    const at = modelPositions(events, id);
-    const steps = history.done.reduce((sum, mark) => sum + mark.n, 0);
-    if (history.done.length && at.length >= steps) ats.push(at[at.length - steps]);
-    else if (history.undone.length && at.length) ats.push(at[at.length - 1]);
-  }
-  if (undoBatch && undoBatch.at !== null) ats.push(undoBatch.at);
-  return Math.min(...ats);
+  const floor = historyFloor(undoLog(), events);
+  return undoBatch && undoBatch.at !== null ? Math.min(floor, undoBatch.at) : floor;
 });
 
 onCompact(({ shift, events, dropped }) => {
@@ -5701,7 +5645,7 @@ function renderRail() {
 
   // Its history and reading it against another need nothing in the
   // model, so unlike the diagrams both are there for an empty one too.
-  const steps = (undoLog().models[model.id] || { done: [] }).done.length;
+  const steps = historySteps(undoLog(), model.id).done.length;
   rail.appendChild(h('h4', { style: 'margin-top:20px' }, 'Review'));
   rail.appendChild(h('a', {
     href: '#', class: 'place' + (state.view === 'history' ? ' on' : ''),
@@ -6076,7 +6020,7 @@ function restoreMainFocusRank(rank) {
 // to on screen. It is out here because the painter below returns early
 // once it knows which view it is drawing.
 function render() {
-  loadSession(activeModelId());
+  session.open(activeModelId());
   const focusRank = mainFocusRank();
   const modalRank = definitionModalFocusRank();
   paintPage();
@@ -6186,9 +6130,10 @@ function paintPage() {
   // A scenario that no longer agrees with its command, or a loose end
   // nobody has tied – the one count of what needs attention, shown
   // only when there is any.
-  tools.appendChild(surfaceToggle(model));
   const problemsBtn = problemsButton(model);
   if (problemsBtn) tools.appendChild(problemsBtn);
+  const unapplied = unappliedCodeButton(model);
+  if (unapplied) tools.appendChild(unapplied);
 
   jump.appendChild(h('button', {
     class: 'trigger', type: 'button', onclick: openPalette, 'aria-label': 'Quick open',
@@ -6247,6 +6192,10 @@ function paintBehind(model) {
   // A page shown while the surface is Code: whatever leads back into
   // the code from here is revealed there, even the definition it was on.
   if (state.code && !codeShown()) codeView.focus = undefined;
+  if (splitShown()) {
+    main.className = 'slice split-view code-view';
+    return renderSplit(model, main);
+  }
   if (codeShown()) {
     main.className = 'slice wide code-view';
     return renderCode(model, main);
@@ -6254,6 +6203,12 @@ function paintBehind(model) {
   main.className = 'slice'
     + (['overview', 'coupling', 'rulemap', 'eventmodel', 'lifecycles', 'compare'].includes(state.view) ? ' wide' : '')
     + (state.view === 'sandbox' ? ' sandbox' : '');
+  paintView(model, main);
+}
+
+// The page for the view, into `main` – #main itself, or the split's
+// page column (`renderSplit`).
+function paintView(model, main) {
   const notice = experimentalNotice(model);
   if (notice) main.appendChild(notice);
 
@@ -6323,7 +6278,9 @@ function paintBehind(model) {
       ? renameDefinitionForm(model, 'command-definition', slice.name, {
           stateKey: 'renamingCommand', after: (next) => { state.slice = next; },
         })
-      : qrow('div', { cls: 'row', key: 'cmd:' + slice.name },
+      // The switch beside the row, not in it: a click on it repaints,
+      // and the focus would come back to the row as if it were chosen.
+      : h('div', { class: 'row' }, qrow('div', { cls: 'row head-row', key: 'cmd:' + slice.name },
           h('button', {
             class: 'icon-btn' + fallbackIconClass(commandIcon(model, slice.name)),
             title: 'Choose the mark this is shown with',
@@ -6352,6 +6309,7 @@ function paintBehind(model) {
                 state.slice = null;
               }),
             }))),
+        surfaceToggle(model)),
   ));
 
   if (state.commandIconPicker === slice.name) {
@@ -6567,7 +6525,7 @@ function queryItemRow(item, { from = false } = {}) {
       ? [h('span', { class: 'dq-key' }, 'from'), h('span', { class: 'dq-from' }, item.from.join(' · '))]
       : null,
     h('span', { class: 'dq-key' }, 'types'),
-    h('span', { class: 'dq-chips' }, item.types.length
+    h('span', { class: 'dq-chips' }, item.types
       ? item.types.map((type) => h('span', { class: 'dq-type' }, type))
       : h('span', { class: 'dq-any' }, 'any type')),
     h('span', { class: 'dq-key' }, 'tags'),
@@ -7023,7 +6981,7 @@ function inlineReadsOf(condition) {
 // thing the code view cannot print back as code.
 function aliasNameProblem(slice, name) {
   if (!name) return 'Give the alias a name.';
-  if (!/^[a-z][A-Za-z0-9]*$/.test(name)) return 'An alias starts with a letter.';
+  if (!/^\p{Ll}[\p{L}\p{M}\p{Nd}]*$/u.test(name)) return 'An alias starts with a letter.';
   if (SOURCE_RESERVED_NAMES.includes(name)) return `"${name}" is a word of the language.`;
   if ((slice.body.boundary || []).some((b) => b && b.alias === name)) {
     return `"${name}" is already bound in this command.`;
@@ -9264,7 +9222,7 @@ function renderEntity(model, main) {
     })));
   } else {
     main.appendChild(h('header', {},
-      qrow('div', { cls: 'row', key: 'ent:' + name },
+      h('div', { class: 'row' }, qrow('div', { cls: 'row head-row', key: 'ent:' + name },
         // The mark leads, because it is what this thing will be
         // recognised by everywhere else. Clicking it is how it is
         // chosen – there is nowhere else to put a setting that belongs
@@ -9292,6 +9250,7 @@ function renderEntity(model, main) {
               state.entity = null;
             }),
           }))),
+        surfaceToggle(model)),
       h('div', { class: 'muted small summary' },
         `${properties.length} propert${properties.length === 1 ? 'y' : 'ies'} · `
         + `moved by ${writers.size} command${writers.size === 1 ? '' : 's'}, `
@@ -10102,10 +10061,7 @@ function projectionDetail(model, entry, { owner }) {
   const draft = state.projDraft.body;
   const entries = projectionScenariosFor(model, projection);
   const tab = state.projTab === 'checks' ? 'checks' : 'definition';
-  const trouble = entries.filter((e) => {
-    const status = runProjectionScenario(model, e.body).status;
-    return status === 'drifted' || status === 'broken';
-  }).length;
+  const trouble = failingScenarios('projection-scenario-definition', model, entries);
 
   const tabButton = (key, label, extra) => h('button', {
     class: 'tab' + (tab === key ? ' on' : ''),
@@ -10427,7 +10383,7 @@ function commandIconPicker(model, name, command) {
 // editor declines to ask rather than asking and then refusing.
 function renderCustomTypes(model, main) {
   main.appendChild(h('header', {},
-    h('div', { class: 'name' }, 'Custom types'),
+    h('div', { class: 'row' }, h('div', { class: 'name' }, 'Custom types'), h('span', { class: 'grow' }), surfaceToggle(model)),
     h('div', { class: 'muted small' },
       'Records with no identity of their own – a price, an order line – and identifiers: a '
       + 'tag type is a single value every event carrying it is tagged with. An entity’s own derived identifier lives here too, created automatically '
@@ -10869,6 +10825,19 @@ function partitionTypeOptions(model) {
     .map((t) => [t, readable(t)]);
 }
 
+// Whether an event field of `fieldType` may fill a value of `valueType`:
+// the same type, or a scalar value type over the built-in one – a
+// `CourseId` is a string, so it fills a string. Not the other way: a
+// plain string is not known to be a `CourseId`.
+function fieldFitsValueType(model, fieldType, valueType) {
+  if (fieldType === valueType) return true;
+  if (!SIMPLE_TYPES.includes(valueType)) return false;
+  const cls = classifyType(model, fieldType);
+  if (cls.kind !== 'value' || cls.composite) return false;
+  const body = model['custom-type-definitions'][fieldType];
+  return !!(body && body.schema && body.schema.type === valueType);
+}
+
 // A value the event carried, as a token option (see `pick`): short
 // under its `event` heading, `event.data.capacity` once picked – the
 // same path `operandWords` renders and a scripted handler writes.
@@ -10898,7 +10867,7 @@ function successorChoice(p) {
 // stored one still runs and still reads as `currentValue`.
 function handlerValueChoices(model, draft, event, operation) {
   const properties = (event ? (event.properties || []) : [])
-    .filter((p) => p.propertyType === draft.valueType);
+    .filter((p) => fieldFitsValueType(model, p.propertyType, draft.valueType));
   // Only to `set` a numbering. Offered for any type with a next value
   // it put "the one after …" beside every text field and every
   // operation, and before that – offered unconditionally – "the one
@@ -11068,7 +11037,7 @@ function blankProjectionDraft(model, entityName) {
 // (a tag type the name starts with), holds an integer starting at 0,
 // and moves on the events about subscribing.
 
-const nameWords = (name) => String(name || '').match(/[A-Z][a-z0-9]*|[a-z0-9]+/g) || [];
+const nameWords = (name) => String(name || '').match(/\p{Lu}[\p{Ll}\p{M}\p{Nd}]*|[\p{Ll}\p{M}\p{Nd}]+/gu) || [];
 const lowerFirst = (s) => s.charAt(0).toLowerCase() + s.slice(1);
 
 // The words a tag type is named by in a projection's name: `CourseId`
@@ -11086,7 +11055,7 @@ function partitionGuess(model, name) {
     let found = null;
     for (const type of types) {
       for (const stem of tagTypeStems(type)) {
-        const fits = text.startsWith(stem) && (text.length === stem.length || /[A-Z]/.test(text[stem.length]));
+        const fits = text.startsWith(stem) && (text.length === stem.length || /\p{Lu}/u.test(text[stem.length]));
         if (fits && (!found || stem.length > found.stem.length)) found = { type, stem };
       }
     }
@@ -11771,11 +11740,28 @@ function projectionFields(model, draft, { entityName, onNewType, onChecks } = {}
     ];
   };
 
+  // A handler's event reads as the event it is – its chip's colours –
+  // until it is pointed at or picked again; then it is a picker like
+  // the rest of the row (`select.kind-event`, shared.css).
+  const eventPick = (select) => {
+    select.className = 'kind-event';
+    return select;
+  };
+
   const declaredHandlerRows = (draft.handlers || []).map((handler, i) => {
     const event = model['event-definitions'][handler.event];
     const operations = operationsFor(model, draft);
     if (!operations.includes(handler.operation)) handler.operation = operations[0];
     const values = handlerValueChoices(model, draft, event, handler.operation);
+    // A stored field of the event is kept on offer even where its type
+    // is not offered: the model holds it, and the row below would
+    // otherwise reset it as it paints – and the autosave store that.
+    const stored = draftOperand(handler, 'value');
+    if (event && operandSource(stored) === 'event-property'
+        && (event.properties || []).some((p) => p.name === stored.eventProperty)
+        && !values.some(([v]) => v === handler.value)) {
+      values.push(eventFieldChoice({ name: stored.eventProperty }));
+    }
     const enumMembers = enumMembersFor(model, draft.valueType);
     // A value the row can no longer offer – a successor once the verb
     // is no longer `set`, a stored `currentValue` – would leave the
@@ -11787,9 +11773,9 @@ function projectionFields(model, draft, { entityName, onNewType, onChecks } = {}
     }
     return h('div', { class: 'phandler' },
       h('span', { class: 'pk' }, 'on'),
-      pick(eventChoicesFor(handler), handler.event,
+      eventPick(pick(eventChoicesFor(handler), handler.event,
         (v) => { handler.event = v; handler.value = ''; handler.valueText = ''; render(); },
-        'event'),
+        'event')),
       h('span', { class: 'pk' }, '⇒'),
       // The verb is a word or two and keeps its width; the names
       // beside it are what give way.
@@ -11806,8 +11792,8 @@ function projectionFields(model, draft, { entityName, onNewType, onChecks } = {}
   const scriptedHandlerRows = !draft.script ? [] : (draft.handlers || []).map((handler, i) => h('div', { class: 'script-handler' },
     h('div', { class: 'phandler' },
       h('span', { class: 'pk' }, 'on'),
-      pick(eventChoicesFor(handler), handler.event,
-        (v) => { handler.event = v; render(); }, 'event'),
+      eventPick(pick(eventChoicesFor(handler), handler.event,
+        (v) => { handler.event = v; render(); }, 'event')),
       h('button', {
         class: 'btn tiny danger', title: 'Remove this handler',
         onclick: () => { draft.handlers.splice(i, 1); render(); },
@@ -11825,7 +11811,11 @@ function projectionFields(model, draft, { entityName, onNewType, onChecks } = {}
       ...(draft.script ? ['Scripted: each handler is a body over state, event, args and tags '
         + '(the values it is read by, by name), returning the next state. Nothing here runs or checks it.'] : []),
     ]),
-    h('button', {
+    null,
+    (draft.handlers || []).length ? (draft.script ? scriptedHandlerRows : declaredHandlerRows) : null,
+    // Under the handlers, where the next one goes – not up in the
+    // heading, where with a few rows it read as belonging to none.
+    h('div', { class: 'adder' }, h('button', {
       class: 'btn ghost tiny',
       onclick: () => {
         (draft.handlers = draft.handlers || []).push(draft.script
@@ -11833,10 +11823,7 @@ function projectionFields(model, draft, { entityName, onNewType, onChecks } = {}
           : { event: '', operation: 'set', value: '' });
         render();
       },
-    }, '+ handler'),
-    (draft.handlers || []).length
-      ? (draft.script ? scriptedHandlerRows : declaredHandlerRows)
-      : h('div', { class: 'empty' }, '–'));
+    }, '+ handler')));
 
   // ---- derived: one predicate or computation over other projections ----
 
@@ -11976,17 +11963,14 @@ function projectionSection(title, info, action, ...body) {
 function projectionUsage(model, draft, savedName, { entityName, advanced, onChecks }) {
   const block = (title, ...body) => h('div', { class: 'pusage-block' }, h('div', { class: 'pk' }, title), ...body);
   const checks = savedName ? projectionScenariosFor(model, savedName) : [];
-  const trouble = checks.filter((e) => {
-    const status = runProjectionScenario(model, e.body).status;
-    return status === 'drifted' || status === 'broken';
-  }).length;
+  const trouble = failingScenarios('projection-scenario-definition', model, checks);
   const readers = savedName ? projectionReaders(model, savedName) : [];
   const bound = savedName ? boundAs(model, savedName) : [];
   const checksWords = checks.length
     ? (trouble ? `${trouble} of ${checks.length} failing` : `${checks.length} passing`)
     : 'none';
   return h('aside', { class: 'pusage' },
-    block('query', projectionQueryWords(model, draft)),
+    block('query', projectionQuerySummary(model, draft, savedName)),
     savedName ? block('checks', onChecks
       ? h('button', { type: 'button', class: 'linkish', onclick: onChecks },
           checks.length ? h('span', { class: 'badge' + (trouble ? '' : ' clear') }, trouble || checks.length) : null,
@@ -12007,26 +11991,43 @@ function projectionUsage(model, draft, savedName, { entityName, advanced, onChec
       : h('span', { class: 'empty' }, '–')) : null);
 }
 
-// The DCB this projection derives, as the query it really runs: the
-// tags it declares, each with a placeholder for the value a read gives
-// it, and the events it handles. A derived draft's query is its
-// operands', recursively, as the fold reads.
-function projectionQueryWords(model, draft) {
-  const derivedReads = draft.derived
-    ? derivedOperands(draft.derived)
-      .filter((o) => operandSource(o) === 'projection-read' && o.projection)
-    : [];
-  const tags = (draft.tags || []).filter((tag) => tag && tag.tagType).flatMap((tag) =>
-    idLeavesOfType(model, tag.tagType).map((leaf) =>
-      renderTag(identifierTypeOf(model, leaf.identifierType), `<${tag.name || '?'}>`)));
-  const handledTypes = draft.derived
-    ? uniq(derivedReads.flatMap((o) => projectionHandledTypes(model, o.projection)))
-    : (draft.handlers || []).map((handler) => handler.event).filter(Boolean);
-  return h('div', { class: 'dcb pquery' },
-    tags.length ? h('div', {}, h('span', { class: 'k' }, 'tag '),
-      ...tags.flatMap((tag, i) => [i ? h('span', { class: 'k' }, ' and ') : null, h('span', { class: 't' }, tag)])) : null,
-    h('div', {}, tags.length ? h('span', { class: 'k' }, 'and ') : null,
-      h('span', { class: 'y' }, handledTypes.join(', ') || '(nothing)')));
+// The query this projection makes, as it stands in the editor: one
+// line saying how much it reads, and the query itself behind the query
+// glyph, drawn as every other query is (_DCB queries, shown_) – a box
+// per call, its values the placeholders a reader fills in. It used to
+// be spelt out in words of its own, always open, which took the column
+// and spoke a notation no other page did. Worked out from the draft,
+// so it moves as the editor does (`projectionPlan` over the model with
+// the draft in place of the stored body).
+function projectionQuerySummary(model, draft, savedName) {
+  const name = savedName || draft.name || 'Draft';
+  let calls;
+  try {
+    const withDraft = {
+      ...model,
+      'projection-definitions': { ...model['projection-definitions'], [name]: cleanProjectionBody(draft) },
+    };
+    calls = projectionPlan(withDraft, name).calls;
+  } catch (error) {
+    return h('span', { class: 'empty' }, '–');
+  }
+  if (!calls.length) return h('span', { class: 'k small' }, 'reads nothing');
+  const items = calls.flat();
+  const count = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+  const words = [count(calls.length, 'call'), count(uniq(items.flatMap((item) => item.types)).length, 'type'),
+    count(uniq(items.flatMap((item) => item.tags)).length, 'tag')].join(' · ');
+  const many = calls.length > 1;
+  const body = queryAsJson()
+    ? jsonBlock(calls.map((call, i) => (many ? `// query ${i + 1}\n` : '') + queryJsonText(queryItemsJson(call))).join('\n\n'))
+    : h('div', { class: 'dq' },
+        many ? h('div', { class: 'dq-head' }, h('b', {}, 'head'), ' – taken first: each projection it folds is read up to it') : null,
+        calls.map((call, i) => queryBox(call, 'query', many ? `call ${i + 1} of ${calls.length}` : '1 call')));
+  return h('span', { class: 'pquery' },
+    h('span', { class: 'small' }, words),
+    queryPopover('projection:' + name, 'what this projection queries',
+      h('div', { class: 'row', style: 'justify-content:flex-end;margin-bottom:6px' }, queryViewSwitch()),
+      body,
+      h('div', { class: 'k tiny', style: 'margin-top:6px' }, 'Its values come from whoever reads it – a command, a watch.')));
 }
 
 // Where a declared projection starts, as one picker: the values of its
@@ -12106,7 +12107,8 @@ function renderProjections(model, main) {
           state.newProjection = true;
           render();
         },
-      }, '+ new projection'))));
+      }, '+ new projection'),
+      surfaceToggle(model))));
 
   const projectionAdvisories = advisoryBanner(model, 'projection-definition');
   if (projectionAdvisories) main.appendChild(projectionAdvisories);
@@ -12318,10 +12320,7 @@ function historyRow(model, about, opts) {
 }
 
 function renderHistory(model, main) {
-  const log = undoLog();
-  const history = log.models[model.id] || { done: [], undone: [] };
-  const restarted = log.restarted && log.restarted[model.id];
-  const { done, undone } = history;
+  const { done, undone, trimmed, restarted } = historySteps(undoLog(), model.id);
   const agents = done.filter((mark) => mark.agent).length;
   const nextUndo = done[done.length - 1];
   const nextRedo = undone[undone.length - 1];
@@ -12384,8 +12383,8 @@ function renderHistory(model, main) {
   }
   list.appendChild(historyRow(model, {
     icon: 'opened', colour: '', chip: null, more: [],
-    verb: history.trimmed ? 'Earlier changes' : restarted ? 'From here' : 'Opened',
-    detail: history.trimmed ? `older than the last ${HISTORY_LIMIT} are no longer kept`
+    verb: trimmed ? 'Earlier changes' : restarted ? 'From here' : 'Opened',
+    detail: trimmed ? `older than the last ${HISTORY_LIMIT} are no longer kept`
       : restarted ? 'as it was when it was changed elsewhere' : 'as it was when you opened it',
   }, {
     time: '', current: !done.length, target: -done.length, last: true, key: 'opened',
@@ -12439,19 +12438,10 @@ function setCompareChoice(modelId, choice) {
   }
 }
 
-// This model's undo steps in this tab, oldest first, each with how many
-// of the model's events came after it began – each one a point to
-// compare with. None once the model was changed elsewhere: the history
-// no longer stands, and its next undo drops it.
+// This model's undo steps in this tab, each one a point to compare with
+// (`historyVersions`).
 function earlierVersions(model) {
-  const history = undoLog().models[model.id];
-  if (!history || !history.done.length) return [];
-  const events = loadEvents();
-  const at = modelPositions(events, model.id);
-  const newest = history.done[history.done.length - 1];
-  if (!at.length || eventStamp(events[at[at.length - 1]]) !== newest.stamp) return [];
-  let since = 0;
-  return history.done.slice().reverse().map((mark) => ({ ...mark, since: since += mark.n })).reverse();
+  return historyVersions(undoLog(), loadEvents(), model.id);
 }
 
 function timeOfStep(mark) {
@@ -12852,7 +12842,7 @@ function compareCodePage(model, found) {
 
 function renderEvents(model, main) {
   main.appendChild(h('header', {},
-    h('div', { class: 'name' }, 'Events'),
+    h('div', { class: 'row' }, h('div', { class: 'name' }, 'Events'), h('span', { class: 'grow' }), surfaceToggle(model)),
     h('div', { class: 'muted small' },
       'Everything that has ever happened, named and shaped. An event may be recorded by no '
       + 'command, one, or several – and read by no projection, one, or several – which is why it '
@@ -13042,9 +13032,9 @@ function renderOverview(model, main) {
   // The same rule the rail follows: what the experimental flag keeps out
   // of the rail it keeps out of the count, unless the model already has one.
   main.appendChild(h('div', { class: 'overview-stats' },
-    // Listed right below on the page; in the code, where they start.
+    // The command last open; in the code, where they start.
     stat('Commands', 'command', bodies.length, plural(ruleCount, 'rule'),
-      state.code && bodies.length ? () => { codeView.section = 'command-definition'; openKindPage('slice'); } : null),
+      bodies.length ? () => { if (state.code) codeView.section = 'command-definition'; openKindPage('slice'); } : null),
     stat('Events', 'event', events.length, unappended ? unappended + ' not appended' : null, show('events')),
     experimental() || entities.length
       ? stat('Entities', 'entity', entities.length, lifecycles ? lifecycles + ' with a lifecycle' : null,
@@ -14008,16 +13998,16 @@ function stepConsistency(model, slice) {
   // The layout is `boundarySummary`'s, which the code view's command
   // line speaks from too.
   const summary = boundarySummary(model, slice.body);
-  const planned = plannedQueries(summary);
+  const plan = commandPlan(summary);
   return step('consistency', 'Consistency boundary',
     h('div', { class: 'card' },
       summary.items.length
         ? [
             h('div', { class: 'row', style: 'justify-content:space-between;margin-bottom:8px' },
               h('span', { class: 'k small' }, summary.words), queryViewSwitch()),
-            dcbQueries(planned, {
+            dcbQueries(plan.calls, {
               key: 'dcb:' + slice.name, from: true,
-              condition: { after: planned.length > 1 ? 'head' : 'read' },
+              condition: { after: plan.after },
             }),
           ]
         : h('div', { class: 'empty' }, 'Unguarded.'),
@@ -14072,36 +14062,14 @@ function stepConsistency(model, slice) {
 // subject, which state slot holds the draft and which set holds the
 // open rows, and how "current" and "drifted" read. That lives here,
 // so the staleness rule, the save path and the status ladder exist
-// once and cannot drift apart.
-// Writes the explicit null into every unset optional property of one
-// payload – the canonical stored spelling, so "one entry per property,
-// all of them" stays true on disk while the evaluator reads an absent
-// key the same way. The empty string is untouched: it is a value.
-function fillUnsetOptionals(values, properties) {
-  for (const property of properties || []) {
-    if (!property.isOptional || property.isList) continue;
-    if (values[property.name] === undefined) values[property.name] = null;
-  }
-}
-
-function fillGivenOptionals(model, body) {
-  for (const step of body.given || []) {
-    step.data = step.data || {};
-    fillUnsetOptionals(step.data, (model['event-definitions'][step.event] || {}).properties);
-  }
-}
-
+// once and cannot drift apart. What a stored scenario looks like is
+// model.js's (`canonicalScenario`), shared with a text applied as code.
 const SCENARIO_KINDS = {
   'scenario-definition': {
     subjectField: 'command',
     run: (model, body) => runScenario(model, body),
     deriveThen: (model, body) => deriveThen(model, body),
-    canonicalize: (model, body) => {
-      fillGivenOptionals(model, body);
-      body.when = body.when || {};
-      body.when.arguments = body.when.arguments || {};
-      fillUnsetOptionals(body.when.arguments, (model['command-definitions'][body.command] || {}).properties);
-    },
+    canonicalize: (model, body) => canonicalScenario(model, 'scenario-definition', body),
     draftKey: 'scenarioDraft',
     openSet: () => state.openScenarios,
     words: {
@@ -14114,7 +14082,7 @@ const SCENARIO_KINDS = {
     subjectField: 'projection',
     run: (model, body) => runProjectionScenario(model, body),
     deriveThen: (model, body) => deriveProjectionScenarioThen(model, body),
-    canonicalize: (model, body) => fillGivenOptionals(model, body),
+    canonicalize: (model, body) => canonicalScenario(model, 'projection-scenario-definition', body),
     draftKey: 'projectionScenarioDraft',
     openSet: () => state.openProjectionScenarios,
     words: {
@@ -14124,6 +14092,28 @@ const SCENARIO_KINDS = {
     },
   },
 };
+
+// A stored scenario's run, kept for as long as the model's revision
+// is: a page paints the same scenario's status on its row, its tab's
+// count and the problems list, and every repaint did each again. Keyed
+// by the stored objects themselves – `projectState()` hands out one per
+// revision – so an edit is a new model and runs afresh, and a draft,
+// never stored, is never kept.
+const storedRuns = new WeakMap();
+function storedScenarioRun(kind, model, body) {
+  let runs = storedRuns.get(model);
+  if (!runs) storedRuns.set(model, runs = new WeakMap());
+  if (!runs.has(body)) runs.set(body, SCENARIO_KINDS[kind].run(model, body));
+  return runs.get(body);
+}
+
+// How many of these stored scenarios no longer say what they did.
+function failingScenarios(kind, model, entries) {
+  return entries.filter((e) => {
+    const status = storedScenarioRun(kind, model, e.body).status;
+    return status === 'drifted' || status === 'broken';
+  }).length;
+}
 
 // Every scenario of one kind about one subject – a command's, or a
 // projection's.
@@ -14218,7 +14208,7 @@ function reorderByDrag(kind, model, fromKey, toKey, before) {
 // moment something upstream drifts.
 function currentScenarioThens(model, commandName) {
   return scenariosOf(model, commandName)
-    .map(({ body: scenario }) => runScenario(model, scenario).actual)
+    .map(({ body: scenario }) => storedScenarioRun('scenario-definition', model, scenario).actual)
     .filter(Boolean);
 }
 
@@ -14249,7 +14239,7 @@ function happyPathUntested(model, commandName) {
 function scenarioTrouble(model) {
   const out = [];
   for (const [key, body] of Object.entries(model['scenario-definitions'] || {})) {
-    const result = runScenario(model, body);
+    const result = storedScenarioRun('scenario-definition', model, body);
     if (result.status === 'current') continue;
     out.push({ key, body, result });
   }
@@ -14552,7 +14542,7 @@ function scenarioHead(openSet, key, status, [mark, word, why], name, actions) {
 
 function scenarioRow(model, entry) {
   const { key, body } = entry;
-  const result = runScenario(model, body);
+  const result = storedScenarioRun('scenario-definition', model, body);
   const [mark, word, why] = STATUS_WORDS[result.status];
   const open = state.openScenarios.has(key);
 
@@ -14788,10 +14778,7 @@ function scenarioPanel(model, commandName) {
 
 function scenarioTabs(model, slice) {
   const entries = scenariosOf(model, slice.name);
-  const trouble = entries.filter((e) => {
-    const status = runScenario(model, e.body).status;
-    return status === 'drifted' || status === 'broken';
-  }).length;
+  const trouble = failingScenarios('scenario-definition', model, entries);
   const tab = (key, label, extra) => h('button', {
     class: 'tab' + (state.tab === key ? ' on' : ''),
     'aria-pressed': state.tab === key ? 'true' : 'false',
@@ -14867,7 +14854,7 @@ function projectionOutcomeCard(value, title) {
 
 function projectionScenarioRow(model, entry) {
   const { key, body } = entry;
-  const result = runProjectionScenario(model, body);
+  const result = storedScenarioRun('projection-scenario-definition', model, body);
   const [mark, word, why] = PROJECTION_SCENARIO_STATUS_WORDS[result.status];
   const open = state.openProjectionScenarios.has(key);
 
@@ -15178,75 +15165,15 @@ function draftStartedAt(model, draft, start) {
 // loud at the moment you try it, and then it is gone.
 // ============================================================
 
-const session = {
-  log: [],        // events so far – the shape `evaluate.js` reads
-  steps: [],      // one per command that went through: { command, args, from, to }
-  at: null,       // how many events are visible; null means all of them
-  // What to show wherever you are on the timeline. Two shapes, because
-  // there are two things worth following: `{kind:'entity', tag}` for
-  // one instance's whole state, and `{kind:'projection', projection,
-  // arguments}` for one fold – a numbering, a running total, anything
-  // no command in view happens to have read.
-  pinned: [],
-  model: null,    // the id of the model this session belongs to
-};
-
 // Versioned with the event log: the session holds events in the shape
 // the model's definitions give them, and a new log version starts from
 // models that no longer exist.
 const SANDBOX_KEY = 'dcb-playground:sandbox:' + EVENT_LOG_KEY.split(':').pop();
 
-function storedSessions() {
-  try {
-    const stored = JSON.parse(sessionStorage.getItem(SANDBOX_KEY));
-    return stored && typeof stored === 'object' ? stored : {};
-  } catch { return {}; }
-}
-
-// Called after every change to the session; the draft, edited in place
-// by the value editors, is caught up on `pagehide` too. Sessions of
-// models deleted since are dropped here.
-function saveSession() {
-  if (!session.model) return;
-  const all = storedSessions();
-  const models = projectState();
-  for (const id of Object.keys(all)) if (!models[id]) delete all[id];
-  const draft = typeof state === 'object' && state ? state.sandboxDraft : null;
-  if (!models[session.model]) delete all[session.model];
-  else if (session.log.length || session.pinned.length || draft) {
-    all[session.model] = { log: session.log, steps: session.steps, at: session.at, pinned: session.pinned, draft };
-  } else delete all[session.model];
-  try {
-    sessionStorage.setItem(SANDBOX_KEY, JSON.stringify(all));
-  } catch {
-    toast('This sandbox will not survive a reload: this tab’s storage is full.', true);
-  }
-}
-
-// Makes `modelId`'s session the one on screen, from where it was put
-// aside – a no-op when it already is. `render` asks on every paint, so
-// a model deleted in another tab cannot leave its session showing
-// against the one this tab falls back to.
-function loadSession(modelId) {
-  if (session.model === modelId) return;
-  saveSession();
-  const stored = (modelId && storedSessions()[modelId]) || {};
-  const list = (value) => (Array.isArray(value) ? value : []);
-  session.log = list(stored.log);
-  session.steps = list(stored.steps);
-  session.at = Number.isInteger(stored.at) && stored.at >= 0 && stored.at < session.log.length ? stored.at : null;
-  session.pinned = list(stored.pinned);
-  session.model = modelId;
-  if (typeof state === 'object' && state) state.sandboxDraft = stored.draft || null;
-}
-window.addEventListener('pagehide', saveSession);
-
-function sessionReset() {
-  session.log = [];
-  session.steps = [];
-  session.at = null;
-  session.pinned = [];
-  saveSession();
+// The log as a DCB event store (`memoryStore`, evaluate.js): each
+// event at its position, tagged as the model tags it.
+function sessionStore(model, log) {
+  return memoryStore(log.map((event) => ({ type: event.type, data: event.data, tags: tagsOfEvent(model, event.type, event.data) })));
 }
 
 // A watch, as a string – its identity for pinning and unpinning.
@@ -15256,68 +15183,146 @@ function watchKey(watch) {
     : 'projection:' + watch.projection + ':' + JSON.stringify(watch.tags || {}) + ':' + JSON.stringify(watch.arguments || {});
 }
 
-function isPinned(watch) {
-  const key = watchKey(watch);
-  return session.pinned.some((w) => watchKey(w) === key);
+// The session, as one module: what was run, where the playhead is,
+// what is watched, and the storage all of it outlives a reload in.
+// Everything that changes it goes through here – the driver, the
+// scrubber, the pins, an import's recorded steps and the agent tools –
+// so the rules a change has to keep live once: the session written
+// back after every change, the right model's session loaded before
+// any, the draft thrown away with the run. Readers take `log`, `steps`
+// and `pinned` as they are and never write to them.
+//
+// The driver's draft stays in `state.sandboxDraft`, because the value
+// editors fill it in place and `closeForms` treats it as an open form;
+// the session only keeps it with the run and drops it with the run.
+//
+// A factory rather than one object so a test can stand up a second
+// session over the same storage – which is what a reload is.
+function sandboxSession() {
+  let log = [];       // events so far – the shape `evaluate.js` reads
+  let steps = [];     // one per command that went through: { command, args, from, to }
+  let at = null;      // how many events are visible; null means all of them
+  // What to show wherever you are on the timeline. Two shapes, because
+  // there are two things worth following: `{kind:'entity', tag}` for
+  // one instance's whole state, and `{kind:'projection', projection,
+  // arguments}` for one fold – a numbering, a running total, anything
+  // no command in view happens to have read.
+  let pinned = [];
+  let owner = null;   // the id of the model this session belongs to
+
+  const hasState = () => typeof state === 'object' && state;
+
+  function stored() {
+    try {
+      const all = JSON.parse(sessionStorage.getItem(SANDBOX_KEY));
+      return all && typeof all === 'object' ? all : {};
+    } catch { return {}; }
+  }
+
+  // Called after every change; the draft, edited in place by the value
+  // editors, is caught up on `pagehide` too. Sessions of models deleted
+  // since are dropped here.
+  function save() {
+    if (!owner) return;
+    const all = stored();
+    const models = projectState();
+    for (const id of Object.keys(all)) if (!models[id]) delete all[id];
+    const draft = hasState() ? state.sandboxDraft : null;
+    if (!models[owner]) delete all[owner];
+    else if (log.length || pinned.length || draft) all[owner] = { log, steps, at, pinned, draft };
+    else delete all[owner];
+    try {
+      sessionStorage.setItem(SANDBOX_KEY, JSON.stringify(all));
+    } catch {
+      toast('This sandbox will not survive a reload: this tab’s storage is full.', true);
+    }
+  }
+
+  // Makes `modelId`'s session the one on screen, from where it was put
+  // aside – a no-op when it already is. `render` asks on every paint, so
+  // a model deleted in another tab cannot leave its session showing
+  // against the one this tab falls back to.
+  function open(modelId) {
+    if (owner === modelId) return;
+    save();
+    const kept = (modelId && stored()[modelId]) || {};
+    const list = (value) => (Array.isArray(value) ? value : []);
+    log = list(kept.log);
+    steps = list(kept.steps);
+    at = Number.isInteger(kept.at) && kept.at >= 0 && kept.at < log.length ? kept.at : null;
+    pinned = list(kept.pinned);
+    owner = modelId;
+    if (hasState()) state.sandboxDraft = kept.draft || null;
+  }
+
+  const position = () => (at === null ? log.length : at);
+  const isWatched = (watch) => pinned.some((w) => watchKey(w) === watchKey(watch));
+
+  return {
+    get log() { return log; },
+    get steps() { return steps; },
+    get pinned() { return pinned; },
+    open,
+    save,
+    position,
+    visible: () => log.slice(0, position()),
+    // The step a position sits inside – the command whose events were
+    // the last to arrive, all of them or, scrubbed into the middle of
+    // a step, some. Nothing at position zero: before the first command
+    // there is no decision to look at.
+    stepAt: (p) => steps.find((s) => p > s.from && p <= s.to) || null,
+    // Moves the playhead, clamped to the run; the end is kept as
+    // "wherever the end is", so the next step stays in view.
+    seek(next) {
+      const to = Math.max(0, Math.min(log.length, next));
+      at = to === log.length ? null : to;
+      save();
+    },
+    isWatched,
+    toggleWatch(watch) {
+      pinned = isWatched(watch) ? pinned.filter((w) => watchKey(w) !== watchKey(watch)) : [...pinned, watch];
+      save();
+    },
+    // The run, the watches and the draft go together: a draft kept
+    // across "start over" would be the one thing that did not.
+    reset() {
+      log = [];
+      steps = [];
+      at = null;
+      pinned = [];
+      if (hasState()) state.sandboxDraft = null;
+      save();
+    },
+    // Drives a command against everything recorded so far. It runs what
+    // dcb-runtime runs: the cycle against an event store
+    // (`handleCommand`), here one in memory over the log. A refusal
+    // changes nothing – not the log, not the position – and comes back
+    // as the ordinary outcome it is; only a run that cannot be
+    // evaluated at all throws. Nothing else writes to the store, so it
+    // never loses a race.
+    drive(model, commandName, args) {
+      open(model.id);
+      const result = handleCommand(model, sessionStore(model, log), commandName, args);
+      if (result.outcome === 'rejected') return { outcome: 'rejected', failedRule: result.failedRule, reads: result.reads };
+      if (result.outcome !== 'published') throw new EvaluationError(result.message || 'The decision lost a race nothing ran.');
+      const events = result.events.map(({ type, data }) => ({ type, data }));
+      const from = log.length;
+      log = [...log, ...events];
+      steps = [...steps, { command: commandName, args, from, to: log.length }];
+      at = null;
+      save();
+      return { outcome: 'published', events, reads: result.reads };
+    },
+  };
 }
 
-function togglePinned(watch) {
-  const key = watchKey(watch);
-  session.pinned = isPinned(watch)
-    ? session.pinned.filter((w) => watchKey(w) !== key)
-    : [...session.pinned, watch];
-  saveSession();
-  render();
-}
-
-function sessionPosition() {
-  return session.at === null ? session.log.length : session.at;
-}
-
-function sessionVisible() {
-  return session.log.slice(0, sessionPosition());
-}
-
-// The step the current position sits inside – the command whose
-// events were the last to arrive, all of them or, scrubbed into the
-// middle of a step, some. Nothing at position zero: before the first
-// command there is no decision to look at.
-function sessionStepAt(position) {
-  return session.steps.find((s) => position > s.from && position <= s.to) || null;
-}
-
-// The log as a DCB event store (`memoryStore`, evaluate.js): each
-// event at its position, tagged as the model tags it.
-function sessionStore(model, log) {
-  return memoryStore(log.map((event) => ({ type: event.type, data: event.data, tags: tagsOfEvent(model, event.type, event.data) })));
-}
-
-// Drives a command against everything recorded so far – the one seam
-// the driver button, an import's recorded steps and the agent tools
-// all go through. It runs what dcb-runtime runs: the cycle against an
-// event store (`handleCommand`), here one in memory over the log. A
-// refusal changes nothing – not the log, not the position – and comes
-// back as the ordinary outcome it is; only a run that cannot be
-// evaluated at all throws. Nothing else writes to the store, so it
-// never loses a race.
-function sessionDrive(model, commandName, args) {
-  loadSession(model.id);
-  const result = handleCommand(model, sessionStore(model, session.log), commandName, args);
-  if (result.outcome === 'rejected') return { outcome: 'rejected', failedRule: result.failedRule, reads: result.reads };
-  if (result.outcome !== 'published') throw new EvaluationError(result.message || 'The decision lost a race nothing ran.');
-  const events = result.events.map(({ type, data }) => ({ type, data }));
-  const from = session.log.length;
-  session.log.push(...events);
-  session.steps.push({ command: commandName, args, from, to: session.log.length });
-  session.at = null;
-  saveSession();
-  return { outcome: 'published', events, reads: result.reads };
-}
+const session = sandboxSession();
+window.addEventListener('pagehide', () => session.save());
 
 function sessionRun(model, commandName, args) {
   let result;
   try {
-    result = sessionDrive(model, commandName, args);
+    result = session.drive(model, commandName, args);
   } catch (error) {
     return toast(evaluationFailure(error), true);
   }
@@ -15332,7 +15337,7 @@ function sessionRun(model, commandName, args) {
 // folds the same way a declared one does: the binding's one
 // identifier-typed argument is the instance itself, which is all this
 // card has to give it.
-function sessionInstanceState(model, tag, log = sessionVisible()) {
+function sessionInstanceState(model, tag, log = session.visible()) {
   const [entityName, id] = [tag.slice(0, tag.indexOf(':')), tag.slice(tag.indexOf(':') + 1)];
   const entity = model['entity-definitions'][entityName];
   if (!entity) return null;
@@ -15477,12 +15482,11 @@ function trackPointer(onMove) {
 
 function sandboxTimeline(model) {
   const total = session.log.length;
-  const position = sessionPosition();
+  const position = session.position();
   const goTo = (next) => {
     const at = Math.max(0, Math.min(total, next));
     if (at === position) return;
-    session.at = at === total ? null : at;
-    saveSession();
+    session.seek(at);
     render();
   };
   const mode = state.sandboxLanes;
@@ -15493,7 +15497,7 @@ function sandboxTimeline(model) {
 
   // The step the playhead is inside – its events are the ones the page
   // above is about, so they are banded across every lane.
-  const current = sessionStepAt(position);
+  const current = session.stepAt(position);
   const pitch = sandboxPitch();
   const compact = mode === 'compact';
   const at = (n) => `${n * pitch}px`;
@@ -15611,7 +15615,7 @@ function keepLanesInView() {
   const view = sandboxLanesView;
   lanes.scrollTop = view.top;
   lanes.scrollLeft = view.left;
-  const position = sessionPosition();
+  const position = session.position();
   if (position !== view.position) {
     view.position = position;
     const pitch = sandboxPitch();
@@ -15625,40 +15629,53 @@ function keepLanesInView() {
   view.top = lanes.scrollTop;
 }
 
-// ---------- what the current step saw ----------
+// ---------- the step at the playhead, decided again ----------
 //
 // The boundary is re-derived rather than remembered. A definition
 // edited while a session is open changes what this shows, which is the
 // point of having both open at once – and if the edit means the
 // command would no longer go through, that is worth being told rather
 // than being shown a boundary that no longer applies.
+//
+// Decided once, the way it ran: the cycle against the store
+// (`handleCommand`), with every call traced. Reads, Now and Store all
+// render this one replay, so what Reads says the step read is what
+// Store says it asked for. Kept for as long as the model's revision,
+// the run and the step stay the same – scrubbing within a step repaints
+// on every move and need not decide again.
+let stepReplayCache = null;
+function stepReplay(model, step) {
+  const cached = stepReplayCache;
+  if (cached && cached.model === model && cached.log === session.log && cached.step === step) return cached.replay;
+  const trace = [];
+  const outcome = handleCommand(model, sessionStore(model, session.log.slice(0, step.from)), step.command, step.args, { trace });
+  const trouble = outcome.outcome === 'rejected'
+    ? 'This went through when it was done, and would be refused now: '
+      + (outcome.failedRule.rejection ? `\u201c${outcome.failedRule.rejection}\u201d (${outcome.failedRule.text})`
+        : outcome.failedRule.text) + '.'
+    : outcome.outcome === 'published' ? null
+      : `${readable(step.command)} can no longer be worked out here: ${outcome.message}`;
+  const replay = { outcome, trace, trouble };
+  stepReplayCache = { model, log: session.log, step, replay };
+  return replay;
+}
+
+const troubleCard = (words) => h('div', { class: 'card', style: 'border-color:var(--danger);margin-bottom:8px' },
+  h('div', { class: 'small' }, words));
+
 function sandboxDecision(model) {
-  const position = sessionPosition();
-  const step = sessionStepAt(position);
+  const position = session.position();
+  const step = session.stepAt(position);
   if (!step) {
     return h('div', { class: 'card' },
       h('div', { class: 'empty' }, 'Nothing has happened yet.'));
   }
 
-  let result;
-  try {
-    result = evaluateCommand(model, session.log.slice(0, step.from), step.command, step.args);
-  } catch (error) {
-    return h('div', { class: 'card', style: 'border-color:var(--danger)' },
-      h('div', { class: 'small' },
-        readable(step.command) + ' can no longer be worked out here: ' + evaluationFailure(error)));
-  }
+  const { outcome, trouble } = stepReplay(model, step);
+  if (outcome.outcome !== 'published' && outcome.outcome !== 'rejected') return troubleCard(trouble);
+  const stale = trouble ? troubleCard(trouble + ' Everything after it on the timeline followed from it.') : null;
 
-  const stale = result.outcome === 'rejected'
-    ? h('div', { class: 'card', style: 'border-color:var(--danger);margin-bottom:8px' },
-        h('div', { class: 'small' },
-          'This went through when it was done, and would be refused now: '
-          + (result.failedRule.rejection ? `\u201c${result.failedRule.rejection}\u201d (${result.failedRule.text})`
-            : result.failedRule.text)
-          + '. Everything after it on the timeline followed from it.'))
-    : null;
-
-  const reads = Object.entries(result.reads || {});
+  const reads = Object.entries(outcome.reads || {});
   return h('div', {},
     stale,
     reads.length
@@ -15687,11 +15704,11 @@ function sandboxDecision(model) {
 }
 
 function pinButton(watch) {
-  const on = isPinned(watch);
+  const on = session.isWatched(watch);
   return h('button', {
     class: 'pin' + (on ? ' on' : ''),
     title: on ? 'Stop watching this one' : 'Watch this one wherever you are on the timeline',
-    onclick: () => togglePinned(watch),
+    onclick: () => { session.toggleWatch(watch); render(); },
   }, on ? '★' : '☆');
 }
 
@@ -15721,32 +15738,14 @@ function watchRead(watch) {
 function projectionWatchCard(model, watch) {
   const projection = model['projection-definitions'][watch.projection];
   // The query this watch actually runs, with the watched values in it –
-  // not `<courseId>` but `course:c1`. The sandbox is the one place the
-  // arguments are concrete, so it is the one place the query can be
-  // shown the way the store would receive it.
-  // A derived projection runs its operands' queries, each under its own
-  // tags (`foldedReads`), so it shows one line per projection it folds.
-  const queryIcon = projection ? (() => {
-    const read = watchRead(watch);
-    let queries;
-    try {
-      queries = foldedReads(model, { projection: watch.projection, tags: read.tags }).map(({ read: folded }) => {
-        const tags = {};
-        for (const [name, value] of Object.entries(folded.tags || {})) {
-          tags[name] = operandSource(value) === 'tag-literal' ? value.tagValue : value;
-        }
-        const target = model['projection-definitions'][folded.projection];
-        return {
-          tags: projectionQueryTags(model, folded.projection, { tags, args: read.args }),
-          types: uniq(((target && target.handlers) || []).map((x) => x && x.event).filter(Boolean)).sort(),
-        };
-      });
-    } catch (error) { return null; }
-    // A derived projection folds each operand on its own: a call each.
-    return queryPopover('watch:' + watchKey(watch), 'what this watch queries',
-      h('div', { class: 'dq' }, ...queries.map((query, i) => queryBox([query], 'query',
-        queries.length > 1 ? `call ${i + 1} of ${queries.length}` : '1 call'))));
-  })() : null;
+  // not `<courseId>` but `course:c1`: the reads the fold makes of the
+  // store, traced (`projectFromStore`), not a description of them. A
+  // derived projection folds each operand on its own, so it shows one
+  // call per read. Worked out only while the popover is open: a card
+  // repaints on every move of the playhead.
+  const queryKey = 'watch:' + watchKey(watch);
+  const queryIcon = projection ? queryPopover(queryKey, 'what this watch queries',
+    state.queryPop === queryKey ? watchQuery(model, watch) : null) : null;
   const head = (...rest) => h('div', { class: 'card' },
     h('div', { class: 'sc-line' },
       pinButton(watch),
@@ -15786,7 +15785,19 @@ function projectionWatchCard(model, watch) {
           : JSON.stringify(inside.value)))) : null);
 }
 
-function foldWatch(model, watch, fold, log = sessionVisible()) {
+// The store calls a watch's fold makes at the position looked at: one
+// box per read, in order, with the values it asked with.
+function watchQuery(model, watch) {
+  const trace = [];
+  const read = watchRead(watch);
+  projectFromStore(model, sessionStore(model, session.visible()), watch.projection, { ...read.args, ...read.tags }, { trace });
+  const reads = trace.filter((entry) => entry.call === 'read');
+  if (!reads.length) return h('div', { class: 'k' }, 'It cannot be worked out here, so it asks nothing.');
+  return h('div', { class: 'dq' }, ...reads.map((entry, i) => queryBox(entry.query, 'query',
+    reads.length > 1 ? `call ${i + 1} of ${reads.length}` : '1 call')));
+}
+
+function foldWatch(model, watch, fold, log = session.visible()) {
   try {
     return { value: (fold || foldProjection)(model, log, watch.projection, watchRead(watch)) };
   } catch (error) {
@@ -15842,11 +15853,11 @@ function sandboxWatched(model) {
 // How many watches the step at the playhead changed – said on the tab,
 // so a change is noticed without opening it.
 function watchesChangedByStep(model) {
-  const step = sessionStepAt(sessionPosition());
+  const step = session.stepAt(session.position());
   if (!step) return 0;
   return session.pinned.filter((watch) => {
     const before = watchValueAt(model, watch, session.log.slice(0, step.from));
-    const now = watchValueAt(model, watch, sessionVisible());
+    const now = watchValueAt(model, watch, session.visible());
     return before && now && before.key !== now.key;
   }).length;
 }
@@ -15902,7 +15913,7 @@ function watchHistory(model, watch) {
   if (!total) return null;
   const series = watchSeries(model, watch).filter((p) => p.value);
   if (!series.length) return null;
-  const position = sessionPosition();
+  const position = session.position();
   const x = (n) => (n / total * 100).toFixed(2);
   const nums = series.map((p) => p.value.num);
   const gap = (p) => p.value.num === null && (p.value.key === 'null' || p.value.key[0] === '\0');
@@ -15949,11 +15960,11 @@ function watchHistory(model, watch) {
 function watchTile(model, watch) {
   const card = watchCard(model, watch);
   card.classList.add('sbx-tile');
-  const position = sessionPosition();
-  const step = sessionStepAt(position);
+  const position = session.position();
+  const step = session.stepAt(position);
   if (step) {
     const before = watchValueAt(model, watch, session.log.slice(0, step.from));
-    const now = watchValueAt(model, watch, sessionVisible());
+    const now = watchValueAt(model, watch, session.visible());
     const changed = before && now && before.key !== now.key;
     if (changed) card.classList.add('changed');
     card.appendChild(h('div', { class: 'sbx-delta' + (changed ? ' changed' : '') },
@@ -16009,14 +16020,15 @@ function watchProjectionAdder(model, names) {
               return toast(`Say which ${readable(tag.tagType)} to watch it tagged by.`, true);
             }
           }
-          // The draft must close before the pin repaints: `togglePinned`
-          // renders, and a paint with the draft still set leaves this
+          // The draft must close before the pin repaints: a paint
+          // with the draft still set leaves this
           // form on screen holding a stale closure – whose resubmission
           // carries the old arguments and so *unpins* the watch it just
           // added.
           const watch = projectionWatch(draft.projection, deepClone(draft.tags || {}), { ...draft.arguments });
           state.watchDraft = null;
-          togglePinned(watch);
+          session.toggleWatch(watch);
+          render();
         },
       }, 'Watch it'),
       h('button', {
@@ -16054,22 +16066,20 @@ function sessionIdentifiers(model, typeName) {
 // Deciding the command again would not do: a refusal stops short of
 // the reads after the rule that refused it.
 function sandboxNow(model) {
-  const position = sessionPosition();
-  const step = sessionStepAt(position);
+  const position = session.position();
+  const step = session.stepAt(position);
   if (!step) {
     return h('div', { class: 'card' },
       h('div', { class: 'empty' }, 'Nothing has happened yet.'));
   }
 
-  let then;
-  try {
-    then = evaluateCommand(model, session.log.slice(0, step.from), step.command, step.args);
-  } catch (error) {
+  const { outcome } = stepReplay(model, step);
+  if (outcome.outcome !== 'published' && outcome.outcome !== 'rejected') {
     return h('div', { class: 'card' },
       h('div', { class: 'empty' }, 'See Reads.'));
   }
 
-  const reads = Object.entries(then.reads || {});
+  const reads = Object.entries(outcome.reads || {});
   if (!reads.length) {
     return h('div', { class: 'card' }, h('div', { class: 'empty' }, 'It involved nothing.'));
   }
@@ -16112,8 +16122,8 @@ function sandboxNow(model) {
 // Its events past the playhead are on the page but faint – the
 // position can sit inside a step, and those have not happened yet.
 function sandboxAppended(model) {
-  const position = sessionPosition();
-  const step = sessionStepAt(position);
+  const position = session.position();
+  const step = session.stepAt(position);
   if (!step) return h('div', { class: 'empty' }, '–');
   return h('div', {},
     h('div', { class: 'sc-line' },
@@ -16134,11 +16144,10 @@ function sandboxAppended(model) {
 //
 // The step's calls to the event store, in order (_DCB queries, shown_):
 // head, each read with its query and what it returned, the append with
-// its condition and where it landed. Worked out again on every repaint,
-// like Reads – the command decided anew against the log as it stood
-// before the step – so an edit to the model shows here at once, and a
-// step that would not go through now shows its calls as far as they
-// got.
+// its condition and where it landed – the trace of `stepReplay`, the
+// replay Reads shows too – so an edit to the model shows here at once,
+// and a step that would not go through now shows its calls as far as
+// they got.
 function sandboxHighlight(positions) {
   for (const node of document.querySelectorAll('.smark.sbx-hit')) node.classList.remove('sbx-hit');
   for (const at of positions || []) {
@@ -16146,18 +16155,10 @@ function sandboxHighlight(positions) {
   }
 }
 
-// The step decided again, against the log as it stood before it, with
-// every call to the store traced.
-function sandboxStoreRun(model, step) {
-  const trace = [];
-  const outcome = handleCommand(model, sessionStore(model, session.log.slice(0, step.from)), step.command, step.args, { trace });
-  return { trace, outcome };
-}
-
-function sandboxStore(model, run) {
-  const step = sessionStepAt(sessionPosition());
+function sandboxStore(model) {
+  const step = session.stepAt(session.position());
   if (!step) return h('div', { class: 'card' }, h('div', { class: 'empty' }, 'Nothing has happened yet.'));
-  const { trace, outcome } = run || sandboxStoreRun(model, step);
+  const { trace, outcome, trouble } = stepReplay(model, step);
   const json = queryAsJson();
   const reads = [];
   let n = 0;
@@ -16216,11 +16217,8 @@ function sandboxStore(model, run) {
             : h('div', { class: 'k' }, 'no condition – it read nothing, so there is nothing to be consistent with'),
         ]);
   });
-  const now = outcome.outcome === 'rejected'
-    ? `This went through when it was done, and would be refused now: \u201c${outcome.failedRule.rejection || outcome.failedRule.text}\u201d. These are the calls it makes now.`
-    : outcome.outcome === 'error' ? `${readable(step.command)} can no longer be worked out here: ${outcome.message}` : null;
   return h('div', { class: 'sbx-calls' },
-    now ? h('div', { class: 'card', style: 'border-color:var(--danger)' }, h('div', { class: 'small' }, now)) : null,
+    trouble ? troubleCard(outcome.outcome === 'rejected' ? trouble + ' These are the calls it makes now.' : trouble) : null,
     calls.length ? calls : h('div', { class: 'card' }, h('div', { class: 'empty' }, 'It asked the store nothing.')));
 }
 
@@ -16233,9 +16231,9 @@ function sandboxStore(model, run) {
 // through – and its tab says how many the step changed, so a change is
 // noticed from the others.
 function sandboxPanel(model) {
-  const step = sessionStepAt(sessionPosition());
+  const step = session.stepAt(session.position());
   const current = state.sandboxTab || 'watched';
-  const run = step && current === 'store' ? sandboxStoreRun(model, step) : null;
+  const run = step && current === 'store' ? stepReplay(model, step) : null;
   const changed = watchesChangedByStep(model);
   const badge = (text, cls = '') => h('span', { class: 'sbx-badge' + cls }, text);
   const tab = (key, ...label) => h('button', {
@@ -16247,7 +16245,7 @@ function sandboxPanel(model) {
   let body;
   if (current === 'watched') body = sandboxWatched(model);
   else if (!step) body = h('div', { class: 'empty' }, session.log.length ? 'Before the first step – nothing decided yet.' : 'Nothing has happened yet – run a command.');
-  else if (current === 'store') body = sandboxStore(model, run);
+  else if (current === 'store') body = sandboxStore(model);
   else {
     body = h('div', { class: 'sbx-cols' },
       h('div', { class: 'sbx-col' }, h('h4', {}, 'Append'), sandboxAppended(model)),
@@ -16296,7 +16294,7 @@ function renderSandbox(model, main) {
           label: 'Start over',
           title: 'Throw all of this away and start from nothing',
           confirm: 'Really start over?',
-          onRemove: () => { state.sandboxDraft = null; sessionReset(); render(); },
+          onRemove: () => { session.reset(); render(); },
         })
       : null));
 
@@ -16340,9 +16338,10 @@ function renderSandbox(model, main) {
 // ============================================================
 
 const SURFACE_KEY = 'dcb-playground:surface';
-function setCodeSurface(on) {
-  state.code = on;
-  localStorage.setItem(SURFACE_KEY, on ? 'code' : 'visual');
+function setSurface(surface) {
+  state.code = surface !== 'visual';
+  state.split = surface === 'split';
+  localStorage.setItem(SURFACE_KEY, surface);
 }
 
 // How folded a model's text opens – nothing, its scenarios groups, or
@@ -16355,17 +16354,28 @@ function storedCodeFold() {
   return stored === 'open' || stored === 'all' ? stored : 'scenarios';
 }
 
-// The pages about definitions – what the code follows. Any other page
-// (the Overview, the sandbox, the cross-cutting overviews) is shown as
-// a page while the surface stays Code: only the Visual button leaves
-// it, and a way from that page to a definition – an Overview card, a
-// chip – lands on it in the code. Switching to Code on the Overview
-// itself goes to the code (`enterCode`).
+// The pages about definitions – what the code follows, and the only
+// pages that carry the switch. Any other page (the Overview, the
+// sandbox, the cross-cutting overviews) is shown as a page while the
+// surface stays Code, and a way from that page to a definition – an
+// Overview card, a chip – lands on it in the code.
 const CODE_FOLLOWS = ['slice', 'entity', 'events', 'projections', 'types'];
-function codeShown() { return !!state.code && CODE_FOLLOWS.includes(state.view); }
-// Where the toggle does something: the definition pages, and the
-// Overview, whose Code always opens the code (`enterCode`).
-function codeFollowsPage() { return CODE_FOLLOWS.includes(state.view) || state.view === 'overview'; }
+// Split needs room for a page and the text beside it: the rail and two
+// columns of about 550px. Narrower, a split surface shows the pages –
+// the choice is kept, and comes back with the width.
+const SPLIT_MEDIA = '(min-width: 1360px)';
+function splitFits() { return typeof matchMedia !== 'function' || matchMedia(SPLIT_MEDIA).matches; }
+function codeShown() {
+  return !!state.code && CODE_FOLLOWS.includes(state.view) && (!state.split || splitFits());
+}
+function splitShown() { return codeShown() && !!state.split; }
+// Crossing the width repaints, so a split surface turns into pages and
+// back as the window is resized.
+if (typeof matchMedia === 'function') {
+  matchMedia(SPLIT_MEDIA).addEventListener('change', () => {
+    if (state.split && CODE_FOLLOWS.includes(state.view) && activeModel()) render();
+  });
+}
 
 // The definition under the cursor as the code is left, to come back to
 // from the Overview.
@@ -16405,6 +16415,8 @@ const codeView = {
   editor: null,         // { root, editor, model } once Monaco is up
   loading: false,       // writing into Monaco, not the author typing
   timer: null,
+  following: false,     // the split's page moved after the cursor (`followCodeCursor`)
+  followTimer: null,
   statusEl: null,       // the strip under the editor
   cursorEl: null,
   listEl: null,
@@ -16508,8 +16520,16 @@ function refreshCodeChrome() {
   }
   if (codeView.statusEl) codeView.statusEl.replaceWith(codeView.statusEl = codeStrip());
   if (codeView.listEl) codeView.listEl.replaceWith(codeView.listEl = codeProblemList(analysis));
-  const toggle = document.querySelector('#tools .surface');
-  if (toggle) toggle.replaceWith(surfaceToggle(model));
+  const toggle = document.querySelector('#main > header .surface');
+  if (toggle) {
+    // Its dot follows the text; the keyboard, if it was on the switch,
+    // stays on the same button.
+    const held = toggle.contains(document.activeElement) && document.activeElement.getAttribute('aria-label');
+    const fresh = surfaceToggle(model);
+    toggle.replaceWith(fresh);
+    const again = held && fresh.querySelector(`[aria-label="${held}"]`);
+    if (again) again.focus({ preventScroll: true });
+  }
 }
 
 // The scenarios groups, set apart from the definitions they exercise:
@@ -16741,25 +16761,58 @@ function revertCode() {
   render();
 }
 
-// Into the code view, revealing what the page was about.
+// Into the code view, revealing what the page was about – or, from
+// the split, the text alone, the cursor where it was.
 function enterCode() {
-  // The Overview has no definition of its own to stay on, and staying
-  // on it would make the toggle look like it did nothing: Code opens the
-  // code – even when it is the surface already – where it was left, or
-  // where the commands start, as the Overview's Commands card does.
-  const fromOverview = state.view === 'overview';
-  if (state.code && !fromOverview) return;
+  if (codeShown() && !state.split) return;
+  const fromSplit = splitShown();
   closeForms(); // commits whatever a page had half-typed
-  setCodeSurface(true);
+  setSurface('code');
+  if (!fromSplit) {
+    codeView.shownView = null;
+    codeView.focus = null;
+  }
+  render();
+  focusSurfaceSwitch();
+}
+
+// The page and its code side by side. From the code, the page is the
+// one for the definition under the cursor, as leaving the code does.
+function enterSplit() {
+  if (splitShown()) return;
+  const fromCode = codeShown();
+  closeForms();
+  setSurface('split');
+  if (!fromCode) {
+    codeView.shownView = null;
+    codeView.focus = null;
+  }
+  if (!fromCode || !followCodeCursor()) render();
+  focusSurfaceSwitch();
+}
+
+// After a switch the keyboard stays on the switch: restored by its
+// rank (`restoreMainFocusRank`) it would land on whatever the new
+// surface has in that place.
+function focusSurfaceSwitch() {
+  const on = document.querySelector('#main > header .surface .on');
+  if (on && on.focus) on.focus({ preventScroll: true });
+}
+
+// Back into the code from anywhere – the bar's unapplied-code button –
+// where it was left, or where the commands start.
+function resumeCode() {
+  closeForms();
+  setSurface(state.split && splitFits() ? 'split' : 'code');
   codeView.shownView = null;
   codeView.focus = null;
-  if (fromOverview) {
-    const model = activeModel();
-    const last = codeView.last;
-    if (model && last && last.modelId === model.id && model[DEF_COLLECTIONS[last.kind]][last.name] !== undefined) {
-      codeView.section = [last.kind, last.name];
-      return openDefinition(last.kind, last.name);
-    }
+  const model = activeModel();
+  const last = codeView.last;
+  if (model && last && last.modelId === model.id && model[DEF_COLLECTIONS[last.kind]][last.name] !== undefined) {
+    codeView.section = [last.kind, last.name];
+    return openDefinition(last.kind, last.name);
+  }
+  if (!CODE_FOLLOWS.includes(state.view)) {
     codeView.section = 'command-definition';
     state.view = 'slice';
   }
@@ -16792,12 +16845,14 @@ function leaveCode() {
       toast('Your edits were not applied – the model changed under them. They are kept for when you come back.', true);
     }
   }
-  setCodeSurface(false);
+  setSurface('visual');
   const current = activeModel();
   if (at && current && current[DEF_COLLECTIONS[at.kind]][at.name] !== undefined) {
-    return openDefinition(at.kind, at.name, { scenarios: at.scenarios });
+    openDefinition(at.kind, at.name, { scenarios: at.scenarios });
+  } else {
+    render();
   }
-  render();
+  focusSurfaceSwitch();
 }
 
 function openDefinition(kind, name, { scenarios } = {}) {
@@ -16857,20 +16912,22 @@ function codeCursorLine() {
 
 // `from` is where a whole declaration starts – its annotations – and
 // is put near the top, the way a jump to a definition reads.
-function revealCodeAt(line, col, from) {
+// `focus: false` is the split's: the page moved the text, and the
+// keyboard stays on the page.
+function revealCodeAt(line, col, from, { focus = true } = {}) {
   if (codeView.editor) {
     const { editor } = codeView.editor;
     if (from) editor.revealLineNearTop(from);
     else editor.revealLineInCenterIfOutsideViewport(line);
     editor.setPosition({ lineNumber: line, column: col || 1 });
-    editor.focus();
+    if (focus) editor.focus();
     return;
   }
   const area = document.querySelector('.code-text');
   if (!area || typeof area.value !== 'string') return;
   const lines = area.value.split('\n');
   const offset = lines.slice(0, line - 1).reduce((sum, l) => sum + l.length + 1, 0) + (col || 1) - 1;
-  area.focus();
+  if (focus) area.focus();
   area.setSelectionRange(offset, offset);
   // A textarea scrolls to its caret only when it gains focus; put the
   // line near the top explicitly.
@@ -17105,7 +17162,7 @@ function registerSourceLanguage() {
   // appends.
   const commandHover = (q) => {
     const code = (words) => words.map((w) => `\`${w}\``).join(', ');
-    const planned = plannedQueries(q);
+    const planned = commandPlan(q).calls;
     const many = planned.length > 1;
     const fence = (lines, lang = 'text') => '```' + lang + '\n' + lines.join('\n') + '\n```';
     // The queries alone, as JSON – what a store is asked; the page's
@@ -17163,7 +17220,10 @@ function createCodeEditor() {
   editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, applyCode);
   editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, applyCode);
   model.onDidChangeContent(() => { if (!codeView.loading) onCodeInput(model.getValue()); });
-  editor.onDidChangeCursorPosition(() => { if (codeView.cursorEl) codeView.cursorEl.textContent = codeCursorWords(); });
+  editor.onDidChangeCursorPosition(() => {
+    if (codeView.cursorEl) codeView.cursorEl.textContent = codeCursorWords();
+    followCodeCursorSoon();
+  });
   // Escape belongs to the editor's own widgets, never to the page.
   root.addEventListener('keydown', (e) => { if (e.key === 'Escape') e.stopPropagation(); });
   return { root, editor, model, textFor: codeView.modelId };
@@ -17282,24 +17342,23 @@ function downloadCode(model) {
   setTimeout(() => URL.revokeObjectURL(link.href), 1000);
 }
 
-function renderCode(model, main) {
+function renderCode(model, main, { split = false } = {}) {
   syncCodeView(model);
-  main.appendChild(h('header', {},
-    h('div', { class: 'name' }, 'Code',
-      hint('code', 'The model as code', [
-        ['Every type, event, entity, projection and command on the other pages, as one text. '
-          + 'Edit it and apply with ', kbd('Mod+S'), '; going back to the pages applies it too. An apply is one undo step.'],
-        'Scenarios sit in a scenarios group at the end of the command or projection they exercise, '
-          + 'folded to one line until opened. The fold button steps through nothing folded, scenarios folded, '
-          + 'and every definition folded with its scenarios still folded inside. Leave a then out and '
-          + 'applying records what the model does; a drifted one is marked, with a fix that accepts it. '
-          + 'Comments are not stored – they last as long as the text in this editor.',
-        ['Hover a command\'s name for the consistency boundary it derives; ', kbd('Mod+click'),
-          ' a name to go to it; ', kbd('Mod+Shift+O'), ' lists every definition. ', kbd('Ctrl+Space'),
-          ' suggests what fits where the cursor is; ', kbd('F2'), ' renames a name everywhere it means '
-          + 'the same thing, and ', kbd('Shift+F12'), ' lists where it is used.'],
-      ], NOTATION_GUIDE_URL, 'notation')),
-    h('div', { class: 'muted small' }, 'The same definitions as the pages, written out.')));
+  // The page's own header, less what only the page can do (its mark,
+  // Rename, Remove, adding): which definition the code is at, and the
+  // switch back. Renaming in the code is F2. In the split the page's
+  // header is there, whole, over both.
+  if (!split) {
+    const [kindLabel, title] = state.view === 'slice' ? ['Command', named(state.slice)]
+      : state.view === 'entity' ? ['Entity', named(state.entity)]
+        : [null, { events: 'Events', projections: 'Projections', types: 'Custom types' }[state.view]];
+    main.appendChild(h('header', {},
+      h('div', { class: 'row' },
+        kindLabel ? h('span', { class: 'code-kind' }, kindLabel) : null,
+        h('div', { class: 'name' }, title),
+        h('span', { class: 'grow' }),
+        surfaceToggle(model))));
+  }
 
   const editorElement = codeEditorElement();
   main.appendChild(h('div', { class: 'code-bar' },
@@ -17313,6 +17372,19 @@ function renderCode(model, main) {
     h('button', { class: 'btn ghost tiny code-tool', type: 'button', onclick: () => downloadCode(model) },
       codeToolIcon('<path d="M12 3v12"></path><polyline points="7 10 12 15 17 10"></polyline><path d="M5 21h14"></path>'),
       'Download ' + SOURCE_EXTENSION),
+    hint('code', 'The model as code', [
+      ['Every type, event, entity, projection and command on the other pages, as one text. '
+        + 'Edit it and apply with ', kbd('Mod+S'), '; going back to the pages applies it too. An apply is one undo step.'],
+      'Scenarios sit in a scenarios group at the end of the command or projection they exercise, '
+        + 'folded to one line until opened. The fold button steps through nothing folded, scenarios folded, '
+        + 'and every definition folded with its scenarios still folded inside. Leave a then out and '
+        + 'applying records what the model does; a drifted one is marked, with a fix that accepts it. '
+        + 'Comments are not stored – they last as long as the text in this editor.',
+      ['Hover a command\'s name for the consistency boundary it derives; ', kbd('Mod+click'),
+        ' a name to go to it; ', kbd('Mod+Shift+O'), ' lists every definition. ', kbd('Ctrl+Space'),
+        ' suggests what fits where the cursor is; ', kbd('F2'), ' renames a name everywhere it means '
+        + 'the same thing, and ', kbd('Shift+F12'), ' lists where it is used.'],
+    ], NOTATION_GUIDE_URL, 'notation'),
     h('a', { class: 'small code-ref', href: NOTATION_REFERENCE_URL, target: '_blank', rel: 'noopener' }, 'Notation reference ↗')));
 
   codeView.statusEl = codeStrip();
@@ -17327,6 +17399,17 @@ function renderCode(model, main) {
   // page's own definition, which is then taken as shown – so the next
   // paint stays where the section put the text.
   const page = pageDefinition();
+  // The page moved because the cursor did (`followCodeCursor`): the
+  // text stays where it is, and keeps the keyboard.
+  if (codeView.following) {
+    codeView.following = false;
+    codeView.section = null;
+    codeView.focus = page ? page.join(':') : null;
+    codeView.shownView = state.view;
+    setTimeout(() => { if (codeView.editor) codeView.editor.editor.focus(); }, 0);
+    setTimeout(refreshCodeChrome, 0);
+    return;
+  }
   const target = Array.isArray(codeView.section) ? codeView.section
     : codeView.section ? [codeView.section, null] : page;
   codeView.section = null;
@@ -17345,11 +17428,61 @@ function renderCode(model, main) {
     // After this paint has attached the editor – a timeout rather than
     // a frame, which a background tab never gets.
     setTimeout(() => {
-      if (span) revealCodeAt(span.nameLine, span.nameCol, span.line);
-      else if (codeView.editor) codeView.editor.editor.focus();
+      if (span) revealCodeAt(span.nameLine, span.nameCol, span.line, { focus: !split });
+      else if (codeView.editor && !split) codeView.editor.editor.focus();
     }, 0);
   }
   setTimeout(refreshCodeChrome, 0);
+}
+
+// The page and its code side by side: the page's header over both,
+// the page beneath it on the left, the code toolbar and text on the
+// right, held in view while the page scrolls. Clicking into the page
+// applies a text that parses, as leaving the code does, and before the
+// page acts – so its edit lands on the model the text says, and never
+// marks that text stale. That click only applies: the repaint takes
+// what it was aimed at. A text that does not parse stays as typed; a
+// page edit then marks it stale, as anywhere else.
+function renderSplit(model, main) {
+  const pageColumn = h('div', { class: 'split-page' });
+  paintView(model, pageColumn);
+  const header = [...pageColumn.children].find((child) => child.tagName === 'HEADER');
+  if (header) main.appendChild(header);
+  pageColumn.addEventListener('pointerdown', () => {
+    if (codeView.modelId !== model.id || !codeDirty() || codeView.stale) return;
+    if (analyseCode(model).errors.length) return;
+    applyCode();
+  }, true);
+  const codeColumn = h('div', { class: 'split-code' });
+  renderCode(model, codeColumn, { split: true });
+  main.appendChild(h('div', { class: 'split' }, pageColumn, codeColumn));
+  // The code column is held under the header, whatever its height.
+  setTimeout(() => {
+    if (header) main.style.setProperty('--split-head', header.offsetHeight + 'px');
+  }, 0);
+}
+
+// In the split, the page follows the definition the cursor is in, a
+// beat after it stops. A page already showing it – its own definition,
+// or the whole kind's page for one of that kind – stays, so the cursor
+// a page put there never moves the page. A definition typed and not
+// applied yet has no page to go to.
+function followCodeCursorSoon() {
+  if (!splitShown()) return;
+  clearTimeout(codeView.followTimer);
+  codeView.followTimer = setTimeout(followCodeCursor, 300);
+}
+function followCodeCursor() {
+  const model = activeModel();
+  if (!model || !splitShown()) return false;
+  const line = codeCursorLine();
+  const at = line ? sourceSpanAt(analyseCode(model).parsed, line) : null;
+  if (!at || model[DEF_COLLECTIONS[at.kind]][at.name] === undefined) return false;
+  const page = pageDefinition();
+  if (page && page[0] === at.kind && (page[1] === at.name || page[1] === null)) return false;
+  codeView.following = true;
+  openDefinition(at.kind, at.name);
+  return true;
 }
 
 // Escape backs out of one layer, wherever the focus happens to be, and
@@ -17520,7 +17653,7 @@ document.getElementById('rail').addEventListener('click', (e) => {
 // model changes or another is opened (`addressModelId`); one that does
 // not is cleared at once. A `#url=` link fetches its file anew on every
 // open; the copy it makes is of the file as it is then. A link may add `&surface=code` (or
-// `visual`) to say which surface the model opens on – dcb.events does
+// `visual`, or `split`) to say which surface the model opens on – dcb.events does
 // on the pages explaining the notation, whose reader came for the text –
 // and `&experimental` to show experimental features for this session.
 async function boot() {
@@ -17570,7 +17703,7 @@ async function boot() {
 async function openModelLink(link) {
   addressModelId = null;
   const surface = link.options.get('surface');
-  if (surface === 'code' || surface === 'visual') setCodeSurface(surface === 'code');
+  if (['code', 'visual', 'split'].includes(surface)) setSurface(surface);
   if (link.options.has('experimental')) enableExperimentalForSession();
   let envelope;
   try {

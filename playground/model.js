@@ -177,8 +177,8 @@ const SIMPLE_TYPES = ['boolean', 'integer', 'string'];
 // `docs/research/2026-09-30-entity-lifecycle-as-boolean-existence.md`.
 const LIFECYCLE_PROPERTY = 'exists';
 
-const PASCAL_RE = /^[A-Z][A-Za-z0-9]+$/;
-const CAMEL_RE = /^[a-z][A-Za-z0-9]+$/;
+const PASCAL_RE = /^\p{Lu}[\p{L}\p{M}\p{Nd}]+$/u;
+const CAMEL_RE = /^\p{Ll}[\p{L}\p{M}\p{Nd}]+$/u;
 
 const UNARY_PREDICATES = ['isEmpty', 'isNotEmpty', 'isTrue', 'isFalse'];
 const BINARY_PREDICATES = [
@@ -432,6 +432,181 @@ function compactLog() {
     throw error;
   }
   notifyCompacted(compacted);
+}
+
+// ---------- undo histories ----------
+//
+// What a model's undo history is and how it moves, over plain values:
+// a tab's histories, `{ models: { [id]: { done, undone, trimmed } },
+// restarted }`, and the log's events. Nothing here stores, toasts or
+// repaints – the page keeps the histories in sessionStorage and says
+// what happened (see _History and undo_). Each function changes the
+// histories value it is handed, which the caller then stores.
+//
+// A step is not a position but a count: the model's last `n` events,
+// the newest of which still has to be the one the step ended with
+// (`stamp`). Positions move whenever another model's step is taken out
+// or the log is compacted; a model's own tail moves only when the model
+// itself changes. That is the one case a step is refused: the model was
+// changed elsewhere since, and undoing here would take that change too.
+
+// Steps kept per model; the oldest falls off.
+const HISTORY_LIMIT = 60;
+
+// An event as a step remembers it – by when it was written and what it
+// was, not by its sequence number, which a compaction or another
+// model's undo renumbers while the event itself is kept.
+function eventStamp(event) {
+  return event ? `${event.timestamp} ${event.type} ${event.data && event.data.name || ''}` : '';
+}
+function ofModel(event, modelId) {
+  return !!event.data && event.data['dcb-model-id'] === modelId;
+}
+// Where in the log each of a model's events sits, oldest first.
+function modelPositions(events, modelId) {
+  const at = [];
+  events.forEach((event, i) => { if (ofModel(event, modelId)) at.push(i); });
+  return at;
+}
+
+function historyOf(histories, modelId) {
+  return histories.models[modelId] || (histories.models[modelId] = { done: [], undone: [] });
+}
+
+// What a step changed, as the History page lists it – capped, since a
+// whole model applied as code can be hundreds of events.
+function changesOfStep(group) {
+  return group.slice(0, 40).map((event) => ({
+    type: event.type, name: event.data.name || null, from: event.data['previous-name'] || null,
+  }));
+}
+
+// One gesture's appends, as one step per model they touched. Creating a
+// model starts its history rather than being a step in it; deleting one
+// ends it, and the deletions come back – `[[id, event]]` – for the page
+// to offer to take back. `label` names a step from its events.
+function markHistories(histories, appended, { agent = false, via = null, label }) {
+  const byModel = new Map();
+  for (const event of appended) {
+    const id = event.data && event.data['dcb-model-id'];
+    if (!id) continue;
+    if (!byModel.has(id)) byModel.set(id, []);
+    byModel.get(id).push(event);
+  }
+  const deleted = [];
+  for (const [id, group] of byModel) {
+    const deletion = group.find((event) => event.type === 'dcb-model-deleted');
+    if (deletion) {
+      delete histories.models[id];
+      deleted.push([id, deletion]);
+      continue;
+    }
+    if (group.some((event) => event.type === 'dcb-model-created')) {
+      delete histories.models[id];
+      continue;
+    }
+    const history = historyOf(histories, id);
+    const last = group[group.length - 1];
+    history.done.push({
+      n: group.length, stamp: eventStamp(last), label: label(group),
+      time: last.timestamp, agent: !!agent, via: via || null, changes: changesOfStep(group),
+    });
+    // Redoing after a new change would mean putting back entries the
+    // model has moved on from, so the branch is dropped – on an agent's
+    // append exactly as on a button's.
+    history.undone = [];
+    if (history.done.length > HISTORY_LIMIT) {
+      history.done.shift();
+      history.trimmed = true;
+    }
+  }
+  return deleted;
+}
+
+// One model's history as a reader takes it: its steps, oldest first,
+// what was undone, newest last, whether the oldest fell off the limit,
+// and when it last started again after a change elsewhere – the same
+// shape whether or not the model has a history at all.
+function historySteps(histories, modelId) {
+  const history = histories.models[modelId];
+  return {
+    done: history ? history.done : [],
+    undone: history ? history.undone : [],
+    trimmed: !!(history && history.trimmed),
+    restarted: (histories.restarted && histories.restarted[modelId]) || null,
+  };
+}
+
+// Moves a model's history `delta` steps – back when negative, forward
+// when positive – over `events`, however far it goes: `{ events, moved }`,
+// the log as it then is and how many steps it moved. A model changed
+// elsewhere since is `{ refused: true }`: its history is dropped and
+// the time noted in `restarted`, and the log is left as it was.
+function travelHistory(histories, events, modelId, delta, now = new Date().toISOString()) {
+  const history = histories.models[modelId];
+  if (!history) return { events, moved: 0 };
+  let moved = 0;
+  const refuse = () => {
+    delete histories.models[modelId];
+    histories.restarted = { ...histories.restarted, [modelId]: now };
+    return { refused: true };
+  };
+  while (delta < 0 && history.done.length) {
+    const mark = history.done[history.done.length - 1];
+    const at = modelPositions(events, modelId);
+    if (at.length < mark.n || eventStamp(events[at[at.length - 1]]) !== mark.stamp) return refuse();
+    const out = new Set(at.slice(-mark.n));
+    const removed = events.filter((event, i) => out.has(i));
+    events = events.filter((event, i) => !out.has(i));
+    const left = at.length > mark.n ? events[modelPositions(events, modelId).pop()] : null;
+    history.done.pop();
+    const { n, stamp, ...about } = mark;
+    history.undone.push({
+      events: removed.map(({ timestamp, type, data }) => ({ timestamp, type, data })),
+      base: eventStamp(left), ...about,
+    });
+    delta++; moved--;
+  }
+  while (delta > 0 && history.undone.length) {
+    const step = history.undone[history.undone.length - 1];
+    const at = modelPositions(events, modelId);
+    const newest = at.length ? eventStamp(events[at[at.length - 1]]) : '';
+    if (newest !== step.base) return refuse();
+    events = [...events, ...step.events];
+    history.undone.pop();
+    const { events: replayed, base, ...about } = step;
+    history.done.push({ n: replayed.length, stamp: eventStamp(replayed[replayed.length - 1]), ...about });
+    delta--; moved++;
+  }
+  return { events: moved ? events.map((event, i) => ({ ...event, sequence: i })) : events, moved };
+}
+
+// The first position of `events` some history still needs – the first
+// of a model's oldest step, or, with only redo left, the event its redo
+// has to find in place: how far compaction may fold.
+function historyFloor(histories, events) {
+  const ats = [events.length];
+  for (const [id, history] of Object.entries(histories.models)) {
+    const at = modelPositions(events, id);
+    const steps = history.done.reduce((sum, mark) => sum + mark.n, 0);
+    if (history.done.length && at.length >= steps) ats.push(at[at.length - steps]);
+    else if (history.undone.length && at.length) ats.push(at[at.length - 1]);
+  }
+  return Math.min(...ats);
+}
+
+// A model's undo steps, oldest first, each with how many of the model's
+// events came after it began – each one a point it can be compared
+// with. None once the model was changed elsewhere: the history no
+// longer stands, and its next undo drops it.
+function historyVersions(histories, events, modelId) {
+  const history = histories.models[modelId];
+  if (!history || !history.done.length) return [];
+  const at = modelPositions(events, modelId);
+  const newest = history.done[history.done.length - 1];
+  if (!at.length || eventStamp(events[at[at.length - 1]]) !== newest.stamp) return [];
+  let since = 0;
+  return history.done.slice().reverse().map((mark) => ({ ...mark, since: since += mark.n })).reverse();
 }
 
 function generateId() {
@@ -1137,6 +1312,43 @@ function derivedText(derived) {
   const right = operandText(derived.rightHandSide);
   const symbol = DERIVED_OPERATOR_SYMBOL[derived.operator];
   return symbol ? `${left} ${symbol} ${right}` : `${derived.operator}(${left}, ${right})`;
+}
+
+// A scenario as it is stored, whoever writes it – the page's save, a
+// text applied as code: every optional property it leaves unset spelt
+// out as the explicit null, in each Given step, a command's arguments
+// and a published Then. Optional lists are left alone, as evaluation
+// leaves them (`evWithExplicitOptionals`): they evaluate as plain
+// lists, and the advisories point the combination out. Fills `body`
+// in place and returns it.
+function canonicalScenario(model, kind, body) {
+  const own = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
+  const fill = (data, properties) => {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) return;
+    for (const property of properties || []) {
+      if (!property || !property.isOptional || property.isList) continue;
+      if (!own(data, property.name) || data[property.name] === undefined) data[property.name] = null;
+    }
+  };
+  const eventProperties = (name) => {
+    const event = own(model['event-definitions'], name) ? model['event-definitions'][name] : null;
+    return event && event.properties;
+  };
+  for (const step of body.given || []) {
+    if (!step) continue;
+    step.data = step.data || {};
+    fill(step.data, eventProperties(step.event));
+  }
+  if (kind === 'scenario-definition') {
+    body.when = body.when || {};
+    body.when.arguments = body.when.arguments || {};
+    const commands = model['command-definitions'];
+    fill(body.when.arguments, own(commands, body.command) ? commands[body.command].properties : null);
+  }
+  if (body.then && body.then.outcome === 'published') {
+    for (const event of body.then.events || []) if (event) fill(event.data, eventProperties(event.type));
+  }
+  return body;
 }
 
 // What a scenario is called. The stored name wins; without one it is
@@ -2384,16 +2596,27 @@ function boundarySummary(model, body) {
   return { items, queries, types, tags, anyType, writes: dcb.writes, coverage: coverageIssues(model, body), words };
 }
 
-// The boundary as the store is asked it (_DCB queries, shown_): one
-// query per call, in the order they run, each item a tag set and every
-// type read under it. `boundarySummary` lists one item per read; the
-// store is asked one per tag set (`evDecideThroughPort` merges them),
-// so two reads of the same course are one item here – `from` names
-// the reads that contributed. A read of any type makes its item any
-// type: `types` empty, as the specification spells it.
-function plannedQueries(summary) {
+// The boundary as the store is asked it (_DCB queries, shown_), and the
+// one place that says how a command's cycle runs:
+//
+//   { calls: [[item]], after: 'head' | 'read' }
+//
+// `calls` is one query per call, in the order they run, each item a tag
+// set and every type read under it. `boundarySummary` lists one item
+// per read; the store is asked one per tag set (`evDecideThroughPort`
+// merges them), so two reads of the same course are one item here –
+// `from` names the reads that contributed. A read of any type makes its
+// item any type: `types` left out. An empty list is never written – the
+// specification reads it as matching nothing (`memoryStore`).
+//
+// `after` is where the append condition's position comes from. A chain
+// – more than one call – takes head first, since no one read's last
+// position covers the others; a single call uses the last position it
+// read. `handleCommand` runs by this, and every page that draws the
+// condition says it from this.
+function commandPlan(summary) {
   const rounds = summary.queries.length ? summary.queries : (summary.items.length ? [summary.items] : []);
-  return rounds.map((round) => {
+  const calls = rounds.map((round) => {
     const byTags = new Map();
     for (const item of round) {
       const tags = [...item.tags].sort();
@@ -2406,8 +2629,35 @@ function plannedQueries(summary) {
       if (from && !merged.from.includes(from)) merged.from.push(from);
       if (item.fannedOut) merged.fannedOut = true;
     }
-    return [...byTags.values()].map(({ types, anyType, ...rest }) => ({ types: anyType ? [] : [...types].sort(), ...rest }));
+    return [...byTags.values()].map(({ types, anyType, ...rest }) => (anyType ? rest : { types: [...types].sort(), ...rest }));
   });
+  return { calls, after: calls.length > 1 ? 'head' : 'read' };
+}
+
+// A projection's query as its readers fill it in (_DCB queries, shown_):
+// `{ calls }`, one query per read its fold makes of the store, each
+// value a placeholder for the projection's own parameter –
+// `CourseId:{courseId}`. A folded projection reads once; a derived one
+// reads each projection it folds, under that one's own tags
+// (`foldedReads`). A command reading it asks the same items with its
+// values in place of the placeholders (`readItems`, which this is). A
+// fold that handles no event reads nothing, so it has no call.
+function projectionPlan(model, projectionName) {
+  const projection = model['projection-definitions'][projectionName];
+  if (!projection) return { calls: [] };
+  const ownParameters = (list) => Object.fromEntries((list || [])
+    .filter((parameter) => parameter && parameter.name)
+    .map((parameter) => [parameter.name, { parameterName: parameter.name }]));
+  const read = {
+    projection: projectionName,
+    tags: ownParameters(projectionTagParams(projection)),
+    arguments: ownParameters(projection.arguments),
+  };
+  return {
+    calls: readItems(model, {}, read, {})
+      .filter((item) => item.types.length)
+      .map(({ types, tags, fannedOut }) => [{ types, tags, fannedOut }]),
+  };
 }
 
 // Every entity-id property of every published event must resolve to a
@@ -5926,7 +6176,11 @@ function deepClone(v) { return JSON.parse(JSON.stringify(v)); }
 // find a derived side it cannot read and a script with no arguments.
 // A 9.x document reads here whole, its scripts' arguments lifted on
 // import (`liftScriptArguments`).
-const MODEL_VERSION = '10.0';
+// 10.1 lets names be written in any alphabet (`ÅpenSak`, `gjenåpnet`):
+// the name rules test Unicode letters where they tested ASCII, casing
+// unchanged. A 10.0 reader skips such a definition, says so, and
+// misreads nothing else, so a minor.
+const MODEL_VERSION = '10.1';
 const MODEL_SCHEMA_URL = 'https://dcb.events/schemas/model/v10.json';
 const READABLE_MAJORS = [8, 9, 10];
 

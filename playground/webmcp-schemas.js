@@ -13,7 +13,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
         "type": "string",
         "minLength": 2,
         "maxLength": 100,
-        "pattern": "^[A-Z][A-Za-z0-9]+$",
+        "pattern": "^\\p{Lu}[\\p{L}\\p{M}\\p{Nd}]+$",
         "examples": [
           "CourseDefined",
           "StudentSubscribedToCourse"
@@ -41,7 +41,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
               "type": "string",
               "minLength": 2,
               "maxLength": 100,
-              "pattern": "^[a-z][A-Za-z0-9]+$",
+              "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
               "examples": [
                 "someProperty"
               ]
@@ -61,7 +61,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                   "type": "string",
                   "minLength": 2,
                   "maxLength": 100,
-                  "pattern": "^[A-Z][A-Za-z0-9]+$",
+                  "pattern": "^\\p{Lu}[\\p{L}\\p{M}\\p{Nd}]+$",
                   "examples": [
                     "EmailAddress"
                   ]
@@ -89,7 +89,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
         "type": "array",
         "items": {
           "type": "string",
-          "pattern": "^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)?$"
+          "pattern": "^[\\p{L}_][\\p{L}\\p{M}\\p{Nd}_]*(\\.[\\p{L}_][\\p{L}\\p{M}\\p{Nd}_]*)?$"
         },
         "examples": [
           [
@@ -117,7 +117,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
         "type": "string",
         "minLength": 2,
         "maxLength": 100,
-        "pattern": "^[A-Z][A-Za-z0-9]+$",
+        "pattern": "^\\p{Lu}[\\p{L}\\p{M}\\p{Nd}]+$",
         "examples": [
           "CourseNumbering",
           "TenantCourseNumbering"
@@ -136,7 +136,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
               "type": "string",
               "minLength": 2,
               "maxLength": 100,
-              "pattern": "^[a-z][A-Za-z0-9]+$",
+              "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
               "examples": [
                 "someProperty"
               ]
@@ -156,7 +156,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                   "type": "string",
                   "minLength": 2,
                   "maxLength": 100,
-                  "pattern": "^[A-Z][A-Za-z0-9]+$",
+                  "pattern": "^\\p{Lu}[\\p{L}\\p{M}\\p{Nd}]+$",
                   "examples": [
                     "EmailAddress"
                   ]
@@ -182,7 +182,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
               "type": "string",
               "minLength": 2,
               "maxLength": 100,
-              "pattern": "^[a-z][A-Za-z0-9]+$",
+              "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
               "examples": [
                 "someProperty"
               ]
@@ -202,7 +202,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                   "type": "string",
                   "minLength": 2,
                   "maxLength": 100,
-                  "pattern": "^[A-Z][A-Za-z0-9]+$",
+                  "pattern": "^\\p{Lu}[\\p{L}\\p{M}\\p{Nd}]+$",
                   "examples": [
                     "EmailAddress"
                   ]
@@ -232,7 +232,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
             "type": "string",
             "minLength": 2,
             "maxLength": 100,
-            "pattern": "^[A-Z][A-Za-z0-9]+$",
+            "pattern": "^\\p{Lu}[\\p{L}\\p{M}\\p{Nd}]+$",
             "examples": [
               "EmailAddress"
             ]
@@ -334,7 +334,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                     "type": "string",
                     "minLength": 2,
                     "maxLength": 100,
-                    "pattern": "^[A-Z][A-Za-z0-9]+$",
+                    "pattern": "^\\p{Lu}[\\p{L}\\p{M}\\p{Nd}]+$",
                     "examples": [
                       "CourseNumbering",
                       "TenantCourseNumbering"
@@ -353,7 +353,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                               "type": "string",
                               "minLength": 2,
                               "maxLength": 100,
-                              "pattern": "^[a-z][A-Za-z0-9]+$",
+                              "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                               "examples": [
                                 "someProperty"
                               ]
@@ -362,7 +362,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                               "type": "string",
                               "minLength": 2,
                               "maxLength": 100,
-                              "pattern": "^[a-z][A-Za-z0-9]+$",
+                              "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                               "examples": [
                                 "someProperty"
                               ],
@@ -393,7 +393,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                                   "type": "string",
                                   "minLength": 2,
                                   "maxLength": 100,
-                                  "pattern": "^[A-Z][A-Za-z0-9]+$",
+                                  "pattern": "^\\p{Lu}[\\p{L}\\p{M}\\p{Nd}]+$",
                                   "examples": [
                                     "EmailAddress"
                                   ]
@@ -432,7 +432,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                     "type": "string",
                     "minLength": 2,
                     "maxLength": 100,
-                    "pattern": "^[a-z][A-Za-z0-9]+$",
+                    "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                     "examples": [
                       "someProperty"
                     ]
@@ -441,7 +441,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                     "type": "string",
                     "minLength": 2,
                     "maxLength": 100,
-                    "pattern": "^[a-z][A-Za-z0-9]+$",
+                    "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                     "examples": [
                       "someProperty"
                     ],
@@ -517,7 +517,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                     "type": "string",
                     "minLength": 2,
                     "maxLength": 100,
-                    "pattern": "^[A-Z][A-Za-z0-9]+$",
+                    "pattern": "^\\p{Lu}[\\p{L}\\p{M}\\p{Nd}]+$",
                     "examples": [
                       "CourseNumbering",
                       "TenantCourseNumbering"
@@ -536,7 +536,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                               "type": "string",
                               "minLength": 2,
                               "maxLength": 100,
-                              "pattern": "^[a-z][A-Za-z0-9]+$",
+                              "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                               "examples": [
                                 "someProperty"
                               ]
@@ -545,7 +545,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                               "type": "string",
                               "minLength": 2,
                               "maxLength": 100,
-                              "pattern": "^[a-z][A-Za-z0-9]+$",
+                              "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                               "examples": [
                                 "someProperty"
                               ],
@@ -576,7 +576,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                                   "type": "string",
                                   "minLength": 2,
                                   "maxLength": 100,
-                                  "pattern": "^[A-Z][A-Za-z0-9]+$",
+                                  "pattern": "^\\p{Lu}[\\p{L}\\p{M}\\p{Nd}]+$",
                                   "examples": [
                                     "EmailAddress"
                                   ]
@@ -615,7 +615,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                     "type": "string",
                     "minLength": 2,
                     "maxLength": 100,
-                    "pattern": "^[a-z][A-Za-z0-9]+$",
+                    "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                     "examples": [
                       "someProperty"
                     ]
@@ -624,7 +624,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                     "type": "string",
                     "minLength": 2,
                     "maxLength": 100,
-                    "pattern": "^[a-z][A-Za-z0-9]+$",
+                    "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                     "examples": [
                       "someProperty"
                     ],
@@ -716,7 +716,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
               "type": "string",
               "minLength": 2,
               "maxLength": 100,
-              "pattern": "^[A-Z][A-Za-z0-9]+$",
+              "pattern": "^\\p{Lu}[\\p{L}\\p{M}\\p{Nd}]+$",
               "examples": [
                 "CourseDefined",
                 "StudentSubscribedToCourse"
@@ -743,7 +743,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                       "type": "string",
                       "minLength": 2,
                       "maxLength": 100,
-                      "pattern": "^[a-z][A-Za-z0-9]+$",
+                      "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                       "examples": [
                         "someProperty"
                       ]
@@ -815,7 +815,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
         "type": "string",
         "minLength": 2,
         "maxLength": 100,
-        "pattern": "^[A-Z][A-Za-z0-9]+$",
+        "pattern": "^\\p{Lu}[\\p{L}\\p{M}\\p{Nd}]+$",
         "examples": [
           "SubscribeStudentToCourse"
         ],
@@ -848,7 +848,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
               "type": "string",
               "minLength": 2,
               "maxLength": 100,
-              "pattern": "^[a-z][A-Za-z0-9]+$",
+              "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
               "examples": [
                 "someProperty"
               ]
@@ -868,7 +868,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                   "type": "string",
                   "minLength": 2,
                   "maxLength": 100,
-                  "pattern": "^[A-Z][A-Za-z0-9]+$",
+                  "pattern": "^\\p{Lu}[\\p{L}\\p{M}\\p{Nd}]+$",
                   "examples": [
                     "EmailAddress"
                   ]
@@ -903,7 +903,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
               "type": "string",
               "minLength": 2,
               "maxLength": 100,
-              "pattern": "^[a-z][A-Za-z0-9]*$",
+              "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]*$",
               "examples": [
                 "course",
                 "sourceCourse"
@@ -913,7 +913,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
               "type": "string",
               "minLength": 2,
               "maxLength": 100,
-              "pattern": "^[A-Z][A-Za-z0-9]+$",
+              "pattern": "^\\p{Lu}[\\p{L}\\p{M}\\p{Nd}]+$",
               "examples": [
                 "CourseNumbering",
                 "TenantCourseNumbering"
@@ -934,7 +934,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                         "type": "string",
                         "minLength": 2,
                         "maxLength": 100,
-                        "pattern": "^[a-z][A-Za-z0-9]+$",
+                        "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                         "examples": [
                           "someProperty"
                         ]
@@ -943,7 +943,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                         "type": "string",
                         "minLength": 2,
                         "maxLength": 100,
-                        "pattern": "^[a-z][A-Za-z0-9]+$",
+                        "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                         "examples": [
                           "someProperty"
                         ],
@@ -963,7 +963,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                         "type": "string",
                         "minLength": 2,
                         "maxLength": 100,
-                        "pattern": "^[a-z][A-Za-z0-9]*$",
+                        "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]*$",
                         "examples": [
                           "course",
                           "sourceCourse"
@@ -973,7 +973,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                         "type": "string",
                         "minLength": 2,
                         "maxLength": 100,
-                        "pattern": "^[a-z][A-Za-z0-9]+$",
+                        "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                         "examples": [
                           "someProperty"
                         ]
@@ -1003,7 +1003,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                             "type": "string",
                             "minLength": 2,
                             "maxLength": 100,
-                            "pattern": "^[A-Z][A-Za-z0-9]+$",
+                            "pattern": "^\\p{Lu}[\\p{L}\\p{M}\\p{Nd}]+$",
                             "examples": [
                               "EmailAddress"
                             ]
@@ -1055,7 +1055,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                                 "type": "string",
                                 "minLength": 2,
                                 "maxLength": 100,
-                                "pattern": "^[a-z][A-Za-z0-9]+$",
+                                "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                                 "examples": [
                                   "someProperty"
                                 ]
@@ -1064,7 +1064,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                                 "type": "string",
                                 "minLength": 2,
                                 "maxLength": 100,
-                                "pattern": "^[a-z][A-Za-z0-9]+$",
+                                "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                                 "examples": [
                                   "someProperty"
                                 ],
@@ -1084,7 +1084,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                                 "type": "string",
                                 "minLength": 2,
                                 "maxLength": 100,
-                                "pattern": "^[a-z][A-Za-z0-9]*$",
+                                "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]*$",
                                 "examples": [
                                   "course",
                                   "sourceCourse"
@@ -1094,7 +1094,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                                 "type": "string",
                                 "minLength": 2,
                                 "maxLength": 100,
-                                "pattern": "^[a-z][A-Za-z0-9]+$",
+                                "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                                 "examples": [
                                   "someProperty"
                                 ]
@@ -1146,7 +1146,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                               "type": "string",
                               "minLength": 2,
                               "maxLength": 100,
-                              "pattern": "^[a-z][A-Za-z0-9]+$",
+                              "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                               "examples": [
                                 "someProperty"
                               ]
@@ -1155,7 +1155,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                               "type": "string",
                               "minLength": 2,
                               "maxLength": 100,
-                              "pattern": "^[a-z][A-Za-z0-9]+$",
+                              "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                               "examples": [
                                 "someProperty"
                               ],
@@ -1175,7 +1175,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                               "type": "string",
                               "minLength": 2,
                               "maxLength": 100,
-                              "pattern": "^[a-z][A-Za-z0-9]*$",
+                              "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]*$",
                               "examples": [
                                 "course",
                                 "sourceCourse"
@@ -1185,7 +1185,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                               "type": "string",
                               "minLength": 2,
                               "maxLength": 100,
-                              "pattern": "^[a-z][A-Za-z0-9]+$",
+                              "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                               "examples": [
                                 "someProperty"
                               ]
@@ -1280,7 +1280,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                               "type": "string",
                               "minLength": 2,
                               "maxLength": 100,
-                              "pattern": "^[a-z][A-Za-z0-9]+$",
+                              "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                               "examples": [
                                 "someProperty"
                               ]
@@ -1289,7 +1289,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                               "type": "string",
                               "minLength": 2,
                               "maxLength": 100,
-                              "pattern": "^[a-z][A-Za-z0-9]+$",
+                              "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                               "examples": [
                                 "someProperty"
                               ],
@@ -1309,7 +1309,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                               "type": "string",
                               "minLength": 2,
                               "maxLength": 100,
-                              "pattern": "^[a-z][A-Za-z0-9]*$",
+                              "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]*$",
                               "examples": [
                                 "course",
                                 "sourceCourse"
@@ -1319,7 +1319,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                               "type": "string",
                               "minLength": 2,
                               "maxLength": 100,
-                              "pattern": "^[a-z][A-Za-z0-9]+$",
+                              "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                               "examples": [
                                 "someProperty"
                               ]
@@ -1402,7 +1402,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                                   "type": "string",
                                   "minLength": 2,
                                   "maxLength": 100,
-                                  "pattern": "^[a-z][A-Za-z0-9]+$",
+                                  "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                                   "examples": [
                                     "someProperty"
                                   ]
@@ -1411,7 +1411,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                                   "type": "string",
                                   "minLength": 2,
                                   "maxLength": 100,
-                                  "pattern": "^[a-z][A-Za-z0-9]+$",
+                                  "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                                   "examples": [
                                     "someProperty"
                                   ],
@@ -1431,7 +1431,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                                   "type": "string",
                                   "minLength": 2,
                                   "maxLength": 100,
-                                  "pattern": "^[a-z][A-Za-z0-9]*$",
+                                  "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]*$",
                                   "examples": [
                                     "course",
                                     "sourceCourse"
@@ -1441,7 +1441,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                                   "type": "string",
                                   "minLength": 2,
                                   "maxLength": 100,
-                                  "pattern": "^[a-z][A-Za-z0-9]+$",
+                                  "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                                   "examples": [
                                     "someProperty"
                                   ]
@@ -1570,7 +1570,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
               "type": "string",
               "minLength": 2,
               "maxLength": 100,
-              "pattern": "^[A-Z][A-Za-z0-9]+$",
+              "pattern": "^\\p{Lu}[\\p{L}\\p{M}\\p{Nd}]+$",
               "examples": [
                 "CourseDefined",
                 "StudentSubscribedToCourse"
@@ -1591,7 +1591,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                         "type": "string",
                         "minLength": 2,
                         "maxLength": 100,
-                        "pattern": "^[a-z][A-Za-z0-9]+$",
+                        "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                         "examples": [
                           "someProperty"
                         ]
@@ -1600,7 +1600,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                         "type": "string",
                         "minLength": 2,
                         "maxLength": 100,
-                        "pattern": "^[a-z][A-Za-z0-9]+$",
+                        "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                         "examples": [
                           "someProperty"
                         ],
@@ -1620,7 +1620,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                         "type": "string",
                         "minLength": 2,
                         "maxLength": 100,
-                        "pattern": "^[a-z][A-Za-z0-9]*$",
+                        "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]*$",
                         "examples": [
                           "course",
                           "sourceCourse"
@@ -1630,7 +1630,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                         "type": "string",
                         "minLength": 2,
                         "maxLength": 100,
-                        "pattern": "^[a-z][A-Za-z0-9]+$",
+                        "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
                         "examples": [
                           "someProperty"
                         ]
@@ -1707,7 +1707,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
         "type": "string",
         "minLength": 2,
         "maxLength": 100,
-        "pattern": "^[A-Z][A-Za-z0-9]+$",
+        "pattern": "^\\p{Lu}[\\p{L}\\p{M}\\p{Nd}]+$",
         "examples": [
           "EmailAddress"
         ],
@@ -1730,7 +1730,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
               "type": "string",
               "minLength": 2,
               "maxLength": 100,
-              "pattern": "^[a-z][A-Za-z0-9]+$",
+              "pattern": "^\\p{Ll}[\\p{L}\\p{M}\\p{Nd}]+$",
               "examples": [
                 "someProperty"
               ]
@@ -1750,7 +1750,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                   "type": "string",
                   "minLength": 2,
                   "maxLength": 100,
-                  "pattern": "^[A-Z][A-Za-z0-9]+$",
+                  "pattern": "^\\p{Lu}[\\p{L}\\p{M}\\p{Nd}]+$",
                   "examples": [
                     "EmailAddress"
                   ]
@@ -1799,7 +1799,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
         "type": "string",
         "minLength": 2,
         "maxLength": 100,
-        "pattern": "^[A-Z][A-Za-z0-9]+$",
+        "pattern": "^\\p{Lu}[\\p{L}\\p{M}\\p{Nd}]+$",
         "examples": [
           "SubscribeStudentToCourse"
         ],
@@ -1817,7 +1817,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
               "type": "string",
               "minLength": 2,
               "maxLength": 100,
-              "pattern": "^[A-Z][A-Za-z0-9]+$",
+              "pattern": "^\\p{Lu}[\\p{L}\\p{M}\\p{Nd}]+$",
               "examples": [
                 "CourseDefined",
                 "StudentSubscribedToCourse"
@@ -1872,7 +1872,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                   "type": "string",
                   "minLength": 2,
                   "maxLength": 100,
-                  "pattern": "^[A-Z][A-Za-z0-9]+$",
+                  "pattern": "^\\p{Lu}[\\p{L}\\p{M}\\p{Nd}]+$",
                   "examples": [
                     "CourseDefined",
                     "StudentSubscribedToCourse"
@@ -1932,7 +1932,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
         "type": "string",
         "minLength": 2,
         "maxLength": 100,
-        "pattern": "^[A-Z][A-Za-z0-9]+$",
+        "pattern": "^\\p{Lu}[\\p{L}\\p{M}\\p{Nd}]+$",
         "examples": [
           "CourseNumbering",
           "TenantCourseNumbering"
@@ -1962,7 +1962,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
                   "type": "string",
                   "minLength": 2,
                   "maxLength": 100,
-                  "pattern": "^[A-Z][A-Za-z0-9]+$",
+                  "pattern": "^\\p{Lu}[\\p{L}\\p{M}\\p{Nd}]+$",
                   "examples": [
                     "EmailAddress"
                   ]
@@ -1997,7 +1997,7 @@ const WEBMCP_DEFINITION_SCHEMAS = {
               "type": "string",
               "minLength": 2,
               "maxLength": 100,
-              "pattern": "^[A-Z][A-Za-z0-9]+$",
+              "pattern": "^\\p{Lu}[\\p{L}\\p{M}\\p{Nd}]+$",
               "examples": [
                 "CourseDefined",
                 "StudentSubscribedToCourse"

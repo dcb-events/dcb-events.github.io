@@ -271,8 +271,9 @@ function evTagIndex(model, events) {
 // handler for, and filtering here would cost a pass for nothing.
 function evSelectEvents(model, events, types, tags) {
   if (typeof events !== 'function') return evEventsTagged(model, events, tags);
-  // A fold that handles nothing reads nothing – and an empty `types`
-  // would mean "any type" to a store.
+  // A fold that handles nothing reads nothing – an empty `types` is no
+  // query a store takes (`memoryStore`), and leaving it out would mean
+  // any type.
   if (!types.length) return [];
   return events([{ types: [...types], tags: [...tags] }]) || [];
 }
@@ -543,11 +544,11 @@ function evReadTagLeaves(model, projectionName, tag, value) {
   }));
 }
 
-// The tags a read's query carries, rendered. Extracted so the interface
-// can *say* what a fold will read – a watched projection's query, with
-// the actual values in it – without running the fold to find out. A
-// derived projection's operands are read by the tags it passes them, so
-// its query is theirs.
+// The tags a read's query carries, rendered. A derived projection's
+// operands are read by the tags it passes them, so its query is
+// theirs. The interface does not call this to say what a fold reads:
+// it traces the fold's reads (`projectFromStore`), so what it shows is
+// what was asked.
 function projectionQueryTags(model, projectionName, read) {
   const projection = evOwn(model['projection-definitions'], projectionName);
   if (!projection) fail(`This model has no projection "${projectionName}".`);
@@ -1635,7 +1636,7 @@ function handleCommand(model, store, commandName, args, { trace } = {}) {
   const body = evOwn(model['command-definitions'], commandName);
   let decided;
   try {
-    const chained = !!body && boundarySummary(model, body).queries.length > 1;
+    const chained = !!body && commandPlan(boundarySummary(model, body)).after === 'head';
     try {
       decided = evDecideFromStore(model, store, commandName, args, chained, record);
     } catch (error) {
@@ -1696,21 +1697,34 @@ function projectFromStore(model, store, projectionName, params, { trace } = {}) 
   }
 }
 
-// A DCB event store in memory – for the playground, and for tests. An
-// item's empty `types` matches any type; its tags must all be carried.
+// A DCB event store in memory – for the playground, and for tests.
+//
+// A query item's `types`, when it has them, are the types an event may
+// have, at least one: the specification asks that an event's type match
+// one of the provided types, so an empty list would match nothing, and
+// a store taking it for "any type" would turn a fold that reads nothing
+// into a condition on everything. It is refused as the mistake it is.
+// An item without `types` matches any type. Its tags must all be
+// carried.
+const EMPTY_TYPES = 'A query item with an empty types list matches nothing – leave types out to match any type.';
 function memoryStore(seed = []) {
   const events = [];
   const push = (event) => { events.push({ position: events.length + 1, event }); };
+  const checked = (query) => {
+    if (query.some((item) => Array.isArray(item.types) && !item.types.length)) throw new Error(EMPTY_TYPES);
+    return query;
+  };
   const matches = (query, event) => query.some((item) =>
-    (!item.types.length || item.types.includes(event.type))
-    && item.tags.every((tag) => event.tags.includes(tag)));
+    (!item.types || item.types.includes(event.type))
+    && (item.tags || []).every((tag) => event.tags.includes(tag)));
   seed.forEach(push);
   return {
     events,
     push,
     head: () => (events.length ? events[events.length - 1].position : undefined),
-    read: (query) => events.filter(({ event }) => matches(query, event)),
+    read: (query) => events.filter(({ event }) => matches(checked(query), event)),
     append(newEvents, condition) {
+      if (condition) checked(condition.failIfEventsMatch);
       if (condition && events.some(({ position, event }) =>
         (condition.after === undefined || position > condition.after) && matches(condition.failIfEventsMatch, event))) {
         return { integrity: true };

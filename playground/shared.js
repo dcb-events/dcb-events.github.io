@@ -118,7 +118,7 @@ function run(fn) {
 // --- the synthesis: model + script + handler → TypeScript preamble ---
 
 function scriptTsKey(name) {
-  return /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(name) ? name : JSON.stringify(name);
+  return /^[\p{ID_Start}_$][\p{ID_Continue}$\u200C\u200D]*$/u.test(name) ? name : JSON.stringify(name);
 }
 
 // A value's own JSON, safe inside the /** … */ it is hinted in.
@@ -205,7 +205,7 @@ function scriptHandlerPreamble(model, body, handler) {
     if (typeName === 'integer') return 'number';
     if (typeName === 'string') return 'string';
     const body = (model['custom-type-definitions'] || {})[typeName];
-    if (body === undefined || !/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(typeName)) return 'any';
+    if (body === undefined || !/^[\p{ID_Start}_$][\p{ID_Continue}$\u200C\u200D]*$/u.test(typeName)) return 'any';
     if (aliased.has(typeName)) return aliased.get(typeName) ? typeName : 'any';
     aliased.set(typeName, false);
     let rhs;
@@ -1845,7 +1845,7 @@ function projectionReaders(model, projectionName) {
 // identifier rides beside the label, for anyone who wants it.
 
 function toPascal(label) {
-  return String(label || '').split(/[^A-Za-z0-9]+/).filter(Boolean)
+  return String(label || '').split(/[^\p{L}\p{M}\p{Nd}]+/u).filter(Boolean)
     .map((w) => w[0].toUpperCase() + w.slice(1)).join('');
 }
 
@@ -1856,8 +1856,8 @@ function toCamel(label) {
 
 function splitWords(name) {
   return String(name || '')
-    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+    .replace(/([\p{Ll}\p{Nd}])(\p{Lu})/gu, '$1 $2')
+    .replace(/(\p{Lu}+)(\p{Lu}\p{Ll})/gu, '$1 $2')
     .split(/\s+/).filter(Boolean);
 }
 

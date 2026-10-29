@@ -277,8 +277,8 @@ const SOURCE_ANNOTATIONS = {
   tagSchema: ['custom-type-definition'],
 };
 
-const SOURCE_IDENT_RE = /^[A-Za-z_][A-Za-z0-9_]*$/;
-const SOURCE_MEMBER_RE = /^[A-Z][A-Za-z0-9_]*$/;
+const SOURCE_IDENT_RE = /^[\p{L}_][\p{L}\p{M}\p{Nd}_]*$/u;
+const SOURCE_MEMBER_RE = /^\p{Lu}[\p{L}\p{M}\p{Nd}_]*$/u;
 const SOURCE_DECL_STARTS = ['@', 'model', 'type', 'tag', 'enum', 'record', 'event', 'entity', 'untagged', 'derived', 'scripted', 'projection', 'command'];
 // What a derived projection computes with, spelled as the symbols a
 // developer would type; `min` and `max` are calls, `min(a, b)`.
@@ -302,7 +302,7 @@ function sourcePut(target, key, value) {
 
 const SOURCE_PUNCT = ['=>', '==', '!=', '<=', '>=', '<', '>', '=', '{', '}', '(', ')', '[', ']', ',', ':', '.', '?', '@', '+', '-', '*'];
 const SOURCE_NUMBER_RE = /-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/y;
-const SOURCE_WORD_RE = /[A-Za-z_][A-Za-z0-9_]*/y;
+const SOURCE_WORD_RE = /[\p{L}_][\p{L}\p{M}\p{Nd}_]*/uy;
 
 // Whether a token closes a value, so a `-` straight after it subtracts
 // rather than starting a negative number: `A(x) -1`, `3 -1`.
@@ -376,7 +376,7 @@ function lexSource(text) {
       // Past what a double holds, a number reads as Infinity – and is
       // stored as null, JSON having no Infinity.
       if (!Number.isFinite(token.v)) report('This number is too large to store.', start);
-    } else if (/[A-Za-z_]/.test(c)) {
+    } else if (/[\p{L}_]/u.test(String.fromCodePoint(text.codePointAt(i)))) {
       SOURCE_WORD_RE.lastIndex = i;
       const match = SOURCE_WORD_RE.exec(text);
       advanceTo(i + match[0].length);
@@ -2095,7 +2095,7 @@ function printEvent(name, body) {
   if (!Array.isArray(tags)) unprintable('its tags are not a list');
   const properties = body.properties || [];
   for (const path of tags) {
-    if (typeof path !== 'string' || !/^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)?$/.test(path)) {
+    if (typeof path !== 'string' || !/^[\p{L}_][\p{L}\p{M}\p{Nd}_]*(\.[\p{L}_][\p{L}\p{M}\p{Nd}_]*)?$/u.test(path)) {
       unprintable(`the tag ${JSON.stringify(path)} is not a property path`);
     }
     if (!properties.some((p) => p && p.name === path.split('.')[0])) unprintable(`the tag ${path} names no property of it`);
@@ -2559,7 +2559,7 @@ function diffSequence(a, b) {
 
 // A line as parts, `{ text, changed }`, against the line it replaced.
 function diffWords(line, other) {
-  const tokens = (text) => text.match(/\w+|\s+|[^\w\s]/g) || [];
+  const tokens = (text) => text.match(/[\p{L}\p{M}\p{Nd}_]+|\s+|[^\p{L}\p{M}\p{Nd}_\s]/gu) || [];
   const mine = tokens(line);
   const theirs = tokens(other);
   const parts = [];
@@ -2739,24 +2739,7 @@ function sourceSpanOf(parsed, kind, name) {
 // out are written as null (as the page's save does), and an omitted
 // Then is what the text's definitions make of the scenario.
 function completeScenario(draft, record) {
-  const body = deepClone(record.body);
-  const has = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
-  const fill = (properties, data) => {
-    if (!data || typeof data !== 'object' || Array.isArray(data)) return;
-    for (const property of properties || []) {
-      if (property && property.isOptional && !has(data, property.name)) data[property.name] = null;
-    }
-  };
-  const eventProperties = (name) => {
-    const event = draft['event-definitions'][name];
-    return event && event.properties;
-  };
-  for (const step of body.given || []) if (step) fill(eventProperties(step.event), step.data);
-  const command = record.kind === 'scenario-definition' && draft['command-definitions'][body.command];
-  if (command && body.when) fill(command.properties, body.when.arguments);
-  if (body.then && body.then.outcome === 'published') {
-    for (const event of body.then.events || []) if (event) fill(eventProperties(event.type), event.data);
-  }
+  const body = canonicalScenario(draft, record.kind, deepClone(record.body));
 
   let actual = null;
   let reason = null;
@@ -2892,7 +2875,7 @@ function sourceOutcomesAt(model, text, line) {
     const one = outcome(parsed, record);
     return one ? [one] : [];
   }
-  const named = typed.match(/^\s*then\s+([A-Za-z_]\w*\s*\(.*\))\s*(==\s*)?$/);
+  const named = typed.match(/^\s*then\s+([\p{L}_][\p{L}\p{M}\p{Nd}_]*\s*\(.*\))\s*(==\s*)?$/u);
   const draft = sourceDraftModel(model, parsed);
   let calls;
   if (named) {
@@ -3534,7 +3517,7 @@ const SOURCE_RENAME_RULES = {
   projection: [SOURCE_MEMBER_RE, 'a projection starts with a capital letter'],
   command: [SOURCE_IDENT_RE, 'a name is letters, digits and _'],
 };
-const SOURCE_LOWER_NAME_RE = /^[a-z_][A-Za-z0-9_]*$/;
+const SOURCE_LOWER_NAME_RE = /^[\p{Ll}_][\p{L}\p{M}\p{Nd}_]*$/u;
 // What a script can name: an event's or a record's field
 // (`event.data.x`, `state.x`), a member as the string it is, and the
 // values it is read by (`tags.x`, `args.x`). A json body can name anything.
@@ -3616,7 +3599,7 @@ function sourceRenameSymbol(text, parsed, symbol, newName) {
       return { error: `There already is ${sourceArticle(what)} ${what} named ${to}${parts.owner ? ` in ${parts.owner}` : ''}.` };
     }
     const fromName = sourceSymbolParts(from).name;
-    const pattern = new RegExp(`(^|[^A-Za-z0-9_])${fromName}($|[^A-Za-z0-9_])`);
+    const pattern = new RegExp(`(^|[^\\p{L}\\p{M}\\p{Nd}_])${fromName}($|[^\\p{L}\\p{M}\\p{Nd}_])`, 'u');
     const visible = SOURCE_SCRIPT_VISIBLE.includes(sourceSymbolParts(from).kind);
     const hidden = opaque.find((o) => (o.json || visible) && pattern.test(o.text));
     if (hidden) {
@@ -3840,7 +3823,7 @@ function sourceCompletions(text, line, col, { model = null, experimental = true 
   if (lineText.includes('//')) return none;
   const tokens = lexed.tokens.slice(0, -1);
   if (tokens.length && tokens[tokens.length - 1].t === 'number' && /[0-9.]$/.test(prefix)) return none;
-  if (/[A-Za-z0-9_]$/.test(prefix) && tokens.length && tokens[tokens.length - 1].t === 'ident') tokens.pop();
+  if (/[\p{L}\p{M}\p{Nd}_]$/u.test(prefix) && tokens.length && tokens[tokens.length - 1].t === 'ident') tokens.pop();
   const atLineStart = !tokens.length || tokens[tokens.length - 1].endLine < line;
 
   // ---------- where the cursor is ----------
@@ -3903,7 +3886,7 @@ function sourceCompletions(text, line, col, { model = null, experimental = true 
       if (opener === '{' && v(s[0]) === 'scenarios') return own('scenarios', { block: { kind: 'command', name: frame.command } });
       if (opener === '{' && v(s[0]) === 'scenario') return own('scenario', { block: { kind: 'command', name: frame.command } });
       if (opener === '(' && prev === 'count') return own('count');
-      if (opener === '(' && /^[A-Z]/.test(prev || '')) return own('callArgs', { callee: prev });
+      if (opener === '(' && /^\p{Lu}/u.test(prev || '')) return own('callArgs', { callee: prev });
       if (opener === '[' && prev === 'in') return own('list', { left: conditionLeft(s.slice(0, -1)) });
       return own('json');
     }
@@ -3915,7 +3898,7 @@ function sourceCompletions(text, line, col, { model = null, experimental = true 
       if (opener === '(' && base.decl.derived) {
         if (SOURCE_OPERATOR_CALLS.includes(prev)) return own('derivedOperands');
         if (prev === 'count') return own('count');
-        if (/^[A-Z]/.test(prev || '')) return own('derivedArgs', { callee: prev });
+        if (/^\p{Lu}/u.test(prev || '')) return own('derivedArgs', { callee: prev });
       }
       return own('json');
     }
@@ -3938,8 +3921,8 @@ function sourceCompletions(text, line, col, { model = null, experimental = true 
       if (opener === '(' && prev === 'count') return own('count');
       if (opener === '(' && prev === 'successor') return own('successor', { event: frame.event });
       const derivedFrame = k === 'derivedArgs' || k === 'derivedOperands';
-      if (opener === '(' && /^[A-Z]/.test(prev || '') && derivedFrame) return own('derivedArgs', { callee: prev });
-      if (opener === '(' && /^[A-Z]/.test(prev || '') && !derivedFrame) return own('callArgs', { callee: prev });
+      if (opener === '(' && /^\p{Lu}/u.test(prev || '') && derivedFrame) return own('derivedArgs', { callee: prev });
+      if (opener === '(' && /^\p{Lu}/u.test(prev || '') && !derivedFrame) return own('callArgs', { callee: prev });
       if (opener === '[' && prev === 'in') return own('list', { left: conditionLeft(s.slice(0, -1)) });
     }
     return own('json');
@@ -3993,7 +3976,7 @@ function sourceCompletions(text, line, col, { model = null, experimental = true 
   // keys and reads written below, which a block being edited does not
   // parse to tell.
   const suffix = lexSource(text.slice(prefix.length)).tokens.slice(0, -1);
-  if (/[A-Za-z0-9_]$/.test(prefix) && /^[A-Za-z0-9_]/.test(text.slice(prefix.length)) && suffix.length) suffix.shift();
+  if (/[\p{L}\p{M}\p{Nd}_]$/u.test(prefix) && /^[\p{L}\p{M}\p{Nd}_]/u.test(text.slice(prefix.length)) && suffix.length) suffix.shift();
   const restOfFrame = [];
   const restOfDeclaration = [];
   let depth = 0;
@@ -5033,16 +5016,18 @@ const SOURCE_KEYWORDS = [
 const SOURCE_STATEMENTS = ['alias', 'require', 'emit', 'when', 'on', 'scenarios', 'scenario', 'given', 'then'];
 
 const SOURCE_MONARCH = {
+  // Names may be written in any script: `\p{…}` above needs the `u` flag.
+  unicode: true,
   keywords: SOURCE_KEYWORDS,
   statements: SOURCE_STATEMENTS,
   baseTypes: [...SOURCE_BASE_TYPES],
   tokenizer: {
     root: [
       [/```/, { token: 'string.code', next: '@code', nextEmbedded: 'javascript' }],
-      [/@[A-Za-z_]\w*/, 'annotation'],
+      [/@[\p{L}_][\p{L}\p{M}\p{Nd}_]*/, 'annotation'],
       [/event(?=\.data\.)/, 'keyword'],
-      [/[A-Z]\w*/, 'type.identifier'],
-      [/[a-z_]\w*/, { cases: { '@statements': 'keyword.flow', '@keywords': 'keyword', '@baseTypes': 'type', '@default': 'identifier' } }],
+      [/\p{Lu}[\p{L}\p{M}\p{Nd}_]*/, 'type.identifier'],
+      [/[\p{L}_][\p{L}\p{M}\p{Nd}_]*/, { cases: { '@statements': 'keyword.flow', '@keywords': 'keyword', '@baseTypes': 'type', '@default': 'identifier' } }],
       { include: '@whitespace' },
       [/[{}()[\]]/, '@brackets'],
       [/=>|==|!=|<=|>=|[<>=?:.,]/, 'delimiter'],

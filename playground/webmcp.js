@@ -560,8 +560,9 @@
   // other, events piling up on a timeline the person can scrub (see
   // section D of the page script). These tools drive that same
   // session, so an agent can stage a worked example to look at
-  // together – the model and its stored log are untouched throughout,
-  // and a reload clears it, like anything else in the sandbox.
+  // together – the model and its stored log are untouched throughout.
+  // Each tool opens the open model's session first, so none acts on a
+  // session left showing from another model.
 
   register({
     name: 'drive_command',
@@ -584,7 +585,7 @@
     },
     mutatesSandbox: true,
     run: (model, { commandName, arguments: args }) => {
-      const outcome = sessionDrive(model, commandName, args || {});
+      const outcome = session.drive(model, commandName, args || {});
       return {
         summary: `drove ${commandName} in the sandbox – ${outcome.outcome === 'published'
           ? 'published ' + outcome.events.map((e) => e.type).join(', ')
@@ -600,11 +601,14 @@
       + 'arguments and the range of events it appended – and the full event log those '
       + 'runs have built up, oldest first. Empty when nothing has been driven.',
     inputSchema: { type: 'object', properties: {} },
-    run: () => ({
-      summary: `read the sandbox – ${session.steps.length} step${session.steps.length === 1 ? '' : 's'}, `
-        + `${session.log.length} event${session.log.length === 1 ? '' : 's'}`,
-      payload: { steps: session.steps, events: session.log },
-    }),
+    run: (model) => {
+      session.open(model.id);
+      return {
+        summary: `read the sandbox – ${session.steps.length} step${session.steps.length === 1 ? '' : 's'}, `
+          + `${session.log.length} event${session.log.length === 1 ? '' : 's'}`,
+        payload: { steps: session.steps, events: session.log },
+      };
+    },
   });
 
   register({
@@ -615,9 +619,9 @@
     inputSchema: { type: 'object', properties: {} },
     mutatesSandbox: true,
     destructive: true,
-    run: () => {
-      if (typeof state === 'object' && state) state.sandboxDraft = null;
-      sessionReset();
+    run: (model) => {
+      session.open(model.id);
+      session.reset();
       return { summary: 'reset the sandbox' };
     },
   });

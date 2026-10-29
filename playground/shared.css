@@ -280,7 +280,7 @@ body.f-dark .disclaimer { background: #2d2408; color: #fcd34d; border-bottom-col
    One breakpoint, everything the bar and the rail need to keep working
    down to a 320px phone: the rail becomes a drawer (see .rail below),
    its toggle appears, the bar keeps only what is used while modelling
-   – the model, the surface toggle (icons only), quick open – and folds
+   – the model, quick open – and folds
    import/export, help, theme and Settings behind ⋯ (`moreMenu`). Touch
    targets grow to the ~40px a finger actually needs – the desktop 30px
    stays for a mouse. Every dialog goes fullscreen here; that lives
@@ -385,6 +385,15 @@ select:has(> option.none:checked) { font-style: italic; }
 select:disabled {
   color: var(--muted); background: var(--bg);
   border-style: dashed; cursor: not-allowed;
+}
+/* A picker whose answer is an event – a projection's handler – reads
+   as the event's chip while it rests, and as a picker again once
+   pointed at, focused or open. Unanswered, it stays a plain picker. */
+select.kind-event:not(:has(> option.placeholder:checked)):not(:hover):not(:focus) {
+  background: var(--event-soft); border-color: #fed7aa; color: #9a3412;
+}
+body.f-dark select.kind-event:not(:has(> option.placeholder:checked)):not(:hover):not(:focus) {
+  border-color: #9a3412; color: #fed7aa;
 }
 select option { color: var(--text); font-style: normal; }
 select option.none { color: var(--muted); font-style: italic; }
