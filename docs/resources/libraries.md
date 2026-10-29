@@ -58,6 +58,7 @@ Open Source Event Store specifically written to support DCB via gRPC API by John
 
 - `@dcb-es/event-store`[:octicons-link-external-16:](https://github.com/kraken-tech/dcb-event-store){:target="_blank" .small} (work in progress)
 - `@sbortz/boundless`[:octicons-link-external-16:](https://boundlessdb.dev){:target="_blank" .small} A DCB-inspired Event Store for TypeScript
+- `ts-effect-crablet`[:octicons-link-external-16:](https://github.com/rodolfodpk/ts-effect-crablet){:target="_blank" .small} (experimental, pre-release; TypeScript framework on Effect and PostgreSQL, with all [dcb.events examples](https://github.com/rodolfodpk/ts-effect-crablet/blob/main/docs/concepts/dcb-examples.md) implemented and tested on PostgreSQL)
 
 #### Kotlin
 
