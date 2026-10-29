@@ -1,11 +1,15 @@
+
 name: ci
+
 on:
   push:
     branches:
       - master
       - main
+
 permissions:
   contents: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -13,22 +17,84 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: true
+          fetch-depth: 0
+
       - name: Configure Git Credentials
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
+
       - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
+
       - uses: actions/cache@v4
         with:
           key: mkdocs-material-${{ env.cache_id }}
           path: .cache
           restore-keys: |
             mkdocs-material-
+
       - run: pip install -r requirements.txt
-      - run: PYTHONPATH=. mkdocs gh-deploy --force
+
+      - name: Build and deploy
+        run: PYTHONPATH=. mkdocs gh-deploy --force
+
+      - name: Notify Discord
+        if: success()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          SITE_URL: https://dcb.events
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          BEFORE: ${{ github.event.before }}
+          SERVER_URL: ${{ github.server_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "$BEFORE" =~ ^0+$ ]]; then
+            COMMITS="- Initial publication"
+            COMPARE_URL="$SERVER_URL/$REPOSITORY/commit/$SHA"
+          else
+            COMMITS="$(git log \
+              --format='• %s — %an' \
+              -10 "$BEFORE..$SHA" 2>/dev/null || true)"
+            COMPARE_URL="$SERVER_URL/$REPOSITORY/compare/$BEFORE...$SHA"
+          fi
+
+          if [[ -z "$COMMITS" ]]; then
+            COMMITS="No commit messages available."
+          fi
+
+          jq -n \
+            --arg title "dcb.events has been updated" \
+            --arg url "$SITE_URL" \
+            --arg commits "$COMMITS" \
+            --arg compare "$COMPARE_URL" \
+            --arg sha "${SHA:0:7}" \
+            '{
+              username: "dcb.events",
+              embeds: [{
+                title: $title,
+                url: $url,
+                description: ("**Published changes**\n" + $commits),
+                color: 3447003,
+                fields: [{
+                  name: "Changes",
+                  value: ("[View commit diff](" + $compare + ") · `" + $sha + "`")
+                }],
+                footer: {
+                  text: "GitHub Pages deployment"
+                }
+              }]
+            }' |
+            curl --fail --silent --show-error \
+              -H "Content-Type: application/json" \
+              -d @- "$DISCORD_WEBHOOK_URL"
