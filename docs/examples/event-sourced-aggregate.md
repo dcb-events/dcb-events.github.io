@@ -97,7 +97,7 @@ class CourseAggregate {
   changeCapacity(newCapacity) {
     if (newCapacity === this.#capacity) {
       throw new Error(
-        `Course "${this.#id}" already has a capacity of "${newCapacity}`
+        `Course "${this.#id}" already has a capacity of "${newCapacity}"`
       )
     }
     if (newCapacity < this.#numberOfSubscriptions) {
@@ -195,7 +195,7 @@ const events = [
   },
 ]
 const course = CourseAggregate.reconstitute(events)
-course.changeCapacity(15) // Error: Course "c1" already has a capacity of "15
+course.changeCapacity(15) // Error: Course "c1" already has a capacity of "15"
 ```
 
 ### Repository
@@ -300,4 +300,4 @@ console.log(
 
 ## Conclusion
 
-This example demonstrates how the Aggregate pattern can be used with DCB
+This example demonstrates how the Aggregate pattern can be used with DCB.
