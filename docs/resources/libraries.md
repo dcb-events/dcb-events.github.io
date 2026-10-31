@@ -85,6 +85,12 @@ Open Source Event Store specifically written to support DCB via gRPC API by John
 - Happenstance `Wet-Ink-Corporation/happenstance`[:octicons-link-external-16:](https://github.com/Wet-Ink-Corporation/happenstance/){:target="_blank" .small} (An opinionated, storage-agnostic event sourcing library for Rust, built on the Dynamic Consistency Boundary specification: a contract for storage, and a published conformance suite that decides who meets it.)
 - `skilj`[:octicons-link-external-16:](https://codeberg.org/gklijs/SklilJ){:target="_blank" .small} (Open Source, Postgres-backed library for event-sourced DDD applications with a GraphQL and REST surface, [crates.io](https://crates.io/crates/skilj))
 
+#### Scala
+
+- `dcb-store-scala` [:octicons-link-external-16:](https://github.com/carsten-langer/dcb-store-scala){:target="_blank" .small} Small Scala 3 API for DCB event stores, incl. conformance specification, an example in-memory implementation, and showcasing usage based on the [dcb.events examples](https://dcb.events/examples/).
+- `dcb-store-sw-eventstore` [:octicons-link-external-16:](https://github.com/carsten-langer/dcb-store-sw-eventstore){:target="_blank" .small} Small Scala 3 adapter that implements the generic API of `dcb-store-scala` on top of third party
+`sliceworkz-eventstore` (see Java frameworks on this page).
+
 ## Add your own
 
 If you are working on a library related to DCB or on a compatible (see [specification](../specification.md)) Event Store, feel free to open a Pull request in the Github Repository[:octicons-link-external-16:](https://github.com/dcb-events/dcb-events.github.io/edit/main/docs/resources/libraries.md){:target="_blank" .small} of this website to add it to the list above
