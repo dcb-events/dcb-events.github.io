@@ -1708,7 +1708,7 @@
 </span><span id="__span-0-73"><a id="__codelineno-0-73" name="__codelineno-0-73" href="#__codelineno-0-73"></a><span class="w">  </span><span class="nx">changeCapacity</span><span class="p">(</span><span class="nx">newCapacity</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-0-74"><a id="__codelineno-0-74" name="__codelineno-0-74" href="#__codelineno-0-74"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">newCapacity</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="n">#capacity</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75" href="#__codelineno-0-75"></a><span class="w">      </span><span class="k">throw</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="ne">Error</span><span class="p">(</span>
-</span><span id="__span-0-76"><a id="__codelineno-0-76" name="__codelineno-0-76" href="#__codelineno-0-76"></a><span class="w">        </span><span class="sb">`Course "</span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="n">#id</span><span class="si">}</span><span class="sb">" already has a capacity of "</span><span class="si">${</span><span class="nx">newCapacity</span><span class="si">}</span><span class="sb">`</span>
+</span><span id="__span-0-76"><a id="__codelineno-0-76" name="__codelineno-0-76" href="#__codelineno-0-76"></a><span class="w">        </span><span class="sb">`Course "</span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="n">#id</span><span class="si">}</span><span class="sb">" already has a capacity of "</span><span class="si">${</span><span class="nx">newCapacity</span><span class="si">}</span><span class="sb">"`</span>
 </span><span id="__span-0-77"><a id="__codelineno-0-77" name="__codelineno-0-77" href="#__codelineno-0-77"></a><span class="w">      </span><span class="p">)</span>
 </span><span id="__span-0-78"><a id="__codelineno-0-78" name="__codelineno-0-78" href="#__codelineno-0-78"></a><span class="w">    </span><span class="p">}</span>
 </span><span id="__span-0-79"><a id="__codelineno-0-79" name="__codelineno-0-79" href="#__codelineno-0-79"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">newCapacity</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="n">#numberOfSubscriptions</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
@@ -1800,7 +1800,7 @@
 </span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">  </span><span class="p">},</span>
 </span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="p">]</span>
 </span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="kd">const</span><span class="w"> </span><span class="nx">course</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">CourseAggregate</span><span class="p">.</span><span class="nx">reconstitute</span><span class="p">(</span><span class="nx">events</span><span class="p">)</span>
-</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="nx">course</span><span class="p">.</span><span class="nx">changeCapacity</span><span class="p">(</span><span class="mf">15</span><span class="p">)</span><span class="w"> </span><span class="c1">// Error: Course "c1" already has a capacity of "15</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="nx">course</span><span class="p">.</span><span class="nx">changeCapacity</span><span class="p">(</span><span class="mf">15</span><span class="p">)</span><span class="w"> </span><span class="c1">// Error: Course "c1" already has a capacity of "15"</span>
 </span></code></pre></div>
 <h3 id="repository">Repository</h3>
 <p>Aggregates are often paired with a corresponding <dfn title="Abstraction over data storage, providing a collection-like interface to access and manipulate domain entities">Repository</dfn> that handles saving and retrieving instances.</p>
@@ -1888,7 +1888,7 @@
 </span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="p">)</span><span class="w"> </span><span class="c1">// {type: 'CourseDefined', data: { courseId: 'c1', title: 'Course 01', capacity: 10 }, tags: [ 'course:c1' ], position: 1}</span>
 </span></code></pre></div>
 <h2 id="conclusion">Conclusion</h2>
-<p>This example demonstrates how the Aggregate pattern can be used with DCB</p>
+<p>This example demonstrates how the Aggregate pattern can be used with DCB.</p>
 
 
 
