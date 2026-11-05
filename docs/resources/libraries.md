@@ -91,6 +91,10 @@ Open Source Event Store specifically written to support DCB via gRPC API by John
 - `dcb-store-sw-eventstore` [:octicons-link-external-16:](https://github.com/carsten-langer/dcb-store-sw-eventstore){:target="_blank" .small} Small Scala 3 adapter that implements the generic API of `dcb-store-scala` on top of third party
 `sliceworkz-eventstore` (see Java frameworks on this page).
 
+#### Agent skills
+
+- `dcb-notation`[:octicons-link-external-16:](https://github.com/dcb-events/dcb-playground/tree/main/skills/dcb-notation){:target="_blank" .small} (experimental, writes and changes models in the [DCB notation](../notation/index.md), converts existing Event Sourcing apps to them or redesigns them to be simpler)
+
 ## Add your own
 
 If you are working on a library related to DCB or on a compatible (see [specification](../specification.md)) Event Store, feel free to open a Pull request in the Github Repository[:octicons-link-external-16:](https://github.com/dcb-events/dcb-events.github.io/edit/main/docs/resources/libraries.md){:target="_blank" .small} of this website to add it to the list above
