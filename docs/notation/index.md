@@ -711,4 +711,5 @@ The descriptions above reflect both languages as of October 2026.
 
 - Every example on this website has an ":material-play-box-outline: Open in Playground" button. The [:material-play-box-outline: DCB Playground](/playground/) shows a model as pages or as text, in the DCB notation. The text can be edited and applied, and its help links back to this page
 - The [reference](reference.md) lists every keyword
+- To write models from a coding agent, install the <span class="dcb-badge dcb-badge--experimental">experimental</span> [`dcb-notation` skill](https://github.com/dcb-events/dcb-playground/tree/main/skills/dcb-notation){:target="_blank"}. It writes and changes models in this notation, converts existing Event Sourcing apps to them or redesigns them to be simpler, and checks its results with the DCB Playground's own code: `npx skills add dcb-events/dcb-playground@dcb-notation`
 - The [course subscriptions](../examples/course-subscriptions.md) example uses the same domain as this page
