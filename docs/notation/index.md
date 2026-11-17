@@ -547,7 +547,17 @@ A lifecycle is either a `boolean` (two states, e.g. `lifecycle exists`) or an `e
 
 ### Chained reads <span class="dcb-badge dcb-badge--experimental">experimental</span> { #chained-reads data-toc-label="Chained reads" }
 
-An entity can be [fanned out](#fan-out-reads) like a projection, and a read can take its values from an earlier one. Rescheduling a course must not clash with the other courses of its students. The command reads the course, then every student subscribed to it, then every other course of those students:
+A read can take its Tags from an earlier one. In the [library loans](../examples/library-loans.md) example, a loan is renewed by scanning the copy, so the command reads the copy's borrower first, and then whether _that_ member is suspended:
+
+```dcb-fragment
+alias borrowerId = CopyBorrowerId(copyId)
+
+require MemberIsSuspended(borrowerId) is false
+```
+
+Both reads end up in the same Append Condition. See [chained reads](../topics/chained-reads.md) for what this requires from the Event Store client.
+
+An entity can be [fanned out](#fan-out-reads) like a projection, so a chain can also read a list of instances. Rescheduling a course must not clash with the other courses of its students. The command reads the course, then every student subscribed to it, then every other course of those students:
 
 ```dcb id="notation_06" extends="notation_05" hidden="true"
 event CourseRescheduled { tag courseId: CourseId, slots: string[] }

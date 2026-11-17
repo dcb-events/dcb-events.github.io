@@ -196,6 +196,10 @@ The Append Condition is used to enforce consistency, ensuring that between the t
     - when `after` is present, the `failIfEventsMatch` Query is typically (but not necessarily!) the same Query that was used when building the Decision Model, which guarantees that the Decision Model is still the same when we append new events
     - if omitted, no Events will be ignored, effectively failing if _any_ Event matches the specified Query
 
+!!! note
+
+    If the Decision Model is built from more than one read, e.g. because the Tags of one read follow from the result of another, the position of none of the reads is a suitable `after` value. Instead, the client can determine the position of the last Event in the Event Store (the "high watermark") before the first read. See [chained reads](topics/chained-reads.md) for details
+
 ```{.haskell .no-copy}
 AppendCondition {
   failIfEventsMatch: Query
