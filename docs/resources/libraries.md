@@ -44,6 +44,7 @@ Open Source Event Store specifically written to support DCB via gRPC API by John
 
 #### Go
 
+- `collie`[:octicons-link-external-16:](https://github.com/DenBeke/collie){:target="_blank" .small} (active dev, DCB-Compliant event sourcing library in Go, using Postgres directly as its event store, with an in-memory store for tests, projections, a command framework with conflict retries, and optional per-subject encryption for crypto-shredding. See the [introduction blog post](https://denbeke.be/blog/programming/introducing-collie-nine-months-of-dcb-event-sourcing-in-go-postgres-rounded-up-into-a-library/))
 - `fairway`[:octicons-link-external-16:](https://github.com/err0r500/fairway){:target="_blank" .small} (DCB-Compliant EventSourcing framework built on top of FoundationDB, demo application available)
 - `go-crablet`[:octicons-link-external-16:](https://github.com/rodolfodpk/go-crablet){:target="_blank" .small}
 
