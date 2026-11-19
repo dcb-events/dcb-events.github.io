@@ -14,6 +14,10 @@ How DCB allows to compose projections in order to create dynamic Decision Models
 
 How **tags** are the key to flexible event correlation
 
+## [Chained reads](chained-reads.md)
+
+How a decision can depend on state it only learns about while deciding, and why that requires a **high watermark**
+
 ---
 
 !!! tip

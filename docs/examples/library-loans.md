@@ -35,7 +35,7 @@ The renewal affects the copy, but depends on the borrower and the book, which li
 
 ## DCB approach
 
-The `CopyLent` Event is tagged with the copy _and_ the member, so a projection of the copy can tell its borrower. A command can read that projection first and then use its value as the Tag of another read.
+The `CopyLent` Event is tagged with the copy _and_ the member, so a projection of the copy can tell its borrower. A command can read that projection first and then use its value as the Tag of another read. See [chained reads](../topics/chained-reads.md) for how this works with a DCB-capable Event Store.
 
 ### Feature 1: Lending copies
 
@@ -270,9 +270,11 @@ command ReinstateMember(memberId: MemberId) {
 }
 ```
 
+The Query is built in two steps: the copy's borrower is read first, and decides which member is read. Both end up in the same Append Condition. If the copy is returned and lent to another member in the meantime, the borrower that was read is no longer the right one, but the Query Item for the copy catches that, too.
+
 !!! note
 
-    The Query is built in two steps: the copy's borrower is read first, and decides which member is read. Both end up in the same append condition. If the copy is returned and lent to another member in the meantime, the borrower that was read is no longer the right one, but the Query Item for the copy catches that, too.
+    Because the Decision Model is built from more than one read, the `after` position of the Append Condition can't be taken from either of them. It has to be the **high watermark**, determined before the first read. See [chained reads](../topics/chained-reads.md#the-high-watermark) for the reasoning and a step-by-step walkthrough of this command.
 
 ### Feature 3: Reservations
 
@@ -357,4 +359,4 @@ The renewal now reads state of three different things, two of them by a Tag it o
 
 ## Conclusion
 
-This example demonstrates how a command can read state whose identifiers follow from other state it read. The Query is as deep as the chain of reads, but still only as wide as the constraints it checks, so the decision needs no denormalized Read Model and no Aggregate that holds the copy, the member and the book together.
+This example demonstrates how a command can read state whose identifiers follow from other state it read. The Query is as deep as the chain of reads, but still only as wide as the constraints it checks, so the decision needs no denormalized Read Model and no Aggregate that holds the copy, the member and the book together. The [chained reads](../topics/chained-reads.md) article explains what this requires from the Event Store client.
